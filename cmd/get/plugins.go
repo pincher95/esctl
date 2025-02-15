@@ -23,7 +23,7 @@ var getPluginsCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := config.ParseConfigFile()
-		handlePluginsLogic(conf)
+		handlePluginsLogic(*conf)
 	},
 }
 

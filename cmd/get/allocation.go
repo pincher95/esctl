@@ -26,7 +26,7 @@ var getAllocationCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := config.ParseConfigFile()
-		handleAllocationLogic(conf)
+		handleAllocationLogic(*conf)
 	},
 }
 

@@ -26,7 +26,7 @@ var getIndicesCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := config.ParseConfigFile()
-		handleIndicesLogic(conf)
+		handleIndicesLogic(*conf)
 	},
 }
 

@@ -26,7 +26,7 @@ var getAliasesCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := config.ParseConfigFile()
-		handleAliasLogic(conf)
+		handleAliasLogic(*conf)
 	},
 }
 

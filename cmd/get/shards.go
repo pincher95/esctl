@@ -37,8 +37,8 @@ esctl get shards --index my_index
 # Retrieve shard information filtered by state.
 esctl get shards --started --relocating`),
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := config.ParseConfigFile()
-		handleShardLogic(conf)
+		config := config.ParseConfigFile()
+		handleShardLogic(*config)
 	},
 }
 

@@ -50,7 +50,7 @@ func init() {
 func initialize() {
 	if shared.ElasticsearchHost == "" {
 		conf := config.ParseConfigFile()
-		readContextFromConfig(conf)
+		readContextFromConfig(*conf)
 	}
 }
 

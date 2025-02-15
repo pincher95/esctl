@@ -16,7 +16,7 @@ var getTasksCmd = &cobra.Command{
 	Long:  `This command retrieves and displays tasks information from Elasticsearch cluster.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		config := config.ParseConfigFile()
-		handleTaskLogic(config)
+		handleTaskLogic(*config)
 	},
 }
 

@@ -15,7 +15,7 @@ var getNodesCmd = &cobra.Command{
 	Short: "Get all nodes in the Elasticsearch cluster",
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := config.ParseConfigFile()
-		handleNodeLogic(conf)
+		handleNodeLogic(*conf)
 	},
 }
 
