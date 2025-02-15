@@ -31,11 +31,11 @@ func init() {
 }
 
 var pluginsColumns = []output.ColumnDef{
-	{Header: "ID", Type: output.Number},
+	{Header: "ID", Type: output.Text},
 	{Header: "NAME", Type: output.Text},
 	{Header: "COMPONENT", Type: output.Text},
 	{Header: "VERSION", Type: output.Text},
-	{Header: "DESCRIPTION", Type: output.Number},
+	{Header: "DESCRIPTION", Type: output.Text},
 }
 
 func handlePluginsLogic(conf config.Config) {
@@ -72,6 +72,6 @@ func handlePluginsLogic(conf config.Config) {
 	if len(flagSortBy) > 0 {
 		output.PrintTable(columnDefs, data, flagSortBy...)
 	} else {
-		output.PrintTable(columnDefs, data, "ID")
+		output.PrintTable(columnDefs, data, "NAME")
 	}
 }
