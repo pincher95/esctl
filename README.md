@@ -1,8 +1,8 @@
 # esctl
 
-[![Latest Stable Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](https://github.com/fehmicansaglam/esctl/releases/tag/v1.0.0)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/fehmicansaglam/esctl/blob/main/LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/fehmicansaglam/esctl)](https://goreportcard.com/report/github.com/fehmicansaglam/esctl)
+[![Latest Stable Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](https://github.com/pincher95/esctl/releases/tag/v1.0.0)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/pincher95/esctl/blob/main/LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pincher95/esctl)](https://goreportcard.com/report/github.com/pincher95/esctl)
 
 `esctl` is a command-line tool for managing and interacting with Elasticsearch clusters. It provides a convenient interface to perform various operations, such as querying cluster information, managing indices, retrieving shard details, and monitoring tasks.
 
@@ -37,7 +37,7 @@ To install `esctl`, ensure that you have Go installed and set up in your develop
 2. Run the following command to install `esctl`:
 
    ```shell
-   go install github.com/fehmicansaglam/esctl@latest
+   go install github.com/pincher95/esctl@latest
    ```
    This command will fetch the source code from the GitHub repository, compile it, and install the `esctl` binary in your Go workspace's `bin` directory.
 
@@ -505,4 +505,3 @@ This would respectively:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
-

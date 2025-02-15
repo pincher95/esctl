@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fehmicansaglam/esctl/shared"
+	"github.com/pincher95/esctl/shared"
 )
 
 type EsError struct {

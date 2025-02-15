@@ -5,13 +5,13 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/fehmicansaglam/esctl/cmd/config"
-	"github.com/fehmicansaglam/esctl/cmd/count"
-	"github.com/fehmicansaglam/esctl/cmd/describe"
-	"github.com/fehmicansaglam/esctl/cmd/get"
-	"github.com/fehmicansaglam/esctl/cmd/query"
-	"github.com/fehmicansaglam/esctl/constants"
-	"github.com/fehmicansaglam/esctl/shared"
+	"github.com/pincher95/esctl/cmd/config"
+	"github.com/pincher95/esctl/cmd/count"
+	"github.com/pincher95/esctl/cmd/describe"
+	"github.com/pincher95/esctl/cmd/get"
+	"github.com/pincher95/esctl/cmd/query"
+	"github.com/pincher95/esctl/constants"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 

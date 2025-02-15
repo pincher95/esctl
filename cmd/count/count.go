@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fehmicansaglam/esctl/es"
-	"github.com/fehmicansaglam/esctl/output"
+	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
 

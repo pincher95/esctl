@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fehmicansaglam/esctl/cmd/utils"
-	"github.com/fehmicansaglam/esctl/es"
-	"github.com/fehmicansaglam/esctl/output"
+	"github.com/pincher95/esctl/cmd/utils"
+	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
 

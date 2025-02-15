@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fehmicansaglam/esctl/constants"
-	"github.com/fehmicansaglam/esctl/es"
-	"github.com/fehmicansaglam/esctl/output"
+	"github.com/pincher95/esctl/constants"
+	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
 
