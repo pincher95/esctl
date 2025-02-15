@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fehmicansaglam/esctl/cmd/config"
-	"github.com/fehmicansaglam/esctl/cmd/utils"
-	"github.com/fehmicansaglam/esctl/output"
+	"github.com/pincher95/esctl/cmd/config"
+	"github.com/pincher95/esctl/cmd/utils"
+	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
 
@@ -57,6 +57,8 @@ func init() {
 	getCmd.AddCommand(getNodesCmd)
 	getCmd.AddCommand(getShardsCmd)
 	getCmd.AddCommand(getTasksCmd)
+	getCmd.AddCommand(getAllocationCmd)
+	getCmd.AddCommand(getPluginsCmd)
 }
 
 func Cmd() *cobra.Command {

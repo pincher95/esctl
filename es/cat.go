@@ -1,6 +1,8 @@
 package es
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Node struct {
 	Name        string `json:"name"`
@@ -196,4 +198,54 @@ func getNodeSummary(node Node) (NodeSummary, error) {
 	}
 
 	return nodeSummary, nil
+}
+
+type Allocation struct {
+	Shards      string `json:"shards"`
+	DiskIndices string `json:"disk.indices"`
+	DiskUsed    string `json:"disk.used"`
+	DiskAvail   string `json:"disk.avail"`
+	DiskTotal   string `json:"disk.total"`
+	DiskPercent string `json:"disk.percent"`
+	Host        string `json:"host"`
+	IP          string `json:"ip"`
+	Node        string `json:"node"`
+}
+
+func GetAllocation(nodeName string) ([]Allocation, error) {
+	endpoint := "_cat/allocation"
+
+	if nodeName != "" {
+		endpoint += fmt.Sprintf("/%s", nodeName)
+	}
+
+	endpoint += "?format=json&h=shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node"
+
+	var allocation []Allocation
+	err := getJSONResponse(endpoint, &allocation)
+	if err != nil {
+		return []Allocation{}, err
+	}
+
+	return allocation, nil
+}
+
+type Plugins struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Component   string `json:"component"`
+	Version     string `json:"version"`
+	Description string `json:"description"`
+}
+
+func GetPlugins() ([]Plugins, error) {
+	endpoint := "_cat/plugins?format=json&h=id,name,component,version,description"
+
+	var plugins []Plugins
+	err := getJSONResponse(endpoint, &plugins)
+	if err != nil {
+		return []Plugins{}, err
+	}
+
+	return plugins, nil
 }
