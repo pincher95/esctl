@@ -3,6 +3,7 @@ package get
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -22,8 +23,20 @@ var getPluginsCmd = &cobra.Command{
 	esctl get plugins
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := config.ParseConfigFile()
-		handlePluginsLogic(*conf)
+		config := config.ParseConfigFile()
+
+		// If --watch is NOT set, just run once
+		if !flagRefresh {
+			handlePluginsLogic(*config)
+			return
+		}
+
+		// If --watch is set, run in a loop
+		for {
+			clearScreen() // optional, to mimic "watch" clearing
+			handlePluginsLogic(*config)
+			time.Sleep(flagRefreshInterval)
+		}
 	},
 }
 

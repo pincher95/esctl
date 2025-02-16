@@ -3,6 +3,7 @@ package get
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -25,8 +26,20 @@ var getAllocationCmd = &cobra.Command{
 	esctl get allocation --node my_node
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := config.ParseConfigFile()
-		handleAllocationLogic(*conf)
+		config := config.ParseConfigFile()
+
+		// If --watch is NOT set, just run once
+		if !flagRefresh {
+			handleAllocationLogic(*config)
+			return
+		}
+
+		// If --watch is set, run in a loop
+		for {
+			clearScreen() // optional, to mimic "watch" clearing
+			handleAllocationLogic(*config)
+			time.Sleep(flagRefreshInterval)
+		}
 	},
 }
 

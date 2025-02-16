@@ -3,6 +3,7 @@ package get
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/es"
@@ -14,8 +15,20 @@ var getNodesCmd = &cobra.Command{
 	Use:   "nodes",
 	Short: "Get all nodes in the Elasticsearch cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := config.ParseConfigFile()
-		handleNodeLogic(*conf)
+		config := config.ParseConfigFile()
+
+		// If --watch is NOT set, just run once
+		if !flagRefresh {
+			handleNodeLogic(*config)
+			return
+		}
+
+		// If --watch is set, run in a loop
+		for {
+			clearScreen() // optional, to mimic "watch" clearing
+			handleNodeLogic(*config)
+			time.Sleep(flagRefreshInterval)
+		}
 	},
 }
 

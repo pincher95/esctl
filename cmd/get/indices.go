@@ -3,6 +3,7 @@ package get
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -25,8 +26,20 @@ var getIndicesCmd = &cobra.Command{
 	esctl get indices --index my_index
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := config.ParseConfigFile()
-		handleIndicesLogic(*conf)
+		config := config.ParseConfigFile()
+
+		// If --watch is NOT set, just run once
+		if !flagRefresh {
+			handleIndicesLogic(*config)
+			return
+		}
+
+		// If --watch is set, run in a loop
+		for {
+			clearScreen() // optional, to mimic "watch" clearing
+			handleIndicesLogic(*config)
+			time.Sleep(flagRefreshInterval)
+		}
 	},
 }
 

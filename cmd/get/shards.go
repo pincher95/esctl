@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -38,7 +39,19 @@ esctl get shards --index my_index
 esctl get shards --started --relocating`),
 	Run: func(cmd *cobra.Command, args []string) {
 		config := config.ParseConfigFile()
-		handleShardLogic(*config)
+
+		// If --watch is NOT set, just run once
+		if !flagRefresh {
+			handleShardLogic(*config)
+			return
+		}
+
+		// If --watch is set, run in a loop
+		for {
+			clearScreen() // optional, to mimic "watch" clearing
+			handleShardLogic(*config)
+			time.Sleep(flagRefreshInterval)
+		}
 	},
 }
 

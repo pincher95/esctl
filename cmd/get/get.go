@@ -3,6 +3,7 @@ package get
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -51,6 +52,8 @@ esctl get tasks`),
 func init() {
 	getCmd.PersistentFlags().StringVarP(&flagSortBy, "sort-by", "s", "", "Columns to sort by (comma-separated), e.g. 'NAME:desc,HEAP-PERCENT:asc'")
 	getCmd.PersistentFlags().StringSliceVarP(&flagColumns, "columns", "c", []string{}, "Columns to display (comma-separated) or 'all'")
+	getCmd.PersistentFlags().BoolVarP(&flagRefresh, "watch", "w", false, "Continuously watch the output")
+	getCmd.PersistentFlags().DurationVarP(&flagRefreshInterval, "interval", "i", 5*time.Second, "Interval between consecutive fetches")
 
 	getCmd.AddCommand(getAliasesCmd)
 	getCmd.AddCommand(getIndicesCmd)
@@ -98,4 +101,9 @@ func getColumnDefs(conf config.Config, entity string, defaultColumns []output.Co
 		}
 		return buildColumnDefs(entityConfig.Columns, defaultColumns)
 	}
+}
+
+func clearScreen() {
+	// Move cursor to top-left and clear screen
+	fmt.Print("\033[?1049h\033[H\033[?25l")
 }
