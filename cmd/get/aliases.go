@@ -67,5 +67,7 @@ func handleAliasLogic(conf config.Config) {
 		data = append(data, row)
 	}
 
-	output.PrintTable(columnDefs, data, flagSortBy...)
+	sortCols := output.ParseSortColumns(flagSortBy)
+
+	output.PrintTable(columnDefs, data, sortCols)
 }

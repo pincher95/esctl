@@ -59,9 +59,11 @@ func handleCount() {
 	}
 
 	if len(flagSortBy) > 0 {
-		output.PrintTable(columnDefs, data, flagSortBy...)
+		sortCols := output.ParseSortColumns(flagSortBy)
+		output.PrintTable(columnDefs, data, sortCols)
 	} else {
-		output.PrintTable(columnDefs, data, "INDEX")
+		sortCols := output.ParseSortColumns("INDEX")
+		output.PrintTable(columnDefs, data, sortCols)
 	}
 }
 
@@ -71,7 +73,7 @@ func init() {
 	countCmd.Flags().StringSliceVarP(&flagExists, "exists", "e", []string{}, "Exists filters to apply")
 	countCmd.Flags().StringArrayVar(&flagNested, "nested", []string{}, "Nested paths")
 	countCmd.Flags().StringVarP(&flagGroupBy, "group-by", "g", "", "Field to group the documents by")
-	countCmd.Flags().StringSliceVarP(&flagSortBy, "sort-by", "s", []string{}, "Columns to sort by (comma-separated)")
+	countCmd.Flags().StringVarP(&flagSortBy, "sort-by", "s", "", "Columns to sort by (comma-separated)")
 	countCmd.Flags().IntVar(&flagSize, "size", 0, "Set max results per group")
 	countCmd.Flags().StringVar(&flagTimeout, "timeout", "", "Set timeout for group by query")
 	countCmd.Flags().BoolVar(&flagRefresh, "refresh", false, "Refresh index before counting documents")

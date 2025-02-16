@@ -86,8 +86,10 @@ func handleIndicesLogic(conf config.Config) {
 	}
 
 	if len(flagSortBy) > 0 {
-		output.PrintTable(columnDefs, data, flagSortBy...)
+		sortCols := output.ParseSortColumns(flagSortBy)
+		output.PrintTable(columnDefs, data, sortCols)
 	} else {
-		output.PrintTable(columnDefs, data, "INDEX")
+		sortCols := output.ParseSortColumns("INDEX")
+		output.PrintTable(columnDefs, data, sortCols)
 	}
 }

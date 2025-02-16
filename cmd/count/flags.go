@@ -6,7 +6,7 @@ var (
 	flagIndex   string
 	flagNested  []string
 	flagSize    int
-	flagSortBy  []string
+	flagSortBy  string
 	flagTerm    []string
 	flagTimeout string
 	flagRefresh bool

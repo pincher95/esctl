@@ -10,7 +10,7 @@ var (
 	flagRelocating   bool
 	flagReplica      bool
 	flagShard        int
-	flagSortBy       []string
+	flagSortBy       string
 	flagStarted      bool
 	flagUnassigned   bool
 )

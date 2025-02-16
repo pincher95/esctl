@@ -49,7 +49,7 @@ esctl get tasks`),
 }
 
 func init() {
-	getCmd.PersistentFlags().StringSliceVarP(&flagSortBy, "sort-by", "s", []string{}, "Columns to sort by (comma-separated)")
+	getCmd.PersistentFlags().StringVarP(&flagSortBy, "sort-by", "s", "", "Columns to sort by (comma-separated), e.g. 'NAME:desc,HEAP-PERCENT:asc'")
 	getCmd.PersistentFlags().StringSliceVarP(&flagColumns, "columns", "c", []string{}, "Columns to display (comma-separated) or 'all'")
 
 	getCmd.AddCommand(getAliasesCmd)

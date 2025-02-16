@@ -85,8 +85,10 @@ func handleNodeLogic(conf config.Config) {
 	}
 
 	if len(flagSortBy) > 0 {
-		output.PrintTable(columnDefs, data, flagSortBy...)
+		sortCols := output.ParseSortColumns(flagSortBy)
+		output.PrintTable(columnDefs, data, sortCols)
 	} else {
-		output.PrintTable(columnDefs, data, "NAME")
+		sortCols := output.ParseSortColumns("NAME")
+		output.PrintTable(columnDefs, data, sortCols)
 	}
 }

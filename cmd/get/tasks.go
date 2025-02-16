@@ -68,8 +68,10 @@ func handleTaskLogic(config config.Config) {
 	}
 
 	if len(flagSortBy) > 0 {
-		output.PrintTable(columnDefs, data, flagSortBy...)
+		sortCols := output.ParseSortColumns(flagSortBy)
+		output.PrintTable(columnDefs, data, sortCols)
 	} else {
-		output.PrintTable(columnDefs, data, "NODE", "ID")
+		sortCols := output.ParseSortColumns("NODE,ID")
+		output.PrintTable(columnDefs, data, sortCols)
 	}
 }
