@@ -48,15 +48,14 @@ func init() {
 }
 
 var indexColumns = []output.ColumnDef{
-	{Header: "INDEX", Type: output.Text},
-	{Header: "UUID", Type: output.Text},
 	{Header: "HEALTH", Type: output.Text},
 	{Header: "STATUS", Type: output.Text},
-	{Header: "SHARDS", Type: output.Number},
+	{Header: "INDEX", Type: output.Text},
+	{Header: "UUID", Type: output.Text},
+	{Header: "PRIMARY", Type: output.Number},
 	{Header: "REPLICAS", Type: output.Number},
 	{Header: "DOCS-COUNT", Type: output.Number},
 	{Header: "DOCS-DELETED", Type: output.Number},
-	{Header: "CREATION-DATE", Type: output.Date},
 	{Header: "STORE-SIZE", Type: output.DataSize},
 	{Header: "PRI-STORE-SIZE", Type: output.DataSize},
 }
@@ -78,15 +77,14 @@ func handleIndicesLogic(conf config.Config) {
 
 	for _, index := range indices {
 		rowData := map[string]string{
-			"INDEX":          index.Index,
-			"UUID":           index.UUID,
 			"HEALTH":         index.Health,
 			"STATUS":         index.Status,
-			"SHARDS":         index.Pri,
+			"INDEX":          index.Index,
+			"UUID":           index.UUID,
+			"PRIMARY":        index.Pri,
 			"REPLICAS":       index.Rep,
 			"DOCS-COUNT":     index.DocsCount,
 			"DOCS-DELETED":   index.DocsDeleted,
-			"CREATION-DATE":  index.CreationDate,
 			"STORE-SIZE":     index.StoreSize,
 			"PRI-STORE-SIZE": index.PriStoreSize,
 		}
