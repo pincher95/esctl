@@ -126,10 +126,6 @@ var shardColumns = []output.ColumnDef{
 	{Header: "STORE", Type: output.DataSize},
 	{Header: "IP", Type: output.Text},
 	{Header: "NODE", Type: output.Text},
-	{Header: "NODE-ID", Type: output.Text},
-	{Header: "UNASSIGNED-REASON", Type: output.Text},
-	{Header: "UNASSIGNED-AT", Type: output.Date},
-	{Header: "SEGMENTS-COUNT", Type: output.Number},
 }
 
 func handleShardLogic(conf config.Config) {
@@ -152,18 +148,14 @@ func handleShardLogic(conf config.Config) {
 			includeShardByPriRep(shard) && includeShardByNode(shard) {
 
 			rowData := map[string]string{
-				"INDEX":             shard.Index,
-				"SHARD":             shard.Shard,
-				"PRI-REP":           humanizePriRep(shard.PriRep),
-				"STATE":             shard.State,
-				"DOCS":              shard.Docs,
-				"STORE":             shard.Store,
-				"IP":                shard.IP,
-				"NODE":              shard.Node,
-				"NODE-ID":           shard.ID,
-				"UNASSIGNED-REASON": shard.UnassignedReason,
-				"UNASSIGNED-AT":     shard.UnassignedAt,
-				"SEGMENTS-COUNT":    shard.SegmentsCount,
+				"INDEX":   shard.Index,
+				"SHARD":   shard.Shard,
+				"PRI-REP": humanizePriRep(shard.PriRep),
+				"STATE":   shard.State,
+				"DOCS":    shard.Docs,
+				"STORE":   shard.Store,
+				"IP":      shard.IP,
+				"NODE":    shard.Node,
 			}
 
 			row := make([]string, len(columnDefs))
