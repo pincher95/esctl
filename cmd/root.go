@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -15,17 +16,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "esctl",
 	Short: "esctl is CLI for Elasticsearch",
 	Long:  `esctl is a read-only CLI for Elasticsearch that allows users to manage and monitor their Elasticsearch clusters.`,
 }
 
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+func Execute(ctx context.Context) error {
+	return RootCmd.ExecuteContext(ctx)
 }
 
 func init() {
@@ -37,14 +35,14 @@ func init() {
 	initUsernameFlag()
 	initPasswordFlag()
 
-	rootCmd.PersistentFlags().StringVar(&shared.Context, "context", "", "Override context")
-	rootCmd.PersistentFlags().BoolVar(&shared.Debug, "debug", false, "Enable debug mode")
+	RootCmd.PersistentFlags().StringVar(&shared.Context, "context", "", "Override context")
+	RootCmd.PersistentFlags().BoolVar(&shared.Debug, "debug", false, "Enable debug mode")
 
-	rootCmd.AddCommand(config.Cmd())
-	rootCmd.AddCommand(count.Cmd())
-	rootCmd.AddCommand(describe.Cmd())
-	rootCmd.AddCommand(get.Cmd())
-	rootCmd.AddCommand(query.Cmd())
+	RootCmd.AddCommand(config.Cmd())
+	RootCmd.AddCommand(count.Cmd())
+	RootCmd.AddCommand(describe.Cmd())
+	RootCmd.AddCommand(get.Cmd())
+	RootCmd.AddCommand(query.Cmd())
 }
 
 func initialize() {
@@ -105,12 +103,12 @@ func initProtocolFlag() {
 	if defaultProtocolEnv != "" {
 		defaultProtocol = defaultProtocolEnv
 	}
-	rootCmd.PersistentFlags().StringVar(&shared.ElasticsearchProtocol, "protocol", defaultProtocol, "Elasticsearch protocol")
+	RootCmd.PersistentFlags().StringVar(&shared.ElasticsearchProtocol, "protocol", defaultProtocol, "Elasticsearch protocol")
 }
 
 func initHostFlag() {
 	defaultHost := os.Getenv(constants.ElasticsearchHostEnvVar)
-	rootCmd.PersistentFlags().StringVar(&shared.ElasticsearchHost, "host", defaultHost, "Elasticsearch host")
+	RootCmd.PersistentFlags().StringVar(&shared.ElasticsearchHost, "host", defaultHost, "Elasticsearch host")
 }
 
 func initPortFlag() {
@@ -124,15 +122,15 @@ func initPortFlag() {
 		}
 		defaultPort = parsedPort
 	}
-	rootCmd.PersistentFlags().IntVar(&shared.ElasticsearchPort, "port", defaultPort, "Elasticsearch port")
+	RootCmd.PersistentFlags().IntVar(&shared.ElasticsearchPort, "port", defaultPort, "Elasticsearch port")
 }
 
 func initUsernameFlag() {
 	defaultUsername := os.Getenv(constants.ElasticsearchUsernameEnvVar)
-	rootCmd.PersistentFlags().StringVar(&shared.ElasticsearchUsername, "username", defaultUsername, "Elasticsearch username")
+	RootCmd.PersistentFlags().StringVar(&shared.ElasticsearchUsername, "username", defaultUsername, "Elasticsearch username")
 }
 
 func initPasswordFlag() {
 	defaultPassword := os.Getenv(constants.ElasticsearchPasswordEnvVar)
-	rootCmd.PersistentFlags().StringVar(&shared.ElasticsearchPassword, "password", defaultPassword, "Elasticsearch password")
+	RootCmd.PersistentFlags().StringVar(&shared.ElasticsearchPassword, "password", defaultPassword, "Elasticsearch password")
 }
