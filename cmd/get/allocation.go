@@ -2,7 +2,6 @@ package get
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
@@ -25,19 +24,21 @@ var getAllocationCmd = &cobra.Command{
 	# Retrieve allocation for a specific node.
 	esctl get allocation --node my_node
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		config := config.ParseConfigFile()
 
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handleAllocationLogic(*config)
-			return
+			return handleAllocationLogic(*config)
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			handleAllocationLogic(*config)
+			err := handleAllocationLogic(*config)
+			if err != nil {
+				return err
+			}
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -59,17 +60,15 @@ var allocationColumns = []output.ColumnDef{
 	{Header: "NODE", Type: output.DataSize},
 }
 
-func handleAllocationLogic(conf config.Config) {
+func handleAllocationLogic(conf config.Config) error {
 	allocations, err := es.GetAllocation(flagIndex)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve allocation:", err)
-		os.Exit(1)
+		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "shards", allocationColumns)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to get column definitions:", err)
-		os.Exit(1)
+		return fmt.Errorf("Failed to get column definitions: %v", err)
 	}
 
 	data := [][]string{}
@@ -101,4 +100,6 @@ func handleAllocationLogic(conf config.Config) {
 		sortCols := output.ParseSortColumns("SHARDS")
 		output.PrintTable(columnDefs, data, sortCols)
 	}
+
+	return nil
 }
