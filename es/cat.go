@@ -8,6 +8,7 @@ type Node struct {
 	Name        string `json:"name"`
 	IP          string `json:"ip"`
 	NodeRole    string `json:"node.role"`
+	NodeRoles   string `json:"node.roles"`
 	Master      string `json:"master"`
 	HeapMax     string `json:"heap.max"`
 	HeapCurrent string `json:"heap.current"`
@@ -17,6 +18,8 @@ type Node struct {
 	RAMPercent  string `json:"ram.percent"`
 	CPU         string `json:"cpu"`
 	Load1m      string `json:"load_1m"`
+	Load5m      string `json:"load_5m"`
+	Load15m     string `json:"load_15m"`
 	DiskTotal   string `json:"disk.total"`
 	DiskUsed    string `json:"disk.used"`
 	DiskAvail   string `json:"disk.avail"`
@@ -24,7 +27,7 @@ type Node struct {
 }
 
 func GetNodes(nodeName string) ([]Node, error) {
-	endpoint := "_cat/nodes?format=json&h=name,ip,node.role,master,heap.max,heap.current,heap.percent,cpu,load_1m,disk.total,disk.used,disk.avail,ram.current,ram.max,ram.percent,uptime"
+	endpoint := "_cat/nodes?format=json&h=name,ip,node.role,node.roles,master,heap.percent,cpu,load_1m,load_5m,load_15m,ram.percent,"
 
 	var nodes []Node
 	if err := getJSONResponse(endpoint, &nodes); err != nil {
