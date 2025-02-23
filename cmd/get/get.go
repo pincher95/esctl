@@ -22,7 +22,10 @@ Available Entities:
   - indices: List all indices in the Elasticsearch cluster.
   - shards: List detailed information about shards, including their sizes and placement.
   - aliases: List all aliases in the Elasticsearch cluster.
-  - tasks: List all tasks in the Elasticsearch cluster.`),
+  - tasks: List all tasks in the Elasticsearch cluster.
+	- allocation: List allocation in the Elasticsearch cluster.
+	- plugins: List all plugins in the Elasticsearch cluster.
+	- expain: List allocation explain in the Elasticsearch cluster.`),
 	Example: utils.TrimAndIndent(`
 #Retrieve a list of all nodes in the Elasticsearch cluster.
 esctl get nodes
@@ -62,14 +65,15 @@ func init() {
 	getCmd.AddCommand(getTasksCmd)
 	getCmd.AddCommand(getAllocationCmd)
 	getCmd.AddCommand(getPluginsCmd)
+	getCmd.AddCommand(getAllocationExplainCmd)
 }
 
 func Cmd() *cobra.Command {
 	return getCmd
 }
 
-func buildColumnDefs(columns []string, defaultColumns []output.ColumnDef) ([]output.ColumnDef, error) {
-	columnDefs := make([]output.ColumnDef, 0, len(columns))
+func buildColumnDefs(columns []string, defaultColumns []output.ColumnDefaults) ([]output.ColumnDefaults, error) {
+	columnDefs := make([]output.ColumnDefaults, 0, len(columns))
 	for _, column := range columns {
 		var found bool
 		for _, defaultColumn := range defaultColumns {
@@ -86,7 +90,7 @@ func buildColumnDefs(columns []string, defaultColumns []output.ColumnDef) ([]out
 	return columnDefs, nil
 }
 
-func getColumnDefs(conf config.Config, entity string, defaultColumns []output.ColumnDef) ([]output.ColumnDef, error) {
+func getColumnDefs(conf config.Config, entity string, defaultColumns []output.ColumnDefaults) ([]output.ColumnDefaults, error) {
 	if len(flagColumns) > 0 {
 		for _, column := range flagColumns {
 			if strings.EqualFold(column, "all") {

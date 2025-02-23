@@ -81,3 +81,12 @@ func GetCluster() (*Cluster, error) {
 
 	return &cluster, nil
 }
+
+func GetAllocationExplain() (interface{}, error) {
+	var response JsonResponse
+	if err := getJSONResponse("_cluster/allocation/explain", &response); err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
