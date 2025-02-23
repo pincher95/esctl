@@ -34,7 +34,7 @@ func handleCount() {
 		os.Exit(1)
 	}
 
-	columnDefs := []output.ColumnDef{
+	columnDefs := []output.ColumnDefaults{
 		{Header: "INDEX", Type: output.Text},
 		{Header: strings.ToUpper(flagGroupBy), Type: output.Text},
 		{Header: "COUNT", Type: output.Number},

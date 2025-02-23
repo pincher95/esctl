@@ -8,7 +8,7 @@ import (
 	"text/tabwriter"
 )
 
-type ColumnDef struct {
+type ColumnDefaults struct {
 	Header string
 	Type   ColumnType
 }
@@ -44,7 +44,7 @@ func compareValues(left, right string, columnType ColumnType) bool {
 	return false
 }
 
-func PrintTable(columnDefs []ColumnDef, data [][]string, sortCols []sortColumn) {
+func PrintTable(columnDefs []ColumnDefaults, data [][]string, sortCols []sortColumn) {
 	// Detect empty columns (unchanged from your snippet):
 	emptyColumns := make([]bool, len(columnDefs))
 	for i := range columnDefs {

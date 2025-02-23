@@ -43,7 +43,7 @@ var getPluginsCmd = &cobra.Command{
 func init() {
 }
 
-var pluginsColumns = []output.ColumnDef{
+var pluginsColumns = []output.ColumnDefaults{
 	{Header: "ID", Type: output.Text},
 	{Header: "NAME", Type: output.Text},
 	{Header: "COMPONENT", Type: output.Text},

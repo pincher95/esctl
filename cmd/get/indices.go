@@ -47,7 +47,7 @@ func init() {
 	getIndicesCmd.Flags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
 }
 
-var indexColumns = []output.ColumnDef{
+var indexColumns = []output.ColumnDefaults{
 	{Header: "HEALTH", Type: output.Text},
 	{Header: "STATUS", Type: output.Text},
 	{Header: "INDEX", Type: output.Text},

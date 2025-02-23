@@ -37,7 +37,7 @@ func init() {
 	getTasksCmd.Flags().StringArrayVarP(&flagActions, "actions", "a", nil, "Filter tasks by actions")
 }
 
-var taskColumns = []output.ColumnDef{
+var taskColumns = []output.ColumnDefaults{
 	{Header: "NODE", Type: output.Text},
 	{Header: "ID", Type: output.Number},
 	{Header: "ACTION", Type: output.Text},

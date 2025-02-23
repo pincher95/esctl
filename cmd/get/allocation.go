@@ -48,7 +48,7 @@ func init() {
 	getAllocationCmd.Flags().StringVar(&flagNode, "node", "", "Name of the node")
 }
 
-var allocationColumns = []output.ColumnDef{
+var allocationColumns = []output.ColumnDefaults{
 	{Header: "SHARDS", Type: output.Number},
 	{Header: "DISK-INDICES", Type: output.Text},
 	{Header: "DISK-USED", Type: output.Text},

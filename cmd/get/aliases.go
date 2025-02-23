@@ -47,9 +47,13 @@ func init() {
 	getAliasesCmd.Flags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
 }
 
-var aliasColumns = []output.ColumnDef{
+var aliasColumns = []output.ColumnDefaults{
 	{Header: "ALIAS", Type: output.Text},
 	{Header: "INDEX", Type: output.Text},
+	{Header: "FILTER", Type: output.Text},
+	{Header: "ROUTING-INDEX", Type: output.Text},
+	{Header: "ROUTING-SEARCH", Type: output.Text},
+	{Header: "IS_WRITE_INDEX", Type: output.Text},
 }
 
 func handleAliasLogic(conf config.Config) {
@@ -71,6 +75,7 @@ func handleAliasLogic(conf config.Config) {
 		rowData := map[string]string{
 			"ALIAS": alias,
 			"INDEX": index,
+			// "FILTER": alias,
 		}
 
 		row := make([]string, len(columnDefs))

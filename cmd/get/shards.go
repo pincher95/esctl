@@ -117,7 +117,7 @@ func humanizePriRep(priRep string) string {
 	}
 }
 
-var shardColumns = []output.ColumnDef{
+var shardColumns = []output.ColumnDefaults{
 	{Header: "INDEX", Type: output.Text},
 	{Header: "SHARD", Type: output.Number},
 	{Header: "PRI-REP", Type: output.Text},
