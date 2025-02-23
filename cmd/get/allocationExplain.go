@@ -44,11 +44,12 @@ var getAllocationExplainCmd = &cobra.Command{
 }
 
 func init() {
-	// getAllocationExplainCmd.Flags().StringVar(&flagNode, "node", "", "Name of the node")
+	getAllocationExplainCmd.Flags().BoolVar(&flagIncludeDiskInfo, "include-disk-info", false, "Information about disk usage and shard sizes")
+	getAllocationExplainCmd.Flags().BoolVar(&flagIncludeYesDecisions, "include-yes-decisions", false, "YES decisions in explanation")
 }
 
 func handleAllocationExplainLogic() error {
-	allocationsExplain, err := es.GetAllocationExplain()
+	allocationsExplain, err := es.GetAllocationExplain(flagIncludeDiskInfo, flagIncludeYesDecisions)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation explain: %v", err)
 	}

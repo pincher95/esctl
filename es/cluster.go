@@ -1,5 +1,9 @@
 package es
 
+import (
+	"fmt"
+)
+
 type ClusterHealth struct {
 	ClusterName                 string  `json:"cluster_name" yaml:"clusterName"`
 	Status                      string  `json:"status" yaml:"status"`
@@ -82,9 +86,20 @@ func GetCluster() (*Cluster, error) {
 	return &cluster, nil
 }
 
-func GetAllocationExplain() (interface{}, error) {
+func GetAllocationExplain(flagIncludeDiskInfo, flagIncludeYesDecisions bool) (interface{}, error) {
 	var response JsonResponse
-	if err := getJSONResponse("_cluster/allocation/explain", &response); err != nil {
+
+	endpoint := "_cluster/allocation/explain"
+
+	if flagIncludeDiskInfo && flagIncludeYesDecisions {
+		endpoint += fmt.Sprintf("?%s&%s", "include_disk_info", "include_yes_decisions")
+	} else if flagIncludeDiskInfo {
+		endpoint += fmt.Sprintf("?%s", "include_disk_info")
+	} else if flagIncludeYesDecisions {
+		endpoint += fmt.Sprintf("?%s", "include_yes_decisions")
+	}
+
+	if err := getJSONResponse(endpoint, &response); err != nil {
 		return nil, err
 	}
 

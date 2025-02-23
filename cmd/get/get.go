@@ -25,7 +25,7 @@ Available Entities:
   - tasks: List all tasks in the Elasticsearch cluster.
 	- allocation: List allocation in the Elasticsearch cluster.
 	- plugins: List all plugins in the Elasticsearch cluster.
-	- expain: List allocation explain in the Elasticsearch cluster.`),
+	- explain: List allocation explain in the Elasticsearch cluster.`),
 	Example: utils.TrimAndIndent(`
 #Retrieve a list of all nodes in the Elasticsearch cluster.
 esctl get nodes
