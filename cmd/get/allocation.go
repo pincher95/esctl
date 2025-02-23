@@ -61,7 +61,7 @@ var allocationColumns = []output.ColumnDefaults{
 }
 
 func handleAllocationLogic(conf config.Config) error {
-	allocations, err := es.GetAllocation(flagIndex)
+	allocations, err := es.GetAllocation(flagNode)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}
