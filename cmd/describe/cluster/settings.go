@@ -38,6 +38,6 @@ func handleDescribeClusterSettings() {
 }
 
 func init() {
-	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-settings", false, "If set, print settings in a json format")
+	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-settings", false, "If set, print settings in a none flat format")
 	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings")
 }
