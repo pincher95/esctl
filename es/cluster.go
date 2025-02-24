@@ -61,7 +61,7 @@ type ClusterStats struct {
 	} `json:"indices" yaml:"indices"`
 }
 
-type ClusterSettings map[string]interface{}
+type ClusterSettings map[string]any
 
 type Cluster struct {
 	Health   ClusterHealth   `json:"health"`
@@ -86,7 +86,57 @@ func GetCluster() (*Cluster, error) {
 	return &cluster, nil
 }
 
-func GetAllocationExplain(flagIncludeDiskInfo, flagIncludeYesDecisions bool) (interface{}, error) {
+func GetClusterSettings(flat, defaults bool) (ClusterSettings, error) {
+	var settings ClusterSettings
+
+	endpoint := "_cluster/settings"
+
+	if defaults && flat {
+		endpoint += fmt.Sprintf("?%s&%s", "flat_settings", "include_defaults")
+	} else if defaults {
+		endpoint += fmt.Sprintf("?%s", "include_defaults")
+	} else if flat {
+		endpoint += fmt.Sprintf("?%s", "flat_settings")
+	}
+
+	if err := getJSONResponse(endpoint, &settings); err != nil {
+		return nil, err
+	}
+
+	return settings, nil
+}
+
+func GetClusterHealth(level, index string) (ClusterSettings, error) {
+	var settings ClusterSettings
+
+	endpoint := "_cluster/health"
+
+	if index != "" {
+		endpoint += fmt.Sprintf("/%s", index)
+	}
+
+	if level != "" {
+		endpoint += fmt.Sprintf("?%s=%s", "level", level)
+	}
+
+	if err := getJSONResponse(endpoint, &settings); err != nil {
+		return nil, err
+	}
+
+	return settings, nil
+}
+
+func GetClusterStats() (ClusterStats, error) {
+	var stats ClusterStats
+
+	if err := getJSONResponse("_cluster/stats", &stats); err != nil {
+		return stats, err
+	}
+
+	return stats, nil
+}
+
+func GetAllocationExplain(flagIncludeDiskInfo, flagIncludeYesDecisions bool) (any, error) {
 	var response JsonResponse
 
 	endpoint := "_cluster/allocation/explain"

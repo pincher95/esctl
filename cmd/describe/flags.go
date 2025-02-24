@@ -1,7 +1,8 @@
 package describe
 
 var (
-	flagMappings bool
-	flagOutput   string
-	flagSettings bool
+	flagOutput       string
+	flagFlatSettings bool
+	flagMappings     bool
+	flagSettings     bool
 )
