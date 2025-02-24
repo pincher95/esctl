@@ -2,12 +2,20 @@ package describe
 
 import (
 	"github.com/pincher95/esctl/cmd/describe/cluster"
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
 var describeCmd = &cobra.Command{
 	Use:   "describe",
-	Short: "Print detailed information about an entity",
+	Short: "Print detailed information about a cluster entity e.g. cluster, index, node",
+	Long: utils.Trim(`
+The 'describe' command allows you to retrieve detailed information about an Elasticsearch entity.
+
+Available Entities:
+	- cluster: Print detailed information about the cluster.
+	- index: Print detailed information about an index.
+	- node: Print detailed information about a node.`),
 	// Args:      cobra.RangeArgs(1, 2),
 	// ValidArgs: []string{"cluster", "index", "node"},
 	// Run: func(cmd *cobra.Command, args []string) {
@@ -37,10 +45,10 @@ var describeCmd = &cobra.Command{
 }
 
 func init() {
+	describeCmd.AddCommand(cluster.Cmd())
+
 	// describeCmd.Use = fmt.Sprintf(`describe [%s] [NAME]`, strings.Join(describeCmd.ValidArgs, "|"))
 	// describeCmd.Long = fmt.Sprintf("Print detailed information about the specified entity.\nAvailable entities: %s.", strings.Join(describeCmd.ValidArgs, ", "))
-
-	describeCmd.AddCommand(cluster.Cmd())
 
 	// describeCmd.Flags().BoolVar(&flagMappings, "mappings", false, "If set, retrieve and print index mappings")
 	// describeCmd.Flags().BoolVar(&flagSettings, "settings", false, "If set, retrieve and print index settings")

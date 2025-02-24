@@ -12,16 +12,8 @@ var clusterCmd = &cobra.Command{
 The 'describe cluster' command allows you to retrieve detailed information about the Elasticsearch cluster.
 
 Available Subcommands:
-	- settings: Print detailed information about the cluster settings.`),
-	Example: utils.TrimAndIndent(`
-# Retrieve detailed information about the cluster settings.
-esctl describe cluster settings
-
-# Retrieve detailed information about the cluster settings in a flat format.
-esctl describe cluster settings --flat-settings
-
-# Retrieve detailed information about the cluster settings including default settings.
-esctl describe cluster settings --include-defaults`),
+	- settings: Print detailed information about the cluster settings.
+	- health: Print detailed information about the cluster health.`),
 }
 
 func Cmd() *cobra.Command {

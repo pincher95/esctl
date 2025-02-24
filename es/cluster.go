@@ -91,11 +91,11 @@ func GetClusterSettings(flat, defaults bool) (ClusterSettings, error) {
 
 	endpoint := "_cluster/settings"
 
-	if defaults && flat {
+	if defaults && !flat {
 		endpoint += fmt.Sprintf("?%s&%s", "flat_settings", "include_defaults")
 	} else if defaults {
 		endpoint += fmt.Sprintf("?%s", "include_defaults")
-	} else if flat {
+	} else if !flat {
 		endpoint += fmt.Sprintf("?%s", "flat_settings")
 	}
 

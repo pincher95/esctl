@@ -3,6 +3,7 @@ package cluster
 import (
 	"fmt"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
@@ -11,6 +12,16 @@ import (
 var clusterSettingsCmd = &cobra.Command{
 	Use:   "settings",
 	Short: "Print detailed information about an entity",
+	Long:  "By default, it returns only settings that have been explicitly defined.",
+	Example: utils.TrimAndIndent(`
+	# Retrieve detailed information about the cluster settings.
+	esctl describe cluster settings
+
+	# Retrieve detailed information about the cluster settings in a none flat format.
+	esctl describe cluster settings --no-flat-settings
+
+	# Retrieve detailed information about the cluster settings including default settings.
+	esctl describe cluster settings --include-defaults`),
 	Run: func(cmd *cobra.Command, args []string) {
 		handleDescribeClusterSettings()
 	},
@@ -27,6 +38,6 @@ func handleDescribeClusterSettings() {
 }
 
 func init() {
-	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "flat-settings", true, "If set, print settings in a flat format")
+	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-settings", false, "If set, print settings in a json format")
 	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings")
 }
