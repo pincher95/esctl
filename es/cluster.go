@@ -69,22 +69,22 @@ type Cluster struct {
 	Settings ClusterSettings `json:"settings"`
 }
 
-func GetCluster() (*Cluster, error) {
-	var cluster Cluster
-	if err := getJSONResponse("_cluster/stats", &cluster.Stats); err != nil {
-		return nil, err
-	}
+// func GetCluster() (*Cluster, error) {
+// 	var cluster Cluster
+// 	if err := getJSONResponse("_cluster/stats", &cluster.Stats); err != nil {
+// 		return nil, err
+// 	}
 
-	if err := getJSONResponse("_cluster/health", &cluster.Health); err != nil {
-		return nil, err
-	}
+// 	if err := getJSONResponse("_cluster/health", &cluster.Health); err != nil {
+// 		return nil, err
+// 	}
 
-	if err := getJSONResponse("_cluster/settings", &cluster.Settings); err != nil {
-		return nil, err
-	}
+// 	if err := getJSONResponse("_cluster/settings", &cluster.Settings); err != nil {
+// 		return nil, err
+// 	}
 
-	return &cluster, nil
-}
+// 	return &cluster, nil
+// }
 
 func GetClusterSettings(flat, defaults bool) (ClusterSettings, error) {
 	var settings ClusterSettings
@@ -150,6 +150,18 @@ func GetAllocationExplain(flagIncludeDiskInfo, flagIncludeYesDecisions bool) (an
 	}
 
 	if err := getJSONResponse(endpoint, &response); err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func UpdateReroute(flagDryRun, flagExplain, flagRetryFailed bool, flagMertic string) (any, error) {
+	var response JsonResponse
+
+	endpoint := fmt.Sprintf("_cluster/reroute?dry_run=%t&explain=%t&retry_failed=%t&metric=%s", flagDryRun, flagExplain, flagRetryFailed, flagMertic)
+
+	if err := postWithoutBody(endpoint, &response); err != nil {
 		return nil, err
 	}
 

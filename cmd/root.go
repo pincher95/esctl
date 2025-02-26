@@ -11,6 +11,7 @@ import (
 	"github.com/pincher95/esctl/cmd/describe"
 	"github.com/pincher95/esctl/cmd/get"
 	"github.com/pincher95/esctl/cmd/query"
+	"github.com/pincher95/esctl/cmd/update"
 	"github.com/pincher95/esctl/constants"
 	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
@@ -43,6 +44,7 @@ func init() {
 	RootCmd.AddCommand(describe.Cmd())
 	RootCmd.AddCommand(get.Cmd())
 	RootCmd.AddCommand(query.Cmd())
+	RootCmd.AddCommand(update.Cmd())
 }
 
 func initialize() {
