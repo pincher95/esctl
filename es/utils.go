@@ -79,6 +79,10 @@ func getJSONResponse(endpoint string, target interface{}) error {
 }
 
 func getJSONResponseWithBody(endpoint string, target interface{}, body interface{}) error {
+	return httpRequest(http.MethodGet, endpoint, body, target, http.StatusOK)
+}
+
+func postJSONResponseWithBody(endpoint string, target interface{}, body interface{}) error {
 	return httpRequest(http.MethodPost, endpoint, body, target, http.StatusOK)
 }
 

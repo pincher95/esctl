@@ -179,7 +179,7 @@ func countDocumentsOfIndex(index string, termFilters, existsFilters, nestedPaths
 	}
 
 	var response CountResponse
-	if err := getJSONResponseWithBody(endpoint, &response, body); err != nil {
+	if err := postJSONResponseWithBody(endpoint, &response, body); err != nil {
 		return 0, err
 	}
 
@@ -257,7 +257,7 @@ func groupDocumentsOfIndex(
 	}
 
 	var response CountResponse
-	if err := getJSONResponseWithBody(endpoint, &response, body); err != nil {
+	if err := postJSONResponseWithBody(endpoint, &response, body); err != nil {
 		return nil, err
 	}
 

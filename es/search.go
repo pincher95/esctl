@@ -89,7 +89,7 @@ func SearchDocuments(
 
 	endpoint := fmt.Sprintf("%s/_search", index)
 	var response JsonResponse
-	err := getJSONResponseWithBody(endpoint, &response, requestBody)
+	err := postJSONResponseWithBody(endpoint, &response, requestBody)
 	if err != nil {
 		return nil, err
 	}
