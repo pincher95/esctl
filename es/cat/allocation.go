@@ -3,7 +3,6 @@ package cat
 import (
 	"fmt"
 
-	"github.com/pincher95/esctl/internal/client"
 	"github.com/pincher95/esctl/shared"
 )
 
@@ -36,16 +35,7 @@ func Allocations(endpoint, nodeID, bytes *string, debug bool) ([]Allocation, err
 
 	allocations := make([]Allocation, 0)
 
-	baseURL := fmt.Sprintf("%s://%s:%d", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort)
-
-	cfg := &client.Config{
-		BaseURL: baseURL,
-		Debug:   debug,
-	}
-
-	httpClient := client.NewClient(cfg)
-
-	resp, err := httpClient.R().SetHeader("Content-Type", "application/json").SetResult(&allocations).Get(*endpoint)
+	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&allocations).Get(*endpoint)
 	if err != nil {
 		return nil, err
 	}

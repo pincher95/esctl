@@ -3,7 +3,6 @@ package cat
 import (
 	"fmt"
 
-	"github.com/pincher95/esctl/internal/client"
 	"github.com/pincher95/esctl/shared"
 )
 
@@ -23,16 +22,7 @@ func Plugins(endpoint *string, debug bool) ([]Plugin, error) {
 
 	plugins := make([]Plugin, 0)
 
-	baseURL := fmt.Sprintf("%s://%s:%d", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort)
-
-	cfg := &client.Config{
-		BaseURL: baseURL,
-		Debug:   debug,
-	}
-
-	httpClient := client.NewClient(cfg)
-
-	resp, err := httpClient.R().SetHeader("Content-Type", "application/json").SetResult(&plugins).Get(*endpoint)
+	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&plugins).Get(*endpoint)
 	if err != nil {
 		return nil, err
 	}

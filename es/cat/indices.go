@@ -3,7 +3,6 @@ package cat
 import (
 	"fmt"
 
-	"github.com/pincher95/esctl/internal/client"
 	"github.com/pincher95/esctl/shared"
 )
 
@@ -172,16 +171,7 @@ func Indices(endpoint, index, bytes *string, debug bool) ([]Indice, error) {
 
 	indices := make([]Indice, 0)
 
-	baseURL := fmt.Sprintf("%s://%s:%d", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort)
-
-	cfg := &client.Config{
-		BaseURL: baseURL,
-		Debug:   debug,
-	}
-
-	httpClient := client.NewClient(cfg)
-
-	resp, err := httpClient.R().SetHeader("Content-Type", "application/json").SetResult(&indices).Get(*endpoint)
+	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&indices).Get(*endpoint)
 	if err != nil {
 		return nil, err
 	}

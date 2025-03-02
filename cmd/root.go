@@ -13,6 +13,7 @@ import (
 	"github.com/pincher95/esctl/cmd/query"
 	"github.com/pincher95/esctl/cmd/update"
 	"github.com/pincher95/esctl/constants"
+	"github.com/pincher95/esctl/internal/client"
 	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
@@ -52,6 +53,8 @@ func initialize() {
 		conf := config.ParseConfigFile()
 		readContextFromConfig(*conf)
 	}
+
+	initClient()
 }
 
 func readContextFromConfig(conf config.Config) {
@@ -135,4 +138,15 @@ func initUsernameFlag() {
 func initPasswordFlag() {
 	defaultPassword := os.Getenv(constants.ElasticsearchPasswordEnvVar)
 	RootCmd.PersistentFlags().StringVar(&shared.ElasticsearchPassword, "password", defaultPassword, "Elasticsearch password")
+}
+
+func initClient() {
+	baseURL := fmt.Sprintf("%s://%s:%d", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort)
+
+	cfg := &client.Config{
+		BaseURL: baseURL,
+		Debug:   shared.Debug,
+	}
+
+	shared.Client = client.NewClient(cfg)
 }

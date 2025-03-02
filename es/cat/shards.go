@@ -3,7 +3,6 @@ package cat
 import (
 	"fmt"
 
-	"github.com/pincher95/esctl/internal/client"
 	"github.com/pincher95/esctl/shared"
 )
 
@@ -110,16 +109,7 @@ func Shards(endpoint, index, bytes, time *string, debug bool) ([]Shard, error) {
 
 	shards := make([]Shard, 0)
 
-	baseURL := fmt.Sprintf("%s://%s:%d", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort)
-
-	cfg := &client.Config{
-		BaseURL: baseURL,
-		Debug:   debug,
-	}
-
-	httpClient := client.NewClient(cfg)
-
-	resp, err := httpClient.R().SetHeader("Content-Type", "application/json").SetResult(&shards).Get(*endpoint)
+	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&shards).Get(*endpoint)
 	if err != nil {
 		return nil, err
 	}
