@@ -3,6 +3,9 @@ package es
 import (
 	"fmt"
 	"strings"
+
+	"github.com/pincher95/esctl/es/cat"
+	"github.com/pincher95/esctl/shared"
 )
 
 type IndexMappings struct {
@@ -302,7 +305,7 @@ func CountDocuments(
 		}
 	}
 
-	indices, err := GetIndices(index)
+	indices, err := cat.Indices(nil, &index, nil, shared.Debug)
 	if err != nil {
 		return nil, err
 	}

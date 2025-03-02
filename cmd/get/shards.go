@@ -9,8 +9,9 @@ import (
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/constants"
-	"github.com/pincher95/esctl/es"
+	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +68,7 @@ func init() {
 	getShardsCmd.Flags().BoolVar(&flagUnassigned, "unassigned", false, "Filter shards in UNASSIGNED state")
 }
 
-func includeShardByState(shard es.Shard) bool {
+func includeShardByState(shard cat.Shard) bool {
 	switch {
 	case flagStarted && shard.State == constants.ShardStateStarted:
 		return true
@@ -83,27 +84,22 @@ func includeShardByState(shard es.Shard) bool {
 	return false
 }
 
-func includeShardByNumber(shard es.Shard) bool {
-	shardNumber, err := strconv.Atoi(shard.Shard)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to parse shard number:", err)
-		os.Exit(1)
-	}
-	return flagShard == -1 || flagShard == shardNumber
+func includeShardByNumber(shard cat.Shard) bool {
+	return flagShard == -1 || flagShard == shard.Shard
 }
 
-func includeShardByPriRep(shard es.Shard) bool {
-	return (flagPrimary && shard.PriRep == constants.ShardPrimary) ||
-		(flagReplica && shard.PriRep == constants.ShardReplica) ||
+func includeShardByPriRep(shard cat.Shard) bool {
+	return (flagPrimary && shard.Prirep == constants.ShardPrimary) ||
+		(flagReplica && shard.Prirep == constants.ShardReplica) ||
 		(!flagPrimary && !flagReplica)
 }
 
-func includeShardByNode(shard es.Shard) bool {
+func includeShardByNode(shard cat.Shard) bool {
 	if flagNode == "" {
 		return true
 	}
 
-	return shard.Node == flagNode
+	return utils.SafeString(shard.Node) == flagNode
 }
 
 func humanizePriRep(priRep string) string {
@@ -129,7 +125,7 @@ var shardColumns = []output.ColumnDefaults{
 }
 
 func handleShardLogic(conf config.Config) {
-	shards, err := es.GetShards(flagIndex)
+	shards, err := cat.Shards(nil, &flagIndex, nil, nil, shared.Debug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve shards:", err)
 		os.Exit(1)
@@ -149,13 +145,13 @@ func handleShardLogic(conf config.Config) {
 
 			rowData := map[string]string{
 				"INDEX":   shard.Index,
-				"SHARD":   shard.Shard,
-				"PRI-REP": humanizePriRep(shard.PriRep),
+				"SHARD":   strconv.Itoa(shard.Shard),
+				"PRI-REP": humanizePriRep(shard.Prirep),
 				"STATE":   shard.State,
-				"DOCS":    shard.Docs,
-				"STORE":   shard.Store,
-				"IP":      shard.IP,
-				"NODE":    shard.Node,
+				"DOCS":    utils.SafeString(shard.Docs),
+				"STORE":   utils.SafeString(shard.Store),
+				"IP":      utils.SafeString(shard.IP),
+				"NODE":    utils.SafeString(shard.Node),
 			}
 
 			row := make([]string, len(columnDefs))

@@ -7,8 +7,9 @@ import (
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/es"
+	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +53,7 @@ var pluginsColumns = []output.ColumnDefaults{
 }
 
 func handlePluginsLogic(conf config.Config) {
-	plugins, err := es.GetPlugins()
+	plugins, err := cat.Plugins(nil, shared.Debug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve plugins:", err)
 		os.Exit(1)
@@ -68,7 +69,6 @@ func handlePluginsLogic(conf config.Config) {
 
 	for _, plugin := range plugins {
 		rowData := map[string]string{
-			"ID":          plugin.ID,
 			"NAME":        plugin.Name,
 			"COMPONENT":   plugin.Component,
 			"VERSION":     plugin.Version,

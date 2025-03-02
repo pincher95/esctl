@@ -2,11 +2,14 @@ package get
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/shared"
+
+	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -45,7 +48,8 @@ var getAllocationCmd = &cobra.Command{
 }
 
 func init() {
-	getAllocationCmd.Flags().StringVar(&flagNode, "node", "", "Name of the node")
+	getAllocationCmd.Flags().StringVar(&flagNodeID, "node-id", "", "A comma-separated list of node identifiers or names used to limit the returned information.")
+	getAllocationCmd.Flags().StringVar(&flagBytes, "bytes", "", "The unit in which to display byte values. Valid values are: 'b', 'kb', 'mb', 'gb', 'tb', 'pb'.")
 }
 
 var allocationColumns = []output.ColumnDefaults{
@@ -61,7 +65,7 @@ var allocationColumns = []output.ColumnDefaults{
 }
 
 func handleAllocationLogic(conf config.Config) error {
-	allocations, err := es.GetAllocation(flagNode)
+	allocations, err := cat.Allocations(nil, &flagNodeID, &flagBytes, shared.Debug)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}
@@ -75,14 +79,14 @@ func handleAllocationLogic(conf config.Config) error {
 
 	for _, allocation := range allocations {
 		rowData := map[string]string{
-			"SHARDS":       allocation.Shards,
-			"DISK-INDICES": allocation.DiskIndices,
-			"DISK-USED":    allocation.DiskUsed,
-			"DISK-AVAIL":   allocation.DiskAvail,
-			"DICK-TOTAL":   allocation.DiskTotal,
-			"DISK-PERCENT": allocation.DiskPercent,
-			"HOST":         allocation.Host,
-			"IP":           allocation.IP,
+			"SHARDS":       strconv.Itoa(allocation.Shards),
+			"DISK-INDICES": utils.SafeString(allocation.DiskIndices),
+			"DISK-USED":    utils.SafeString(allocation.DiskUsed),
+			"DISK-AVAIL":   utils.SafeString(allocation.DiskAvail),
+			"DICK-TOTAL":   utils.SafeString(allocation.DiskTotal),
+			"DISK-PERCENT": fmt.Sprintf("%d%%", utils.SafeInt(allocation.DiskPercent)),
+			"HOST":         utils.SafeString(allocation.Host),
+			"IP":           utils.SafeString(allocation.IP),
 			"NODE":         allocation.Node,
 		}
 

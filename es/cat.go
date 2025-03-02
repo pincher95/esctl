@@ -1,254 +1,94 @@
 package es
 
-import (
-	"fmt"
-)
+// type NodeDetails map[string]NodeSummary
 
-type Node struct {
-	Name        string `json:"name"`
-	IP          string `json:"ip"`
-	NodeRole    string `json:"node.role"`
-	NodeRoles   string `json:"node.roles"`
-	Master      string `json:"master"`
-	HeapMax     string `json:"heap.max"`
-	HeapCurrent string `json:"heap.current"`
-	HeapPercent string `json:"heap.percent"`
-	RAMCurrent  string `json:"ram.current"`
-	RAMMax      string `json:"ram.max"`
-	RAMPercent  string `json:"ram.percent"`
-	CPU         string `json:"cpu"`
-	Load1m      string `json:"load_1m"`
-	Load5m      string `json:"load_5m"`
-	Load15m     string `json:"load_15m"`
-	DiskTotal   string `json:"disk.total"`
-	DiskUsed    string `json:"disk.used"`
-	DiskAvail   string `json:"disk.avail"`
-	Uptime      string `json:"uptime"`
-}
+// type NodeSummary struct {
+// 	IP      string                  `json:"ip"`
+// 	Role    string                  `json:"role"`
+// 	Master  string                  `json:"master"`
+// 	Indices map[string]IndexSummary `json:"indices"`
+// }
 
-func GetNodes(nodeName string) ([]Node, error) {
-	endpoint := "_cat/nodes?format=json&h=name,ip,node.role,node.roles,master,heap.percent,cpu,load_1m,load_5m,load_15m,ram.percent,"
+// type IndexSummary struct {
+// 	Health       string                  `json:"health"`
+// 	Pri          string                  `json:"primary"`
+// 	Rep          string                  `json:"replica"`
+// 	PriStoreSize string                  `json:"pri-store-size"`
+// 	Shards       map[string]ShardSummary `json:"shards"`
+// }
 
-	var nodes []Node
-	if err := getJSONResponse(endpoint, &nodes); err != nil {
-		return nil, err
-	}
+// type ShardSummary struct {
+// 	PriRep        string `json:"pri-rep"`
+// 	State         string `json:"state"`
+// 	SegmentsCount string `json:"segments-count"`
+// }
 
-	if nodeName != "" {
-		for _, node := range nodes {
-			if node.Name == nodeName {
-				return []Node{node}, nil
-			}
-		}
-		return nil, fmt.Errorf("node not found: %s", nodeName)
-	}
+// func GetNodeDetails(nodeName string) (*NodeDetails, error) {
+// 	nodes, err := GetNodes("")
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return nodes, nil
-}
+// 	nodeDetails := make(NodeDetails)
 
-type Index struct {
-	Health       string `json:"health"`
-	Status       string `json:"status"`
-	Index        string `json:"index"`
-	UUID         string `json:"uuid"`
-	Pri          string `json:"pri"`
-	Rep          string `json:"rep"`
-	DocsCount    string `json:"docs.count"`
-	DocsDeleted  string `json:"docs.deleted"`
-	CreationDate string `json:"creation.date.string"`
-	StoreSize    string `json:"store.size"`
-	PriStoreSize string `json:"pri.store.size"`
-}
+// 	for _, node := range nodes {
+// 		if nodeName != "" && node.Name != nodeName {
+// 			continue
+// 		}
 
-func GetIndices(index string) ([]Index, error) {
-	endpoint := "_cat/indices"
+// 		nodeSummary, err := getNodeSummary(node)
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-	if index != "" {
-		endpoint += fmt.Sprintf("/%s", index)
-	}
+// 		nodeDetails[node.Name] = nodeSummary
+// 	}
 
-	endpoint += "?format=json&h=health,status,index,uuid,pri,rep,docs.count,docs.deleted,creation.date.string,store.size,pri.store.size"
+// 	return &nodeDetails, nil
+// }
 
-	var indices []Index
-	if err := getJSONResponse(endpoint, &indices); err != nil {
-		return nil, err
-	}
+// func getNodeSummary(node Node) (NodeSummary, error) {
+// 	indices, err := GetIndices("")
+// 	if err != nil {
+// 		return NodeSummary{}, err
+// 	}
 
-	return indices, nil
-}
+// 	shards, err := GetShards("")
+// 	if err != nil {
+// 		return NodeSummary{}, err
+// 	}
 
-type Shard struct {
-	Index            string `json:"index"`
-	Shard            string `json:"shard"`
-	PriRep           string `json:"prirep"`
-	State            string `json:"state"`
-	Docs             string `json:"docs"`
-	Store            string `json:"store"`
-	IP               string `json:"ip"`
-	ID               string `json:"id"`
-	Node             string `json:"node"`
-	UnassignedReason string `json:"unassigned.reason"`
-	UnassignedAt     string `json:"unassigned.at"`
-	SegmentsCount    string `json:"segments.count"`
-}
+// 	indexSummaries := make(map[string]IndexSummary)
+// 	for _, index := range indices {
+// 		shardSummaries := make(map[string]ShardSummary)
+// 		for _, shard := range shards {
+// 			if shard.Index == index.Index && shard.Node == node.Name {
+// 				shardSummary := ShardSummary{
+// 					PriRep:        shard.PriRep,
+// 					State:         shard.State,
+// 					SegmentsCount: shard.SegmentsCount,
+// 				}
+// 				shardSummaries[shard.Shard] = shardSummary
+// 			}
+// 		}
 
-func GetShards(index string) ([]Shard, error) {
-	endpoint := "_cat/shards"
+// 		indexSummary := IndexSummary{
+// 			Health:       index.Health,
+// 			Pri:          index.Pri,
+// 			Rep:          index.Rep,
+// 			PriStoreSize: index.PriStoreSize,
+// 			Shards:       shardSummaries,
+// 		}
 
-	if index != "" {
-		endpoint += fmt.Sprintf("/%s", index)
-	}
+// 		indexSummaries[index.Index] = indexSummary
+// 	}
 
-	endpoint += "?format=json&h=index,shard,prirep,state,docs,store,ip,id,node,unassigned.reason,unassigned.at,segments.count"
+// 	nodeSummary := NodeSummary{
+// 		IP:      node.IP,
+// 		Role:    node.NodeRole,
+// 		Master:  node.Master,
+// 		Indices: indexSummaries,
+// 	}
 
-	var shards []Shard
-	err := getJSONResponse(endpoint, &shards)
-	if err != nil {
-		return nil, err
-	}
-
-	return shards, nil
-}
-
-type NodeDetails map[string]NodeSummary
-
-type NodeSummary struct {
-	IP      string                  `json:"ip"`
-	Role    string                  `json:"role"`
-	Master  string                  `json:"master"`
-	Indices map[string]IndexSummary `json:"indices"`
-}
-
-type IndexSummary struct {
-	Health       string                  `json:"health"`
-	Pri          string                  `json:"primary"`
-	Rep          string                  `json:"replica"`
-	PriStoreSize string                  `json:"pri-store-size"`
-	Shards       map[string]ShardSummary `json:"shards"`
-}
-
-type ShardSummary struct {
-	PriRep        string `json:"pri-rep"`
-	State         string `json:"state"`
-	SegmentsCount string `json:"segments-count"`
-}
-
-func GetNodeDetails(nodeName string) (*NodeDetails, error) {
-	nodes, err := GetNodes("")
-	if err != nil {
-		return nil, err
-	}
-
-	nodeDetails := make(NodeDetails)
-
-	for _, node := range nodes {
-		if nodeName != "" && node.Name != nodeName {
-			continue
-		}
-
-		nodeSummary, err := getNodeSummary(node)
-		if err != nil {
-			return nil, err
-		}
-
-		nodeDetails[node.Name] = nodeSummary
-	}
-
-	return &nodeDetails, nil
-}
-
-func getNodeSummary(node Node) (NodeSummary, error) {
-	indices, err := GetIndices("")
-	if err != nil {
-		return NodeSummary{}, err
-	}
-
-	shards, err := GetShards("")
-	if err != nil {
-		return NodeSummary{}, err
-	}
-
-	indexSummaries := make(map[string]IndexSummary)
-	for _, index := range indices {
-		shardSummaries := make(map[string]ShardSummary)
-		for _, shard := range shards {
-			if shard.Index == index.Index && shard.Node == node.Name {
-				shardSummary := ShardSummary{
-					PriRep:        shard.PriRep,
-					State:         shard.State,
-					SegmentsCount: shard.SegmentsCount,
-				}
-				shardSummaries[shard.Shard] = shardSummary
-			}
-		}
-
-		indexSummary := IndexSummary{
-			Health:       index.Health,
-			Pri:          index.Pri,
-			Rep:          index.Rep,
-			PriStoreSize: index.PriStoreSize,
-			Shards:       shardSummaries,
-		}
-
-		indexSummaries[index.Index] = indexSummary
-	}
-
-	nodeSummary := NodeSummary{
-		IP:      node.IP,
-		Role:    node.NodeRole,
-		Master:  node.Master,
-		Indices: indexSummaries,
-	}
-
-	return nodeSummary, nil
-}
-
-type Allocation struct {
-	Shards      string `json:"shards"`
-	DiskIndices string `json:"disk.indices"`
-	DiskUsed    string `json:"disk.used"`
-	DiskAvail   string `json:"disk.avail"`
-	DiskTotal   string `json:"disk.total"`
-	DiskPercent string `json:"disk.percent"`
-	Host        string `json:"host"`
-	IP          string `json:"ip"`
-	Node        string `json:"node"`
-}
-
-func GetAllocation(nodeName string) ([]Allocation, error) {
-	endpoint := "_cat/allocation"
-
-	if nodeName != "" {
-		endpoint += fmt.Sprintf("/%s", nodeName)
-	}
-
-	endpoint += "?format=json&h=shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node"
-
-	var allocation []Allocation
-	err := getJSONResponse(endpoint, &allocation)
-	if err != nil {
-		return []Allocation{}, err
-	}
-
-	return allocation, nil
-}
-
-type Plugins struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Component   string `json:"component"`
-	Version     string `json:"version"`
-	Description string `json:"description"`
-}
-
-func GetPlugins() ([]Plugins, error) {
-	endpoint := "_cat/plugins?format=json&h=id,name,component,version,description"
-
-	var plugins []Plugins
-	err := getJSONResponse(endpoint, &plugins)
-	if err != nil {
-		return []Plugins{}, err
-	}
-
-	return plugins, nil
-}
+// 	return nodeSummary, nil
+// }

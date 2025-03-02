@@ -18,3 +18,17 @@ func TrimAndIndent(s string) string {
 	}
 	return strings.Join(indentedLines, "\n")
 }
+
+func SafeString(s *string) string {
+	if s == nil {
+		return "" // or "<nil>" or whatever default you want
+	}
+	return *s
+}
+
+func SafeInt(i *int) int {
+	if i == nil {
+		return 0 // or some other default
+	}
+	return *i
+}

@@ -3,12 +3,14 @@ package get
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/es"
+	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -45,6 +47,7 @@ var getIndicesCmd = &cobra.Command{
 
 func init() {
 	getIndicesCmd.Flags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
+	getIndicesCmd.Flags().StringVar(&flagBytes, "bytes", "", "The unit in which to display byte values. Valid values are: 'b', 'kb', 'mb', 'gb', 'tb', 'pb'.")
 }
 
 var indexColumns = []output.ColumnDefaults{
@@ -61,7 +64,7 @@ var indexColumns = []output.ColumnDefaults{
 }
 
 func handleIndicesLogic(conf config.Config) {
-	indices, err := es.GetIndices(flagIndex)
+	indices, err := cat.Indices(nil, &flagIndex, &flagBytes, shared.Debug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)
@@ -81,12 +84,12 @@ func handleIndicesLogic(conf config.Config) {
 			"STATUS":         index.Status,
 			"INDEX":          index.Index,
 			"UUID":           index.UUID,
-			"PRIMARY":        index.Pri,
-			"REPLICAS":       index.Rep,
-			"DOCS-COUNT":     index.DocsCount,
-			"DOCS-DELETED":   index.DocsDeleted,
-			"STORE-SIZE":     index.StoreSize,
-			"PRI-STORE-SIZE": index.PriStoreSize,
+			"PRIMARY":        strconv.Itoa(utils.SafeInt(index.Primary)),
+			"REPLICAS":       strconv.Itoa(utils.SafeInt(index.Replica)),
+			"DOCS-COUNT":     strconv.Itoa(utils.SafeInt(index.DocsCount)),
+			"DOCS-DELETED":   strconv.Itoa(utils.SafeInt(index.DocDeleted)),
+			"STORE-SIZE":     utils.SafeString(index.StoreSize),
+			"PRI-STORE-SIZE": utils.SafeString(index.PrimaryStoreSize),
 		}
 
 		row := make([]string, len(columnDefs))
