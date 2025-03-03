@@ -155,7 +155,7 @@ type Indice struct {
 	SearchThrottled                      bool    `json:"search.throttled,string"`
 }
 
-func CatIndices(endpoint, index, bytes *string, debug bool) ([]Indice, error) {
+func CatIndices(endpoint, index, bytes *string) ([]Indice, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/indices?format=json&h=health,status,index,uuid,pri,rep,docs.count,docs.deleted,creation.date.string,store.size,pri.store.size"

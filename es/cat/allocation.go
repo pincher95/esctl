@@ -19,7 +19,7 @@ type Allocation struct {
 	Node        string  `json:"node"`
 }
 
-func CatAllocation(endpoint, nodeID, bytes *string, debug bool) ([]Allocation, error) {
+func CatAllocation(endpoint, nodeID, bytes *string) ([]Allocation, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/allocation?format=json&h=shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node,disk.percent"

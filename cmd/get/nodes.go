@@ -8,7 +8,6 @@ import (
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/output"
-	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 
 	cat "github.com/pincher95/esctl/es/cat"
@@ -58,7 +57,7 @@ var nodeColumns = []output.ColumnDefaults{
 }
 
 func handleNodeLogic(conf config.Config) {
-	nodes, err := cat.CatNodes(nil, &flagNode, &flagBytes, &flagTime, shared.Debug)
+	nodes, err := cat.CatNodes(nil, &flagNode, &flagBytes, &flagTime)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to retrieve nodes: %v\n", err)
 		os.Exit(1)

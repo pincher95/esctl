@@ -23,4 +23,5 @@ func Cmd() *cobra.Command {
 func init() {
 	clusterCmd.AddCommand(clusterSettingsCmd)
 	clusterCmd.AddCommand(clusterHealthCmd)
+	clusterCmd.AddCommand(clusterStatsCmd)
 }

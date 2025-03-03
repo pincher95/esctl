@@ -7,4 +7,7 @@ var (
 	flagFlatSettings    bool
 	flagIncludeDefaults bool
 	flagSettings        bool
+	flagExpandWildcards string
+	flagNodeID          string
+	flagIncludeRemotes  bool
 )

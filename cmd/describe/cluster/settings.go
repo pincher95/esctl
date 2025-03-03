@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/es/cluster"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -27,17 +27,17 @@ var clusterSettingsCmd = &cobra.Command{
 	},
 }
 
+func init() {
+	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-settings", false, "If set, print settings in a none flat format (Default is false)")
+	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings (Default is false)")
+}
+
 func handleDescribeClusterSettings() {
-	cluster, err := es.GetClusterSettings(flagFlatSettings, flagIncludeDefaults)
+	settings, err := cluster.ClusterSettings(nil, flagFlatSettings, flagIncludeDefaults)
 	if err != nil {
 		fmt.Println("Failed to retrieve cluster information:", err)
 		return
 	}
 
-	output.PrintJson(cluster)
-}
-
-func init() {
-	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-settings", false, "If set, print settings in a none flat format (Default is false)")
-	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings (Default is false)")
+	output.PrintJson(settings)
 }

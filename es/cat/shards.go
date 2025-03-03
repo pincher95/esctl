@@ -89,7 +89,7 @@ type Shard struct {
 	DocsDeleted                    *int    `json:"docs.deleted,string"`
 }
 
-func CatShards(endpoint, index, bytes, time *string, debug bool) ([]Shard, error) {
+func CatShards(endpoint, index, bytes, time *string) ([]Shard, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/shards?format=json&h=index,shard,prirep,state,docs,store,ip,id,node,unassigned.reason,unassigned.at,segments.count"

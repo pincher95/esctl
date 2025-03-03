@@ -10,7 +10,6 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
-	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +63,7 @@ var indexColumns = []output.ColumnDefaults{
 }
 
 func handleIndicesLogic(conf config.Config) {
-	indices, err := cat.CatIndices(nil, &flagIndex, &flagBytes, shared.Debug)
+	indices, err := cat.CatIndices(nil, &flagIndex, &flagBytes)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)

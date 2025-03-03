@@ -11,7 +11,6 @@ import (
 	"github.com/pincher95/esctl/constants"
 	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
-	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -125,7 +124,7 @@ var shardColumns = []output.ColumnDefaults{
 }
 
 func handleShardLogic(conf config.Config) {
-	shards, err := cat.CatShards(nil, &flagIndex, nil, nil, shared.Debug)
+	shards, err := cat.CatShards(nil, &flagIndex, nil, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve shards:", err)
 		os.Exit(1)

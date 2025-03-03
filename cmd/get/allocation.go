@@ -7,7 +7,6 @@ import (
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/shared"
 
 	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
@@ -65,7 +64,7 @@ var allocationColumns = []output.ColumnDefaults{
 }
 
 func handleAllocationLogic(conf config.Config) error {
-	allocations, err := cat.CatAllocation(nil, &flagNodeID, &flagBytes, shared.Debug)
+	allocations, err := cat.CatAllocation(nil, &flagNodeID, &flagBytes)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}

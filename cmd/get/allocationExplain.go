@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/es/cluster"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -49,9 +49,9 @@ func init() {
 }
 
 func handleAllocationExplainLogic() error {
-	allocationsExplain, err := es.GetAllocationExplain(flagIncludeDiskInfo, flagIncludeYesDecisions)
+	allocationsExplain, err := cluster.ClusterAllocationExplain(nil, flagIncludeDiskInfo, flagIncludeYesDecisions)
 	if err != nil {
-		return fmt.Errorf("Failed to retrieve allocation explain: %v", err)
+		return fmt.Errorf("Failed to retrieve allocation explain%v", err)
 	}
 
 	output.PrintJson(allocationsExplain)

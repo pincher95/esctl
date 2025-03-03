@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/es/cluster"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -41,14 +41,14 @@ var updateRerouteCmd = &cobra.Command{
 }
 
 func init() {
-	updateCmd.Flags().BoolVar(&flagDryRun, "dry-run", false, "Simulates the operation only and returns the resulting state (Default: false)")
-	updateCmd.Flags().BoolVar(&flagExplain, "explain", true, "contains an explanation of why the commands can or cannot be executed (Default: true)")
-	updateCmd.Flags().BoolVar(&flagRetryFailed, "retry-failed", true, "Retries allocation of shards that are blocked due to too many subsequent allocation failures (Default: true)")
-	updateCmd.Flags().StringVar(&flagMertic, "metric", "none", "Limits the information returned to the specified metrics (Default: none)")
+	updateRerouteCmd.Flags().BoolVar(&flagDryRun, "dry-run", false, "Simulates the operation only and returns the resulting state (Default: false)")
+	updateRerouteCmd.Flags().BoolVar(&flagExplain, "explain", true, "contains an explanation of why the commands can or cannot be executed (Default: true)")
+	updateRerouteCmd.Flags().BoolVar(&flagRetryFailed, "retry-failed", true, "Retries allocation of shards that are blocked due to too many subsequent allocation failures (Default: true)")
+	updateRerouteCmd.Flags().StringVar(&flagMertic, "metric", "none", "Limits the information returned to the specified metrics (Default: none)")
 }
 
 func handleRerouteLogic() {
-	reroute, err := es.UpdateReroute(flagDryRun, flagExplain, flagRetryFailed, flagMertic)
+	reroute, err := cluster.ClusterReroute(nil, &flagMertic, flagDryRun, flagExplain, flagRetryFailed)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve reroute:", err)
 		os.Exit(1)
