@@ -57,7 +57,7 @@ var allocationColumns = []output.ColumnDefaults{
 	{Header: "DISK-INDICES", Type: output.Text},
 	{Header: "DISK-USED", Type: output.Text},
 	{Header: "DISK-AVAIL", Type: output.Text},
-	{Header: "DICK-TOTAL", Type: output.Number},
+	{Header: "DISK-TOTAL", Type: output.Number},
 	{Header: "DISK-PERCENT", Type: output.Number},
 	{Header: "HOST", Type: output.Number},
 	{Header: "IP", Type: output.Date},
@@ -65,7 +65,7 @@ var allocationColumns = []output.ColumnDefaults{
 }
 
 func handleAllocationLogic(conf config.Config) error {
-	allocations, err := cat.Allocations(nil, &flagNodeID, &flagBytes, shared.Debug)
+	allocations, err := cat.CatAllocation(nil, &flagNodeID, &flagBytes, shared.Debug)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}
@@ -83,7 +83,7 @@ func handleAllocationLogic(conf config.Config) error {
 			"DISK-INDICES": utils.SafeString(allocation.DiskIndices),
 			"DISK-USED":    utils.SafeString(allocation.DiskUsed),
 			"DISK-AVAIL":   utils.SafeString(allocation.DiskAvail),
-			"DICK-TOTAL":   utils.SafeString(allocation.DiskTotal),
+			"DISK-TOTAL":   utils.SafeString(allocation.DiskTotal),
 			"DISK-PERCENT": fmt.Sprintf("%d%%", utils.SafeInt(allocation.DiskPercent)),
 			"HOST":         utils.SafeString(allocation.Host),
 			"IP":           utils.SafeString(allocation.IP),
