@@ -26,6 +26,7 @@ const (
 	Percent
 	DataSize
 	Date
+	Boolean
 )
 
 func compareValues(left, right string, columnType ColumnType) bool {
