@@ -14,7 +14,7 @@ type Plugin struct {
 	Description string `json:"description,omitempty"`
 }
 
-func Plugins(endpoint *string, debug bool) ([]Plugin, error) {
+func CatPlugins(endpoint *string, debug bool) ([]Plugin, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/plugins?format=json&h=id,name,component,version,description"

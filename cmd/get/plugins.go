@@ -53,7 +53,7 @@ var pluginsColumns = []output.ColumnDefaults{
 }
 
 func handlePluginsLogic(conf config.Config) {
-	plugins, err := cat.Plugins(nil, shared.Debug)
+	plugins, err := cat.CatPlugins(nil, shared.Debug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve plugins:", err)
 		os.Exit(1)

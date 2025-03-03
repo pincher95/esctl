@@ -125,7 +125,7 @@ var shardColumns = []output.ColumnDefaults{
 }
 
 func handleShardLogic(conf config.Config) {
-	shards, err := cat.Shards(nil, &flagIndex, nil, nil, shared.Debug)
+	shards, err := cat.CatShards(nil, &flagIndex, nil, nil, shared.Debug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve shards:", err)
 		os.Exit(1)

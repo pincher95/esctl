@@ -64,7 +64,7 @@ var indexColumns = []output.ColumnDefaults{
 }
 
 func handleIndicesLogic(conf config.Config) {
-	indices, err := cat.Indices(nil, &flagIndex, &flagBytes, shared.Debug)
+	indices, err := cat.CatIndices(nil, &flagIndex, &flagBytes, shared.Debug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)

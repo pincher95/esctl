@@ -109,7 +109,7 @@ type Node struct {
 	SuggestTotal                    *int    `json:"suggest.total,string"`
 }
 
-func Nodes(endpoint, nodeName, bytes, time *string, debug bool) ([]Node, error) {
+func CatNodes(endpoint, nodeName, bytes, time *string, debug bool) ([]Node, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/nodes?format=json&h=name,ip,node.role,node.roles,master,heap.percent,cpu,load_1m,load_5m,load_15m,ram.percent"

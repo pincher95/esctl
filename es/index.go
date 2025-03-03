@@ -305,7 +305,7 @@ func CountDocuments(
 		}
 	}
 
-	indices, err := cat.Indices(nil, &index, nil, shared.Debug)
+	indices, err := cat.CatIndices(nil, &index, nil, shared.Debug)
 	if err != nil {
 		return nil, err
 	}

@@ -58,7 +58,7 @@ var nodeColumns = []output.ColumnDefaults{
 }
 
 func handleNodeLogic(conf config.Config) {
-	nodes, err := cat.Nodes(nil, &flagNode, &flagBytes, &flagTime, shared.Debug)
+	nodes, err := cat.CatNodes(nil, &flagNode, &flagBytes, &flagTime, shared.Debug)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to retrieve nodes: %v\n", err)
 		os.Exit(1)
