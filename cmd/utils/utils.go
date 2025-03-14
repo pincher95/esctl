@@ -1,6 +1,11 @@
 package utils
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/manifoldco/promptui"
+)
 
 const Indentation = "  "
 
@@ -31,4 +36,29 @@ func SafeInt(i *int) int {
 		return 0 // or some other default
 	}
 	return *i
+}
+
+func GetApproval() (bool, error) {
+	templates := &promptui.SelectTemplates{
+		// Help: "Use the arrow keys to navigate: ↓ ↑ → ←",
+		// Label: "{{ . }}",
+		// Active:   fmt.Sprintf(`{{ "Do you approve" | green }} {{ "%v:" | faint }} {{ . | faint }}`, promptui.IconGood),
+		// Inactive: fmt.Sprintf(`{{ "Do you approve" | green }} {{ "%v:" | faint }} {{ . | faint }}`, promptui.IconGood),
+		Selected: fmt.Sprintf(`{{ "Do you approve" | green }} {{ "%v:" | faint }} {{ . | faint }}`, promptui.IconGood),
+	}
+
+	prompt := promptui.Select{
+		Label:     "Do you approve",
+		Items:     []string{"No", "Yes"},
+		Templates: templates,
+		// Stdout:    NoBellStdout,
+	}
+
+	_, response, err := prompt.Run()
+	if err != nil {
+		return false, err
+	}
+
+	approved := response == "Yes"
+	return approved, nil
 }

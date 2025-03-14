@@ -11,6 +11,7 @@ var (
 	flagSortBy              string
 	flagBytes               string
 	flagTime                string
+	flagRepository          string
 	flagRefreshInterval     time.Duration
 	flagShard               int
 	flagInitializing        bool
