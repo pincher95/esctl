@@ -6,7 +6,7 @@ import (
 	"github.com/pincher95/esctl/shared"
 )
 
-type Indice struct {
+type CatIndiceResponse struct {
 	Health             string `json:"health"`
 	Status             string `json:"status"`
 	Index              string `json:"index"`
@@ -155,7 +155,7 @@ type Indice struct {
 	SearchThrottled                      bool    `json:"search.throttled,string"`
 }
 
-func CatIndices(endpoint, index, bytes *string) ([]Indice, error) {
+func (c *cat) CatIndices(endpoint, index, bytes *string) (*[]CatIndiceResponse, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/indices?format=json&h=health,status,index,uuid,pri,rep,docs.count,docs.deleted,creation.date.string,store.size,pri.store.size"
@@ -169,7 +169,7 @@ func CatIndices(endpoint, index, bytes *string) ([]Indice, error) {
 		*endpoint += fmt.Sprintf("&bytes=%s", *bytes)
 	}
 
-	indices := make([]Indice, 0)
+	indices := make([]CatIndiceResponse, 0)
 
 	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&indices).Get(*endpoint)
 	if err != nil {
@@ -180,5 +180,5 @@ func CatIndices(endpoint, index, bytes *string) ([]Indice, error) {
 		return nil, fmt.Errorf("failed to get indices: %s", resp.Status())
 	}
 
-	return indices, nil
+	return &indices, nil
 }

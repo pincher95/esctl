@@ -27,18 +27,19 @@ var getIndicesCmd = &cobra.Command{
 	esctl get indices --index my_index
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
+		indicesClient := cat.NewCat()
 		config := config.ParseConfigFile()
 
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handleIndicesLogic(*config)
+			handleIndicesLogic(indicesClient, *config)
 			return
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			handleIndicesLogic(*config)
+			handleIndicesLogic(indicesClient, *config)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -62,8 +63,8 @@ var indexColumns = []output.ColumnDefaults{
 	{Header: "PRI-STORE-SIZE", Type: output.DataSize},
 }
 
-func handleIndicesLogic(conf config.Config) {
-	indices, err := cat.CatIndices(nil, &flagIndex, &flagBytes)
+func handleIndicesLogic(client cat.Cat, conf config.Config) {
+	indices, err := client.CatIndices(nil, &flagIndex, &flagBytes)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)
@@ -77,7 +78,7 @@ func handleIndicesLogic(conf config.Config) {
 
 	data := [][]string{}
 
-	for _, index := range indices {
+	for _, index := range *indices {
 		rowData := map[string]string{
 			"HEALTH":         index.Health,
 			"STATUS":         index.Status,

@@ -10,27 +10,28 @@ import (
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 
-	cat "github.com/pincher95/esctl/es/cat"
+	"github.com/pincher95/esctl/es/cat"
 )
 
 var getNodesCmd = &cobra.Command{
 	Use:   "nodes",
 	Short: "Get all nodes in the Elasticsearch cluster",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		nodeClient := cat.NewCat()
 		// ctx := cmd.Context()
 		config := config.ParseConfigFile()
 
 		// select
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handleNodeLogic(*config)
+			handleNodeLogic(nodeClient, *config)
 			return nil
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			handleNodeLogic(*config)
+			handleNodeLogic(nodeClient, *config)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -56,8 +57,8 @@ var nodeColumns = []output.ColumnDefaults{
 	{Header: "NAME", Type: output.Text},
 }
 
-func handleNodeLogic(conf config.Config) {
-	nodes, err := cat.CatNodes(nil, &flagNode, &flagBytes, &flagTime)
+func handleNodeLogic(nodeClient cat.Cat, conf config.Config) {
+	nodes, err := nodeClient.CatNodes(nil, &flagNode, &flagBytes, &flagTime)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to retrieve nodes: %v\n", err)
 		os.Exit(1)
@@ -71,7 +72,7 @@ func handleNodeLogic(conf config.Config) {
 
 	data := [][]string{}
 
-	for _, node := range nodes {
+	for _, node := range *nodes {
 		rowData := map[string]string{
 			"IP":           node.IP,
 			"HEAP-PERCENT": fmt.Sprintf("%d%%", utils.SafeInt(node.HeapPercent)),

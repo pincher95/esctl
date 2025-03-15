@@ -7,7 +7,7 @@ import (
 	"github.com/pincher95/esctl/shared"
 )
 
-type Node struct {
+type CatNodesResponse struct {
 	ID                              string  `json:"id"`
 	PID                             *string `json:"pid"`
 	IP                              string  `json:"ip"`
@@ -109,7 +109,7 @@ type Node struct {
 	SuggestTotal                    *int    `json:"suggest.total,string"`
 }
 
-func CatNodes(endpoint, nodeName, bytes, time *string) ([]Node, error) {
+func (c *cat) CatNodes(endpoint, nodeName, bytes, time *string) (*[]CatNodesResponse, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/nodes?format=json&h=name,ip,node.role,node.roles,master,heap.percent,cpu,load_1m,load_5m,load_15m,ram.percent"
@@ -123,7 +123,7 @@ func CatNodes(endpoint, nodeName, bytes, time *string) ([]Node, error) {
 		*endpoint += fmt.Sprintf("&time=%s", *time)
 	}
 
-	nodes := make([]Node, 0)
+	nodes := make([]CatNodesResponse, 0)
 
 	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&nodes).Get(*endpoint)
 	if err != nil {
@@ -135,7 +135,7 @@ func CatNodes(endpoint, nodeName, bytes, time *string) ([]Node, error) {
 	}
 
 	if nodeName != nil {
-		filtered := make([]Node, 0, len(nodes))
+		filtered := make([]CatNodesResponse, 0, len(nodes))
 
 		for _, node := range nodes {
 			if strings.Contains(node.Name, *nodeName) {
@@ -152,5 +152,5 @@ func CatNodes(endpoint, nodeName, bytes, time *string) ([]Node, error) {
 		nodes = filtered
 	}
 
-	return nodes, nil
+	return &nodes, nil
 }

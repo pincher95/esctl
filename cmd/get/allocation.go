@@ -27,17 +27,18 @@ var getAllocationCmd = &cobra.Command{
 	esctl get allocation --node my_node
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		allocationClient := cat.NewCat()
 		config := config.ParseConfigFile()
 
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			return handleAllocationLogic(*config)
+			return handleAllocationLogic(allocationClient, *config)
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			err := handleAllocationLogic(*config)
+			err := handleAllocationLogic(allocationClient, *config)
 			if err != nil {
 				return err
 			}
@@ -63,8 +64,8 @@ var allocationColumns = []output.ColumnDefaults{
 	{Header: "NODE", Type: output.DataSize},
 }
 
-func handleAllocationLogic(conf config.Config) error {
-	allocations, err := cat.CatAllocation(nil, &flagNodeID, &flagBytes)
+func handleAllocationLogic(allocationClient cat.Cat, conf config.Config) error {
+	allocations, err := allocationClient.CatAllocation(nil, &flagNodeID, &flagBytes)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}
@@ -76,7 +77,7 @@ func handleAllocationLogic(conf config.Config) error {
 
 	data := [][]string{}
 
-	for _, allocation := range allocations {
+	for _, allocation := range *allocations {
 		rowData := map[string]string{
 			"SHARDS":       strconv.Itoa(allocation.Shards),
 			"DISK-INDICES": utils.SafeString(allocation.DiskIndices),

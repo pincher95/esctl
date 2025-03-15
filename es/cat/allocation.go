@@ -6,7 +6,7 @@ import (
 	"github.com/pincher95/esctl/shared"
 )
 
-type Allocation struct {
+type CatAllocationResponse struct {
 	Shards int `json:"shards,string"`
 	// Pointer of string as the api can returns null for those fileds with Node set to "UNASSIGNED"
 	DiskIndices *string `json:"disk.indices"`
@@ -19,12 +19,12 @@ type Allocation struct {
 	Node        string  `json:"node"`
 }
 
-func CatAllocation(endpoint, nodeID, bytes *string) ([]Allocation, error) {
+func (c *cat) CatAllocation(endpoint, nodeID, bytes *string) (*[]CatAllocationResponse, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/allocation?format=json&h=shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node,disk.percent"
 
-		if *nodeID != "" {
+		if nodeID != nil {
 			*endpoint = fmt.Sprintf("_cat/allocation/%s?format=json&h=shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node,disk.percent", *nodeID)
 		}
 	}
@@ -33,7 +33,7 @@ func CatAllocation(endpoint, nodeID, bytes *string) ([]Allocation, error) {
 		*endpoint += fmt.Sprintf("&bytes=%s", *bytes)
 	}
 
-	allocations := make([]Allocation, 0)
+	allocations := make([]CatAllocationResponse, 0)
 
 	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&allocations).Get(*endpoint)
 	if err != nil {
@@ -44,5 +44,5 @@ func CatAllocation(endpoint, nodeID, bytes *string) ([]Allocation, error) {
 		return nil, fmt.Errorf("failed to get nodes allocations: %s", resp.Status())
 	}
 
-	return allocations, nil
+	return &allocations, nil
 }
