@@ -12,6 +12,7 @@ var (
 	flagBytes               string
 	flagTime                string
 	flagRepository          string
+	flagFields              string
 	flagRefreshInterval     time.Duration
 	flagShard               int
 	flagInitializing        bool

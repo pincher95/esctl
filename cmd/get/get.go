@@ -67,6 +67,7 @@ func init() {
 	getCmd.AddCommand(getPluginsCmd)
 	getCmd.AddCommand(getAllocationExplainCmd)
 	getCmd.AddCommand(getSnapshotsCmd)
+	getCmd.AddCommand(getFielddataCmd)
 }
 
 func Cmd() *cobra.Command {
