@@ -1,28 +1,22 @@
 package cat
 
-import (
-	"fmt"
-
-	"github.com/pincher95/esctl/shared"
-)
-
 type Cat interface {
 	// // CatAliases is a wrapper for the `/_cat/aliases` endpoint
 	// CatAliases(endpoint *string) (*CatAliasesResponse, error)
-	// // CatAllocation is a wrapper for the `/_cat/allocation` endpoint
-	// CatAllocation(endpoint *string) (*CatAllocationResponse, error)
-	// // CatCount is a wrapper for the `/_cat/count` endpoint
+	// CatAllocation is a wrapper for the `/_cat/allocation` endpoint
+	CatAllocation(endpoint, nodeID, bytes *string) (*[]CatAllocationResponse, error)
+	// CatCount is a wrapper for the `/_cat/count` endpoint
 	// CatCount(endpoint *string) (*CatCountResponse, error)
-	// // CatFielddata is a wrapper for the `/_cat/fielddata` endpoint
-	// CatFielddata(endpoint *string) (*CatFielddataResponse, error)
+	// CatFielddata is a wrapper for the `/_cat/fielddata` endpoint
+	CatFielddata(endpoint, fields, bytes *string) (*[]CatFielddataResponse, error)
 	// // CatHealth is a wrapper for the `/_cat/health` endpoint
 	// CatHealth(endpoint *string) (*CatHealthResponse, error)
-	// // CatIndices is a wrapper for the `/_cat/indices` endpoint
-	// CatIndices(endpoint *string) (*CatIndicesResponse, error)
+	// CatIndices is a wrapper for the `/_cat/indices` endpoint
+	CatIndices(endpoint, index, bytes *string) (*[]CatIndiceResponse, error)
 	// // CatMaster is a wrapper for the `/_cat/master` endpoint
 	// CatMaster(endpoint *string) (*CatMasterResponse, error)
-	// // CatNodes is a wrapper for the `/_cat/nodes` endpoint
-	// CatNodes(endpoint *string) (*CatNodesResponse, error)
+	// CatNodes is a wrapper for the `/_cat/nodes` endpoint
+	CatNodes(endpoint, nodeName, bytes, time *string) (*[]CatNodesResponse, error)
 	// // CatPendingTasks is a wrapper for the `/_cat/pending_tasks` endpoint
 	// CatPendingTasks(endpoint *string) (*CatPendingTasksResponse, error)
 	// // CatRecovery is a wrapper for the `/_cat/recovery` endpoint
@@ -49,43 +43,4 @@ type cat struct {
 
 func NewCat() Cat {
 	return &cat{}
-}
-
-type CatSnapshotResponse struct {
-	ID               string `json:"id"`
-	Status           string `json:"status"`
-	StartEpoch       int    `json:"start_epoch,string"`
-	StartTime        string `json:"start_time"`
-	EndEpoch         int    `json:"end_epoch,string"`
-	EndTime          string `json:"end_time"`
-	Duration         string `json:"duration"`
-	Indices          int    `json:"indices,string"`
-	SuccessfulShards int    `json:"successful_shards,string"`
-	FailedShards     int    `json:"failed_shards,string"`
-	TotalShards      int    `json:"total_shards,string"`
-	Reason           string `json:"reason"`
-}
-
-func (c *cat) CatSnapshots(endpoint, repository *string) (*[]CatSnapshotResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cat/snapshots?format=json"
-	}
-
-	if *repository != "" {
-		*endpoint = fmt.Sprintf("_cat/snapshots/%s?format=json", *repository)
-	}
-
-	snapshots := make([]CatSnapshotResponse, 0)
-
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&snapshots).Get(*endpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to get snapshots: %s", resp.Status())
-	}
-
-	return &snapshots, nil
 }
