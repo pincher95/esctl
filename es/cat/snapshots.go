@@ -2,6 +2,7 @@ package cat
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -21,7 +22,7 @@ type CatSnapshotResponse struct {
 	Reason           string `json:"reason"`
 }
 
-func (c *cat) CatSnapshots(endpoint, repository *string) (*[]CatSnapshotResponse, error) {
+func (c *cat) CatSnapshots(endpoint, repository, snapshotName *string) (*[]CatSnapshotResponse, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/snapshots?format=json"
@@ -40,6 +41,24 @@ func (c *cat) CatSnapshots(endpoint, repository *string) (*[]CatSnapshotResponse
 
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to get snapshots: %s", resp.Status())
+	}
+
+	if snapshotName != nil {
+		filtered := make([]CatSnapshotResponse, 0, len(snapshots))
+
+		for _, snapshot := range snapshots {
+			if strings.Contains(snapshot.ID, *snapshotName) {
+				filtered = append(filtered, snapshot)
+			}
+		}
+
+		// If no matches found, return error
+		if len(filtered) == 0 {
+			return nil, fmt.Errorf("node not found: %s", *snapshotName)
+		}
+
+		// Replace the original slice with the filtered one
+		snapshots = filtered
 	}
 
 	return &snapshots, nil

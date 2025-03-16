@@ -28,7 +28,7 @@ type Cat interface {
 	// CatShards is a wrapper for the `/_cat/shards` endpoint
 	CatShards(endpoint, index, bytes, time *string) (*[]CatShardResponse, error)
 	// CatSnapshots is a wrapper for the `/_cat/snapshots` endpoint
-	CatSnapshots(endpoint, repository *string) (*[]CatSnapshotResponse, error)
+	CatSnapshots(endpoint, repository, snapshotName *string) (*[]CatSnapshotResponse, error)
 	// CatTasks is a wrapper for the `/_cat/tasks` endpoint
 	// 	CatTasks(endpoint *string) (*CatTasksResponse, error)
 	// 	// CatTemplates is a wrapper for the `/_cat/templates` endpoint

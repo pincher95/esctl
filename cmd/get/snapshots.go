@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
@@ -14,8 +15,9 @@ import (
 )
 
 var getSnapshotsCmd = &cobra.Command{
-	Use:   "snapshots",
-	Short: "Get Elasticsearch snapshots",
+	Use:                   "snapshots --repository repository [--status status]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Get Elasticsearch snapshots",
 	Long: utils.Trim(`
 	Get Elasticsearch snapshots. You can filter the results using the index flag.
 	`),
@@ -47,6 +49,10 @@ var getSnapshotsCmd = &cobra.Command{
 
 func init() {
 	getSnapshotsCmd.PersistentFlags().StringVarP(&flagRepository, "repository", "p", "", "Name of the snapshot repository")
+	getSnapshotsCmd.Flags().StringVar(&flagStatus, "status", "", "Filter snapshots by status")
+	getSnapshotsCmd.Flags().StringVar(&flagFilter, "name", "", "Filter snapshots by name or substring of snapshot name e.g. 'snapshot-1', 'snapshot', 'data'")
+
+	_ = getSnapshotsCmd.MarkPersistentFlagRequired("repository")
 }
 
 var snapshotsColumns = []output.ColumnDefaults{
@@ -63,7 +69,7 @@ var snapshotsColumns = []output.ColumnDefaults{
 }
 
 func handleSnapshotsLogic(client cat.Cat, conf config.Config) {
-	snapshots, err := client.CatSnapshots(nil, &flagRepository)
+	snapshots, err := client.CatSnapshots(nil, &flagRepository, &flagFilter)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)
@@ -78,24 +84,26 @@ func handleSnapshotsLogic(client cat.Cat, conf config.Config) {
 	data := [][]string{}
 
 	for _, snapshot := range *snapshots {
-		rowData := map[string]string{
-			"ID":                snapshot.ID,
-			"STATUS":            snapshot.Status,
-			"START-TIME":        snapshot.StartTime,
-			"START-DATE":        time.Unix(int64(snapshot.StartEpoch), 0).Format(time.RFC822Z),
-			"END-DATE":          time.Unix(int64(snapshot.EndEpoch), 0).Format(time.RFC822Z),
-			"DURATION":          snapshot.Duration,
-			"INDICES":           strconv.Itoa(utils.SafeInt(&snapshot.Indices)),
-			"SUCCESSFUL-SHARDS": strconv.Itoa(utils.SafeInt(&snapshot.SuccessfulShards)),
-			"FAILD-SHARDS":      strconv.Itoa(utils.SafeInt(&snapshot.FailedShards)),
-			"TOTAL-SHARDS":      strconv.Itoa(utils.SafeInt(&snapshot.TotalShards)),
-		}
+		if includeSnaphotByStatus(snapshot) {
+			rowData := map[string]string{
+				"ID":                snapshot.ID,
+				"STATUS":            snapshot.Status,
+				"START-TIME":        snapshot.StartTime,
+				"START-DATE":        time.Unix(int64(snapshot.StartEpoch), 0).Format(time.RFC822Z),
+				"END-DATE":          time.Unix(int64(snapshot.EndEpoch), 0).Format(time.RFC822Z),
+				"DURATION":          snapshot.Duration,
+				"INDICES":           strconv.Itoa(utils.SafeInt(&snapshot.Indices)),
+				"SUCCESSFUL-SHARDS": strconv.Itoa(utils.SafeInt(&snapshot.SuccessfulShards)),
+				"FAILD-SHARDS":      strconv.Itoa(utils.SafeInt(&snapshot.FailedShards)),
+				"TOTAL-SHARDS":      strconv.Itoa(utils.SafeInt(&snapshot.TotalShards)),
+			}
 
-		row := make([]string, len(columnDefs))
-		for i, colDef := range columnDefs {
-			row[i] = rowData[colDef.Header]
+			row := make([]string, len(columnDefs))
+			for i, colDef := range columnDefs {
+				row[i] = rowData[colDef.Header]
+			}
+			data = append(data, row)
 		}
-		data = append(data, row)
 	}
 
 	if len(flagSortBy) > 0 {
@@ -105,4 +113,8 @@ func handleSnapshotsLogic(client cat.Cat, conf config.Config) {
 		sortCols := output.ParseSortColumns("ID")
 		output.PrintTable(columnDefs, data, sortCols)
 	}
+}
+
+func includeSnaphotByStatus(snapshot cat.CatSnapshotResponse) bool {
+	return snapshot.Status == strings.ToUpper(flagStatus) || flagStatus == ""
 }
