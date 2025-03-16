@@ -23,18 +23,19 @@ var getPluginsCmd = &cobra.Command{
 	esctl get plugins
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
+		pluginsClient := cat.NewCat()
 		config := config.ParseConfigFile()
 
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handlePluginsLogic(*config)
+			handlePluginsLogic(pluginsClient, *config)
 			return
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			handlePluginsLogic(*config)
+			handlePluginsLogic(pluginsClient, *config)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -51,8 +52,8 @@ var pluginsColumns = []output.ColumnDefaults{
 	{Header: "DESCRIPTION", Type: output.Text},
 }
 
-func handlePluginsLogic(conf config.Config) {
-	plugins, err := cat.CatPlugins(nil)
+func handlePluginsLogic(client cat.Cat, conf config.Config) {
+	plugins, err := client.CatPlugins(nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve plugins:", err)
 		os.Exit(1)
@@ -66,7 +67,7 @@ func handlePluginsLogic(conf config.Config) {
 
 	data := [][]string{}
 
-	for _, plugin := range plugins {
+	for _, plugin := range *plugins {
 		rowData := map[string]string{
 			"NAME":        plugin.Name,
 			"COMPONENT":   plugin.Component,

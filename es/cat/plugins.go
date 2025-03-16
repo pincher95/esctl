@@ -6,7 +6,7 @@ import (
 	"github.com/pincher95/esctl/shared"
 )
 
-type Plugin struct {
+type CatPluginResponse struct {
 	ID          string `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Component   string `json:"component,omitempty"`
@@ -14,13 +14,13 @@ type Plugin struct {
 	Description string `json:"description,omitempty"`
 }
 
-func CatPlugins(endpoint *string) ([]Plugin, error) {
+func (c *cat) CatPlugins(endpoint *string) (*[]CatPluginResponse, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/plugins?format=json&h=id,name,component,version,description"
 	}
 
-	plugins := make([]Plugin, 0)
+	plugins := make([]CatPluginResponse, 0)
 
 	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&plugins).Get(*endpoint)
 	if err != nil {
@@ -31,5 +31,5 @@ func CatPlugins(endpoint *string) ([]Plugin, error) {
 		return nil, fmt.Errorf("failed to get nodes plugins: %s", resp.Status())
 	}
 
-	return plugins, nil
+	return &plugins, nil
 }

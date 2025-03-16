@@ -35,6 +35,8 @@ type Cat interface {
 	// 	CatTemplates(endpoint *string) (*CatTemplatesResponse, error)
 	// 	// CatThreadPool is a wrapper for the `/_cat/thread_pool` endpoint
 	// 	CatThreadPool(endpoint *string) (*CatThreadPoolResponse, error)
+	// CatPlugins is a wrapper for the `/_cat/plugins` endpoint
+	CatPlugins(endpoint *string) (*[]CatPluginResponse, error)
 }
 
 type cat struct {
