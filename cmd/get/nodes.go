@@ -55,7 +55,7 @@ var getNodesCmd = &cobra.Command{
 }
 
 func init() {
-	getNodesCmd.Flags().StringVar(&flagFilter, "filter", "", "Filter by node name or substring of node name e.g. 'data-node-1', 'node', 'data'")
+	getNodesCmd.Flags().StringVar(&flagFilter, "name", "", "Filter by node name or substring of node name e.g. 'data-node-1', 'node', 'data'")
 	getNodesCmd.Flags().StringVar(&flagBytes, "bytes", "", "The unit in which to display byte values. Valid values are: 'b', 'kb', 'mb', 'gb', 'tb', 'pb'.")
 	getNodesCmd.Flags().StringVar(&flagTime, "time", "", "Specifies the time units, for example, 5d or 7h. Valid values are: nanos, micros, ms, s, m, h, d.")
 }
