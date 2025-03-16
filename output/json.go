@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func PrintJson(data interface{}) {
+func PrintJson(data any) {
 	prettyJSON, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		fmt.Println("Failed to generate pretty JSON:", err)

@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func PrintYaml(data interface{}) {
+func PrintYaml(data any) {
 	yamlData, err := yaml.Marshal(data)
 	if err != nil {
 		fmt.Println("Failed to marshal data to YAML:", err)

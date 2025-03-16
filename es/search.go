@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type JsonResponse map[string]interface{}
+type JsonResponse map[string]any
 
 func extractFieldAndValue(term string) (string, string, error) {
 	parts := strings.SplitN(term, ":", 2)
@@ -24,7 +24,7 @@ func SearchDocuments(
 	nestedPaths []string,
 	sortFields []string,
 ) (JsonResponse, error) {
-	var filters []map[string]interface{}
+	var filters []map[string]any
 
 	for _, term := range terms {
 		field, value, err := extractFieldAndValue(term)
@@ -33,11 +33,11 @@ func SearchDocuments(
 		}
 		nestedPath, isNestedPath := getNestedPath(field, nestedPaths)
 		if isNestedPath {
-			termFilter := map[string]interface{}{
-				"nested": map[string]interface{}{
+			termFilter := map[string]any{
+				"nested": map[string]any{
 					"path": nestedPath,
-					"query": map[string]interface{}{
-						"term": map[string]interface{}{
+					"query": map[string]any{
+						"term": map[string]any{
 							field: value,
 						},
 					},
@@ -45,8 +45,8 @@ func SearchDocuments(
 			}
 			filters = append(filters, termFilter)
 		} else {
-			termFilter := map[string]interface{}{
-				"term": map[string]interface{}{
+			termFilter := map[string]any{
+				"term": map[string]any{
 					field: value,
 				},
 			}
@@ -55,21 +55,21 @@ func SearchDocuments(
 	}
 
 	if len(ids) > 0 {
-		idsFilter := map[string]interface{}{
-			"ids": map[string]interface{}{
+		idsFilter := map[string]any{
+			"ids": map[string]any{
 				"values": ids,
 			},
 		}
 		filters = append(filters, idsFilter)
 	}
 
-	query := map[string]interface{}{
-		"bool": map[string]interface{}{
+	query := map[string]any{
+		"bool": map[string]any{
 			"filter": filters,
 		},
 	}
 
-	requestBody := map[string]interface{}{
+	requestBody := map[string]any{
 		"from":  from,
 		"size":  max(size, len(ids)),
 		"query": query,

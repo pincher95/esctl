@@ -20,17 +20,17 @@ type TaskNode struct {
 }
 
 type Task struct {
-	Node               string                 `json:"node"`
-	ID                 int64                  `json:"id"`
-	Type               string                 `json:"type"`
-	Action             string                 `json:"action"`
-	Description        string                 `json:"description"`
-	StartTimeInMillis  int64                  `json:"start_time_in_millis"`
-	RunningTimeInNanos int64                  `json:"running_time_in_nanos"`
-	Cancellable        bool                   `json:"cancellable"`
-	Cancelled          bool                   `json:"cancelled"`
-	ParentTaskID       string                 `json:"parent_task_id"`
-	Headers            map[string]interface{} `json:"headers"`
+	Node               string         `json:"node"`
+	ID                 int64          `json:"id"`
+	Type               string         `json:"type"`
+	Action             string         `json:"action"`
+	Description        string         `json:"description"`
+	StartTimeInMillis  int64          `json:"start_time_in_millis"`
+	RunningTimeInNanos int64          `json:"running_time_in_nanos"`
+	Cancellable        bool           `json:"cancellable"`
+	Cancelled          bool           `json:"cancelled"`
+	ParentTaskID       string         `json:"parent_task_id"`
+	Headers            map[string]any `json:"headers"`
 }
 
 func GetTasks(actions []string) (TasksResponse, error) {

@@ -92,7 +92,7 @@ func Cmd() *cobra.Command {
 // 	print(nodeDetails)
 // }
 
-// func print(data interface{}) {
+// func print(data any) {
 // 	switch flagOutput {
 // 	case "json":
 // 		output.PrintJson(data)

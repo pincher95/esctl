@@ -33,7 +33,7 @@ var SettingsCmd = &cobra.Command{
 		key, value := kv[0], kv[1]
 
 		// Our top-level container
-		// You might keep it at just `root := make(map[string]interface{})`
+		// You might keep it at just `root := make(map[string]any)`
 		// but ES typically expects the "index" block at the top for these settings.
 		body := make(map[string]any, 0)
 		if flagSettings == "" {

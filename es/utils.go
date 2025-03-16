@@ -21,13 +21,13 @@ type EsError struct {
 	Status int `json:"status"`
 }
 
-func debugLog(format string, args ...interface{}) {
+func debugLog(format string, args ...any) {
 	if shared.Debug {
 		fmt.Fprintf(os.Stderr, "DEBUG: "+format+"\n", args...)
 	}
 }
 
-func httpRequest(method, endpoint string, body, target interface{}, expectedStatusCode int) error {
+func httpRequest(method, endpoint string, body, target any, expectedStatusCode int) error {
 	baseURL := fmt.Sprintf("%s://%s:%d/%s", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort, endpoint)
 
 	if shared.Debug {
@@ -74,19 +74,19 @@ func httpRequest(method, endpoint string, body, target interface{}, expectedStat
 	return json.NewDecoder(resp.Body).Decode(target)
 }
 
-func getJSONResponse(endpoint string, target interface{}) error {
+func getJSONResponse(endpoint string, target any) error {
 	return httpRequest(http.MethodGet, endpoint, nil, target, http.StatusOK)
 }
 
-func getJSONResponseWithBody(endpoint string, target interface{}, body interface{}) error {
+func getJSONResponseWithBody(endpoint string, target any, body any) error {
 	return httpRequest(http.MethodGet, endpoint, body, target, http.StatusOK)
 }
 
-func postJSONResponseWithBody(endpoint string, target interface{}, body interface{}) error {
+func postJSONResponseWithBody(endpoint string, target any, body any) error {
 	return httpRequest(http.MethodPost, endpoint, body, target, http.StatusOK)
 }
 
-func postWithoutBody(endpoint string, target interface{}) error {
+func postWithoutBody(endpoint string, target any) error {
 	return httpRequest(http.MethodPost, endpoint, nil, target, http.StatusOK)
 }
 

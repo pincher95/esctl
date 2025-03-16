@@ -51,13 +51,13 @@ func init() {
 func initialize() {
 	if shared.ElasticsearchHost == "" {
 		conf := config.ParseConfigFile()
-		readContextFromConfig(*conf)
+		readContextFromConfig(conf)
 	}
 
 	initClient()
 }
 
-func readContextFromConfig(conf config.Config) {
+func readContextFromConfig(conf *config.Config) {
 	if len(conf.Contexts) == 0 {
 		fmt.Println("Error: No contexts defined in the configuration.")
 		os.Exit(1)
