@@ -64,8 +64,8 @@ var allocationColumns = []output.ColumnDefaults{
 	{Header: "NODE", Type: output.DataSize},
 }
 
-func handleAllocationLogic(allocationClient cat.Cat, conf config.Config) error {
-	allocations, err := allocationClient.CatAllocation(nil, &flagNodeID, &flagBytes)
+func handleAllocationLogic(client cat.Cat, conf config.Config) error {
+	allocations, err := client.CatAllocation(nil, &flagNodeID, &flagBytes)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}

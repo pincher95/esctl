@@ -57,8 +57,8 @@ var nodeColumns = []output.ColumnDefaults{
 	{Header: "NAME", Type: output.Text},
 }
 
-func handleNodeLogic(nodeClient cat.Cat, conf config.Config) {
-	nodes, err := nodeClient.CatNodes(nil, &flagNode, &flagBytes, &flagTime)
+func handleNodeLogic(client cat.Cat, conf config.Config) {
+	nodes, err := client.CatNodes(nil, &flagNode, &flagBytes, &flagTime)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to retrieve nodes: %v\n", err)
 		os.Exit(1)

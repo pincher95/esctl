@@ -62,8 +62,8 @@ var fielddataColumns = []output.ColumnDefaults{
 	{Header: "SIZE", Type: output.Text},
 }
 
-func handleFielddataLogic(fielddataClient cat.Cat, conf config.Config) error {
-	fielddata, err := fielddataClient.CatFielddata(nil, &flagFields, &flagBytes)
+func handleFielddataLogic(client cat.Cat, conf config.Config) error {
+	fielddata, err := client.CatFielddata(nil, &flagFields, &flagBytes)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve fielddata: %v", err)
 	}

@@ -62,8 +62,8 @@ var snapshotsColumns = []output.ColumnDefaults{
 	{Header: "TOTAL-SHARDS", Type: output.Number},
 }
 
-func handleSnapshotsLogic(snapshotsClient cat.Cat, conf config.Config) {
-	snapshots, err := snapshotsClient.CatSnapshots(nil, &flagRepository)
+func handleSnapshotsLogic(client cat.Cat, conf config.Config) {
+	snapshots, err := client.CatSnapshots(nil, &flagRepository)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)
