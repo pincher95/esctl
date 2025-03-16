@@ -6,7 +6,7 @@ import (
 	"github.com/pincher95/esctl/shared"
 )
 
-type Shard struct {
+type CatShardResponse struct {
 	Index                          string  `json:"index"`
 	Shard                          int     `json:"shard,string"`
 	Prirep                         string  `json:"prirep"`
@@ -89,7 +89,7 @@ type Shard struct {
 	DocsDeleted                    *int    `json:"docs.deleted,string"`
 }
 
-func CatShards(endpoint, index, bytes, time *string) ([]Shard, error) {
+func (c *cat) CatShards(endpoint, index, bytes, time *string) (*[]CatShardResponse, error) {
 	if endpoint == nil {
 		endpoint = new(string)
 		*endpoint = "_cat/shards?format=json&h=index,shard,prirep,state,docs,store,ip,id,node,unassigned.reason,unassigned.at,segments.count"
@@ -107,7 +107,7 @@ func CatShards(endpoint, index, bytes, time *string) ([]Shard, error) {
 		*endpoint += fmt.Sprintf("&time=%s", *time)
 	}
 
-	shards := make([]Shard, 0)
+	shards := make([]CatShardResponse, 0)
 
 	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&shards).Get(*endpoint)
 	if err != nil {
@@ -118,5 +118,5 @@ func CatShards(endpoint, index, bytes, time *string) ([]Shard, error) {
 		return nil, fmt.Errorf("failed to get shards: %s", resp.Status())
 	}
 
-	return shards, nil
+	return &shards, nil
 }

@@ -38,18 +38,19 @@ esctl get shards --index my_index
 # Retrieve shard information filtered by state.
 esctl get shards --started --relocating`),
 	Run: func(cmd *cobra.Command, args []string) {
+		shardsClient := cat.NewCat()
 		config := config.ParseConfigFile()
 
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handleShardLogic(*config)
+			handleShardLogic(shardsClient, *config)
 			return
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			handleShardLogic(*config)
+			handleShardLogic(shardsClient, *config)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -67,7 +68,7 @@ func init() {
 	getShardsCmd.Flags().BoolVar(&flagUnassigned, "unassigned", false, "Filter shards in UNASSIGNED state")
 }
 
-func includeShardByState(shard cat.Shard) bool {
+func includeShardByState(shard cat.CatShardResponse) bool {
 	switch {
 	case flagStarted && shard.State == constants.ShardStateStarted:
 		return true
@@ -83,17 +84,17 @@ func includeShardByState(shard cat.Shard) bool {
 	return false
 }
 
-func includeShardByNumber(shard cat.Shard) bool {
+func includeShardByNumber(shard cat.CatShardResponse) bool {
 	return flagShard == -1 || flagShard == shard.Shard
 }
 
-func includeShardByPriRep(shard cat.Shard) bool {
+func includeShardByPriRep(shard cat.CatShardResponse) bool {
 	return (flagPrimary && shard.Prirep == constants.ShardPrimary) ||
 		(flagReplica && shard.Prirep == constants.ShardReplica) ||
 		(!flagPrimary && !flagReplica)
 }
 
-func includeShardByNode(shard cat.Shard) bool {
+func includeShardByNode(shard cat.CatShardResponse) bool {
 	if flagNode == "" {
 		return true
 	}
@@ -123,8 +124,8 @@ var shardColumns = []output.ColumnDefaults{
 	{Header: "NODE", Type: output.Text},
 }
 
-func handleShardLogic(conf config.Config) {
-	shards, err := cat.CatShards(nil, &flagIndex, nil, nil)
+func handleShardLogic(client cat.Cat, conf config.Config) {
+	shards, err := client.CatShards(nil, &flagIndex, nil, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve shards:", err)
 		os.Exit(1)
@@ -138,7 +139,7 @@ func handleShardLogic(conf config.Config) {
 
 	data := [][]string{}
 
-	for _, shard := range shards {
+	for _, shard := range *shards {
 		if includeShardByState(shard) && includeShardByNumber(shard) &&
 			includeShardByPriRep(shard) && includeShardByNode(shard) {
 
