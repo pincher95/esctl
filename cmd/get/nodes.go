@@ -14,8 +14,25 @@ import (
 )
 
 var getNodesCmd = &cobra.Command{
-	Use:   "nodes",
-	Short: "Get all nodes in the Elasticsearch cluster",
+	Use:                   "nodes [--filter node] [--bytes unit] [--time unit]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Get information about the nodes for the Elasticsearch cluster.",
+	Long: utils.Trim(`
+	Get information about the nodes in a cluster. You can filter the results using the filter flag.
+	`),
+	Example: utils.TrimAndIndent(`
+	# Retrieve all nodes.
+	esctl get nodes
+
+	# Retrieve nodes for a specific node.
+	esctl get nodes --filter my_node
+
+	# Retrieve nodes in kilobytes.
+	esctl get nodes --bytes kb
+
+	# Retrieve nodes time in seconds.
+	esctl get nodes --bytes kb --time s
+	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		nodeClient := cat.NewCat()
 		// ctx := cmd.Context()
@@ -38,7 +55,7 @@ var getNodesCmd = &cobra.Command{
 }
 
 func init() {
-	getNodesCmd.Flags().StringVar(&flagNode, "filter", "", "Filter by node name or substring of node name e.g. 'data-node-1', 'node', 'data'")
+	getNodesCmd.Flags().StringVar(&flagFilter, "filter", "", "Filter by node name or substring of node name e.g. 'data-node-1', 'node', 'data'")
 	getNodesCmd.Flags().StringVar(&flagBytes, "bytes", "", "The unit in which to display byte values. Valid values are: 'b', 'kb', 'mb', 'gb', 'tb', 'pb'.")
 	getNodesCmd.Flags().StringVar(&flagTime, "time", "", "Specifies the time units, for example, 5d or 7h. Valid values are: nanos, micros, ms, s, m, h, d.")
 }
@@ -58,7 +75,7 @@ var nodeColumns = []output.ColumnDefaults{
 }
 
 func handleNodeLogic(client cat.Cat, conf config.Config) {
-	nodes, err := client.CatNodes(nil, &flagNode, &flagBytes, &flagTime)
+	nodes, err := client.CatNodes(nil, &flagFilter, &flagBytes, &flagTime)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to retrieve nodes: %v\n", err)
 		os.Exit(1)

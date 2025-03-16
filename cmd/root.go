@@ -21,7 +21,7 @@ import (
 var RootCmd = &cobra.Command{
 	Use:   "esctl",
 	Short: "esctl is CLI for Elasticsearch",
-	Long:  `esctl is a read-only CLI for Elasticsearch that allows users to manage and monitor their Elasticsearch clusters.`,
+	Long:  `esctl is CLI for Elasticsearch that allows users to manage and monitor their Elasticsearch clusters.`,
 }
 
 func Execute(ctx context.Context) error {

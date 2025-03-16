@@ -11,17 +11,21 @@ import (
 )
 
 var getAllocationExplainCmd = &cobra.Command{
-	Use:   "explain",
-	Short: "Get Elasticsearch allocation explain",
+	Use:                   "explain [--include-disk-info] [--include-yes-decisions]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Explain the shard allocations for the Elasticsearch cluster",
 	Long: utils.Trim(`
-	Get Elasticsearch allocation explain. You can filter the results using the node flag.
+	Get explanations for shard allocations in the cluster. For unassigned shards, it provides an explanation for why the shard is unassigned. For assigned shards, it provides an explanation for why the shard is remaining on its current node and has not moved or rebalanced to another node. This API can be very useful when attempting to diagnose why a shard is unassigned or why a shard continues to remain on its current node when you might expect otherwise.
 	`),
 	Example: utils.TrimAndIndent(`
 	# Retrieve all allocation explain.
 	esctl get explain
 
-	# Retrieve allocation for a specific node.
-	esctl get explain --node my_node
+	# Retrieve allocation explain with disk info.
+	esctl get explain --include-disk-info
+
+	# Retrieve allocation explain with yes decisions.
+	esctl get explain --include-yes-decisions
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// config := config.ParseConfigFile()

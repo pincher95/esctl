@@ -14,8 +14,9 @@ import (
 )
 
 var getIndicesCmd = &cobra.Command{
-	Use:   "indices",
-	Short: "Get Elasticsearch indices",
+	Use:                   "indices [--index index] [--bytes unit]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Get Elasticsearch indices",
 	Long: utils.Trim(`
 	Get Elasticsearch indices. You can filter the results using the index flag.
 	`),

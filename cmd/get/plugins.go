@@ -14,9 +14,9 @@ import (
 
 var getPluginsCmd = &cobra.Command{
 	Use:   "plugins",
-	Short: "Get Elasticsearch plugins",
+	Short: "Get plugin information for the Elasticsearch cluster",
 	Long: utils.Trim(`
-	Get Elasticsearch plugins.
+	Get a list of plugins running on each node of a cluster.
 	`),
 	Example: utils.TrimAndIndent(`
 	# Retrieve all plugins.

@@ -14,8 +14,9 @@ import (
 )
 
 var getAllocationCmd = &cobra.Command{
-	Use:   "allocation",
-	Short: "Get Elasticsearch allocation",
+	Use:                   "allocation [--node-id node-id] [--bytes bytes]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Get Elasticsearch allocation for the Elasticsearch cluster",
 	Long: utils.Trim(`
 	Get Elasticsearch allocation. You can filter the results using the node flag.
 	`),
@@ -25,6 +26,9 @@ var getAllocationCmd = &cobra.Command{
 
 	# Retrieve allocation for a specific node.
 	esctl get allocation --node my_node
+
+	# Retrieve allocation in kilobytes.
+	esctl get allocation --bytes kb
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		allocationClient := cat.NewCat()

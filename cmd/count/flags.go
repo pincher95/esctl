@@ -2,12 +2,12 @@ package count
 
 var (
 	flagExists  []string
+	flagNested  []string
+	flagTerm    []string
 	flagGroupBy string
 	flagIndex   string
-	flagNested  []string
-	flagSize    int
 	flagSortBy  string
-	flagTerm    []string
 	flagTimeout string
+	flagSize    int
 	flagRefresh bool
 )

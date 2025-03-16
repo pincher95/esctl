@@ -13,8 +13,9 @@ import (
 )
 
 var getAliasesCmd = &cobra.Command{
-	Use:   "aliases",
-	Short: "Get Elasticsearch aliases",
+	Use:                   "aliases [--index index]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Get Elasticsearch aliases for the Elasticsearch cluster",
 	Long: utils.Trim(`
 	Get Elasticsearch aliases. You can filter the results using the index flag.
 	`),

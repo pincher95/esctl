@@ -25,31 +25,34 @@ Available Entities:
   - tasks: List all tasks in the Elasticsearch cluster.
 	- allocation: List allocation in the Elasticsearch cluster.
 	- plugins: List all plugins in the Elasticsearch cluster.
-	- explain: List allocation explain in the Elasticsearch cluster.`),
-	Example: utils.TrimAndIndent(`
-#Retrieve a list of all nodes in the Elasticsearch cluster.
-esctl get nodes
+	- explain: List allocation explain in the Elasticsearch cluster.
+	- snapshots: List all snapshots in the Elasticsearch cluster.
+	- fielddata: List fielddata in the Elasticsearch cluster.
+	`),
+	// 	Example: utils.TrimAndIndent(`
+	// #Retrieve a list of all nodes in the Elasticsearch cluster.
+	// esctl get nodes
 
-#Retrieve a list of all indices in the Elasticsearch cluster.
-esctl get indices
+	// #Retrieve a list of all indices in the Elasticsearch cluster.
+	// esctl get indices
 
-#Retrieve detailed information about shards in the Elasticsearch cluster.
-esctl get shards
+	// #Retrieve detailed information about shards in the Elasticsearch cluster.
+	// esctl get shards
 
-#Retrieve shard information for an index.
-esctl get shards --index my_index
+	// #Retrieve shard information for an index.
+	// esctl get shards --index my_index
 
-#Retrieve shard information filtered by state.
-esctl get shards --started --relocating
+	// #Retrieve shard information filtered by state.
+	// esctl get shards --started --relocating
 
-#Retrieve all aliases.
-esctl get aliases
+	// #Retrieve all aliases.
+	// esctl get aliases
 
-#Retrieve tasks filtered by actions using wildcard patterns.
-esctl get tasks --actions 'index*' --actions '*search*'
+	// #Retrieve tasks filtered by actions using wildcard patterns.
+	// esctl get tasks --actions 'index*' --actions '*search*'
 
-#Retrieve all tasks.
-esctl get tasks`),
+	// #Retrieve all tasks.
+	// esctl get tasks`),
 }
 
 func init() {

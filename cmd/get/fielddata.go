@@ -12,10 +12,11 @@ import (
 )
 
 var getFielddataCmd = &cobra.Command{
-	Use:   "fielddata",
-	Short: "Get Elasticsearch fielddata",
+	Use:                   "fielddata [--fields fields] [--bytes bytes]",
+	DisableFlagsInUseLine: true,
+	Short:                 "Get field data cache information for the Elasticsearch cluster",
 	Long: utils.Trim(`
-	Get the amount of heap memory currently used by the field data cache on every data node in the cluster.
+	Get the amount of heap memory currently used by the field data cache on every data node in the cluster. The field data cache is used to cache the field values of fields used in filters and facets. This command provides information about the field data cache size for each field on each node in the cluster.
 	`),
 	Example: utils.TrimAndIndent(`
 	# Retrieve all fielddata.
@@ -24,8 +25,8 @@ var getFielddataCmd = &cobra.Command{
 	# Retrieve fielddata for a specific fields.
 	esctl get fielddata --fields my_field1,my_field2
 
-	# Retrieve fielddata for a specific fields and display the size in kilobytes.
-	esctl get fielddata --fields my_field1,my_field2 --bytes kb
+	# Retrieve fielddata display the size in kilobytes.
+	esctl get fielddata --bytes kb
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		feilddataClient := cat.NewCat()
