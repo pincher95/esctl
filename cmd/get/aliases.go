@@ -7,7 +7,7 @@ import (
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/es/index"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -27,18 +27,20 @@ var getAliasesCmd = &cobra.Command{
 	esctl get aliases --index my_index
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
+		aliasClient := index.NewIndex()
+
 		config := config.ParseConfigFile()
 
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handleAliasLogic(*config)
+			handleAliasLogic(aliasClient, *config)
 			return
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			handleAliasLogic(*config)
+			handleAliasLogic(aliasClient, *config)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -46,6 +48,7 @@ var getAliasesCmd = &cobra.Command{
 
 func init() {
 	getAliasesCmd.Flags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
+	getAliasesCmd.Flags().BoolVar(&flagWritable, "writable", true, "Filter by writable index")
 }
 
 var aliasColumns = []output.ColumnDefaults{
@@ -54,11 +57,11 @@ var aliasColumns = []output.ColumnDefaults{
 	{Header: "FILTER", Type: output.Text},
 	{Header: "ROUTING-INDEX", Type: output.Text},
 	{Header: "ROUTING-SEARCH", Type: output.Text},
-	{Header: "IS_WRITE_INDEX", Type: output.Text},
+	{Header: "IS_WRITE_INDEX", Type: output.Boolean},
 }
 
-func handleAliasLogic(conf config.Config) {
-	aliases, err := es.GetAliases(flagIndex)
+func handleAliasLogic(client index.Index, conf config.Config) {
+	aliases, err := client.GetAliases(nil, &flagIndex)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve aliases:", err)
 		os.Exit(1)
@@ -72,21 +75,38 @@ func handleAliasLogic(conf config.Config) {
 
 	data := [][]string{}
 
-	for alias, index := range aliases {
-		rowData := map[string]string{
-			"ALIAS": alias,
-			"INDEX": index,
-			// "FILTER": alias,
-		}
+	for index, detail := range *aliases {
+		for alias := range detail.Aliases {
+			if includeIndexByWriteIndex(detail.Aliases[alias]) {
+				rowData := map[string]string{
+					"ALIAS": alias,
+					"INDEX": index,
+					// "FILTER":         detail.Aliases[alias].Filter,
+					"ROUTING-INDEX":  detail.Aliases[alias].IndexRouting,
+					"ROUTING-SEARCH": detail.Aliases[alias].SearchRouting,
+					// "IS_WRITE_INDEX": detail.Aliases[alias].IsWriteIndex,
+				}
 
-		row := make([]string, len(columnDefs))
-		for i, colDef := range columnDefs {
-			row[i] = rowData[colDef.Header]
+				row := make([]string, len(columnDefs))
+				for i, colDef := range columnDefs {
+					row[i] = rowData[colDef.Header]
+				}
+				data = append(data, row)
+			}
 		}
-		data = append(data, row)
 	}
 
 	sortCols := output.ParseSortColumns(flagSortBy)
 
 	output.PrintTable(columnDefs, data, sortCols)
+}
+
+func includeIndexByWriteIndex(aliasInfo index.AliasInfo) bool {
+	switch {
+	case flagWritable && aliasInfo.IsWriteIndex:
+		return true
+	case !flagWritable:
+		return true
+	}
+	return false
 }

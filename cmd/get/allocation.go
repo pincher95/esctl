@@ -8,7 +8,7 @@ import (
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
 
-	cat "github.com/pincher95/esctl/es/cat"
+	"github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )

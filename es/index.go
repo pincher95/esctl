@@ -69,31 +69,31 @@ func GetIndexDetails(index string, shouldGetMappings, shouldGetSettings bool) (I
 	return merged, nil
 }
 
-type AliasResponse map[string]AliasDetail
+// type AliasResponse map[string]AliasDetail
 
-type AliasDetail struct {
-	Aliases map[string]any `json:"aliases"`
-}
+// type AliasDetail struct {
+// 	Aliases map[string]any `json:"aliases"`
+// }
 
-func GetAliases(index string) (map[string]string, error) {
-	if index == "" {
-		index = "_all"
-	}
+// func GetAliases(index string) (map[string]string, error) {
+// 	if index == "" {
+// 		index = "_all"
+// 	}
 
-	var aliasResp AliasResponse
-	if err := getJSONResponse(index+"/_alias", &aliasResp); err != nil {
-		return nil, err
-	}
+// 	var aliasResp AliasResponse
+// 	if err := getJSONResponse(index+"/_alias", &aliasResp); err != nil {
+// 		return nil, err
+// 	}
 
-	aliases := make(map[string]string)
-	for index, detail := range aliasResp {
-		for alias := range detail.Aliases {
-			aliases[alias] = index
-		}
-	}
+// 	aliases := make(map[string]string)
+// 	for index, detail := range aliasResp {
+// 		for alias := range detail.Aliases {
+// 			aliases[alias] = index
+// 		}
+// 	}
 
-	return aliases, nil
-}
+// 	return aliases, nil
+// }
 
 type CountResponse struct {
 	Count        int            `json:"count"`

@@ -26,4 +26,5 @@ var (
 	flagRefresh             bool
 	flagIncludeDiskInfo     bool
 	flagIncludeYesDecisions bool
+	flagWritable            bool
 )
