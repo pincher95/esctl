@@ -15,7 +15,7 @@ import (
 var getAliasesCmd = &cobra.Command{
 	Use:                   "aliases [--index index]",
 	DisableFlagsInUseLine: true,
-	Short:                 "Get Elasticsearch aliases for the Elasticsearch cluster",
+	Short:                 "Retrieves information for one or more data stream or index aliases.",
 	Long: utils.Trim(`
 	Get Elasticsearch aliases. You can filter the results using the index flag.
 	`),
@@ -55,8 +55,9 @@ var aliasColumns = []output.ColumnDefaults{
 	{Header: "ALIAS", Type: output.Text},
 	{Header: "INDEX", Type: output.Text},
 	{Header: "FILTER", Type: output.Text},
-	{Header: "ROUTING-INDEX", Type: output.Text},
-	{Header: "ROUTING-SEARCH", Type: output.Text},
+	{Header: "ROUTING", Type: output.Text},
+	{Header: "INDEX-ROUTING", Type: output.Text},
+	{Header: "SEARCH-ROUTING", Type: output.Text},
 	{Header: "IS_WRITE_INDEX", Type: output.Boolean},
 }
 
@@ -79,12 +80,11 @@ func handleAliasLogic(client index.Index, conf config.Config) {
 		for alias := range detail.Aliases {
 			if includeIndexByWriteIndex(detail.Aliases[alias]) {
 				rowData := map[string]string{
-					"ALIAS": alias,
-					"INDEX": index,
-					// "FILTER":         detail.Aliases[alias].Filter,
-					"ROUTING-INDEX":  detail.Aliases[alias].IndexRouting,
-					"ROUTING-SEARCH": detail.Aliases[alias].SearchRouting,
-					// "IS_WRITE_INDEX": detail.Aliases[alias].IsWriteIndex,
+					"ALIAS":          alias,
+					"INDEX":          index,
+					"INDEX-ROUTING":  detail.Aliases[alias].IndexRouting,
+					"SEARCH-ROUTING": detail.Aliases[alias].SearchRouting,
+					"ROUTING":        detail.Aliases[alias].Routing,
 				}
 
 				row := make([]string, len(columnDefs))
