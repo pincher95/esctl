@@ -27,7 +27,7 @@ func init() {
 
 	updateCmd.AddCommand(updateRerouteCmd)
 	updateCmd.AddCommand(updateIndexCmd)
-
+	updateCmd.AddCommand(updateCacheClearCmd)
 }
 
 func Cmd() *cobra.Command {

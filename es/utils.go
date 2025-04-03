@@ -78,9 +78,9 @@ func getJSONResponse(endpoint string, target any) error {
 	return httpRequest(http.MethodGet, endpoint, nil, target, http.StatusOK)
 }
 
-func getJSONResponseWithBody(endpoint string, target any, body any) error {
-	return httpRequest(http.MethodGet, endpoint, body, target, http.StatusOK)
-}
+// func getJSONResponseWithBody(endpoint string, target any, body any) error {
+// 	return httpRequest(http.MethodGet, endpoint, body, target, http.StatusOK)
+// }
 
 func postJSONResponseWithBody(endpoint string, target any, body any) error {
 	return httpRequest(http.MethodPost, endpoint, body, target, http.StatusOK)
