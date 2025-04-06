@@ -15,6 +15,7 @@ var (
 	flagFields              string
 	flagStatus              string
 	flagFilter              string
+	flagTasksID             string
 	flagRefreshInterval     time.Duration
 	flagShard               int
 	flagInitializing        bool

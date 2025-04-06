@@ -24,7 +24,7 @@ func main() {
 
 	// Execute our root command with the context
 	if err := cmd.Execute(ctx); err != nil {
-		fmt.Println("Error:", err)
+		fmt.Printf("error: %v\n", err)
 		os.Exit(1)
 	}
 }
