@@ -1,9 +1,9 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -32,22 +32,17 @@ var getAllocationCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		allocationClient := cat.NewCat()
-		config := config.ParseConfigFile()
+		conf := config.ParseConfigFile()
 
-		// If --watch is NOT set, just run once
+		ctx := cmd.Context()
+
 		if !flagRefresh {
-			return handleAllocationLogic(allocationClient, *config)
+			return handleAllocationLogic(ctx, allocationClient, *conf)
 		}
 
-		// If --watch is set, run in a loop
-		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			err := handleAllocationLogic(allocationClient, *config)
-			if err != nil {
-				return err
-			}
-			time.Sleep(flagRefreshInterval)
-		}
+		return utils.WatchLoop(flagRefreshInterval, func() error {
+			return handleAllocationLogic(ctx, allocationClient, *conf)
+		})
 	},
 }
 
@@ -68,8 +63,8 @@ var allocationColumns = []output.ColumnDefaults{
 	{Header: "NODE", Type: output.DataSize},
 }
 
-func handleAllocationLogic(client cat.Cat, conf config.Config) error {
-	allocations, err := client.CatAllocation(nil, &flagNodeID, &flagBytes)
+func handleAllocationLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
+	allocations, err := client.CatAllocation(ctx, "", flagNodeID, flagBytes)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation: %v", err)
 	}
@@ -81,7 +76,7 @@ func handleAllocationLogic(client cat.Cat, conf config.Config) error {
 
 	data := [][]string{}
 
-	for _, allocation := range *allocations {
+	for _, allocation := range allocations {
 		rowData := map[string]string{
 			"SHARDS":       strconv.Itoa(allocation.Shards),
 			"DISK-INDICES": utils.SafeString(allocation.DiskIndices),

@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -35,20 +36,18 @@ var getNodesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		nodeClient := cat.NewCat()
-		// ctx := cmd.Context()
-		config := config.ParseConfigFile()
+		conf := config.ParseConfigFile()
 
-		// select
-		// If --watch is NOT set, just run once
+		ctx := cmd.Context()
+
 		if !flagRefresh {
-			handleNodeLogic(nodeClient, *config)
+			handleNodeLogic(ctx, nodeClient, *conf)
 			return nil
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			handleNodeLogic(nodeClient, *config)
+			clearScreen()
+			handleNodeLogic(ctx, nodeClient, *conf)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -74,8 +73,8 @@ var nodeColumns = []output.ColumnDefaults{
 	{Header: "NAME", Type: output.Text},
 }
 
-func handleNodeLogic(client cat.Cat, conf config.Config) {
-	nodes, err := client.CatNodes(nil, &flagFilter, &flagBytes, &flagTime)
+func handleNodeLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+	nodes, err := client.CatNodes(ctx, "", flagFilter, flagBytes, flagTime)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to retrieve nodes: %v\n", err)
 		os.Exit(1)
@@ -89,7 +88,7 @@ func handleNodeLogic(client cat.Cat, conf config.Config) {
 
 	data := [][]string{}
 
-	for _, node := range *nodes {
+	for _, node := range nodes {
 		rowData := map[string]string{
 			"IP":           node.IP,
 			"HEAP-PERCENT": fmt.Sprintf("%d%%", utils.SafeInt(node.HeapPercent)),

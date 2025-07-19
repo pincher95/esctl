@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pincher95/esctl/cmd/utils"
@@ -27,7 +28,8 @@ var clusterHealthCmd = &cobra.Command{
 	esctl describe cluster health --index=my_index
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		handleDescribeClusterHealth()
+		ctx := cmd.Context()
+		handleDescribeClusterHealth(ctx)
 	},
 }
 
@@ -37,8 +39,8 @@ func init() {
 	clusterHealthCmd.Flags().StringVar(&flagExpandWildcards, "expand-wildcards", "", "Expands wildcard expressions to concrete indexes. Combine multiple values with commas. Supported values are all, open, closed, hidden, and none. (Default is open)")
 }
 
-func handleDescribeClusterHealth() {
-	health, err := cluster.ClusterHealth(nil, &flagLevel, &flagExpandWildcards, &flagIndex)
+func handleDescribeClusterHealth(ctx context.Context) {
+	health, err := cluster.ClusterHealth(ctx, flagLevel, flagExpandWildcards, flagIndex)
 	if err != nil {
 		fmt.Println("Failed to retrieve cluster information:", err)
 		return

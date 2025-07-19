@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -24,18 +25,18 @@ var getPluginsCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		pluginsClient := cat.NewCat()
-		config := config.ParseConfigFile()
+		conf := config.ParseConfigFile()
 
-		// If --watch is NOT set, just run once
+		ctx := cmd.Context()
+
 		if !flagRefresh {
-			handlePluginsLogic(pluginsClient, *config)
+			handlePluginsLogic(ctx, pluginsClient, *conf)
 			return
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			handlePluginsLogic(pluginsClient, *config)
+			clearScreen()
+			handlePluginsLogic(ctx, pluginsClient, *conf)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -52,8 +53,8 @@ var pluginsColumns = []output.ColumnDefaults{
 	{Header: "DESCRIPTION", Type: output.Text},
 }
 
-func handlePluginsLogic(client cat.Cat, conf config.Config) {
-	plugins, err := client.CatPlugins(nil)
+func handlePluginsLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+	plugins, err := client.CatPlugins(ctx, "")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve plugins:", err)
 		os.Exit(1)
@@ -67,7 +68,7 @@ func handlePluginsLogic(client cat.Cat, conf config.Config) {
 
 	data := [][]string{}
 
-	for _, plugin := range *plugins {
+	for _, plugin := range plugins {
 		rowData := map[string]string{
 			"NAME":        plugin.Name,
 			"COMPONENT":   plugin.Component,

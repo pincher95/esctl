@@ -1,7 +1,9 @@
 package cat
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -89,27 +91,34 @@ type CatShardResponse struct {
 	DocsDeleted                    *int    `json:"docs.deleted,string"`
 }
 
-func (c *cat) CatShards(endpoint, index, bytes, time *string) (*[]CatShardResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cat/shards?format=json&h=index,shard,prirep,state,docs,store,ip,id,node,unassigned.reason,unassigned.at,segments.count"
-
-		if *index != "" {
-			*endpoint = fmt.Sprintf("_cat/shards/%s?format=json&h=index,shard,prirep,state,docs,store,ip,id,node,unassigned.reason,unassigned.at,segments.count", *index)
+func (c *cat) CatShards(ctx context.Context, endpoint, index, bytes, timeUnit string) ([]CatShardResponse, error) {
+	if endpoint == "" {
+		path := "_cat/shards"
+		if index != "" {
+			path = fmt.Sprintf("_cat/shards/%s", index)
 		}
-	}
 
-	if bytes != nil {
-		*endpoint += fmt.Sprintf("&bytes=%s", *bytes)
-	}
-
-	if time != nil {
-		*endpoint += fmt.Sprintf("&time=%s", *time)
+		u := url.URL{Path: path}
+		q := u.Query()
+		q.Set("format", "json")
+		q.Set("h", "index,shard,prirep,state,docs,store,ip,id,node,unassigned.reason,unassigned.at,segments.count")
+		if bytes != "" {
+			q.Set("bytes", bytes)
+		}
+		if timeUnit != "" {
+			q.Set("time", timeUnit)
+		}
+		u.RawQuery = q.Encode()
+		endpoint = u.String()
 	}
 
 	shards := make([]CatShardResponse, 0)
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&shards).Get(*endpoint)
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&shards).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -118,5 +127,5 @@ func (c *cat) CatShards(endpoint, index, bytes, time *string) (*[]CatShardRespon
 		return nil, fmt.Errorf("failed to get shards: %s", resp.Status())
 	}
 
-	return &shards, nil
+	return shards, nil
 }

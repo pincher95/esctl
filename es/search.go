@@ -1,6 +1,7 @@
 package es
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
@@ -16,6 +17,7 @@ func extractFieldAndValue(term string) (string, string, error) {
 }
 
 func SearchDocuments(
+	ctx context.Context,
 	index string,
 	ids []string,
 	terms []string,
@@ -89,7 +91,7 @@ func SearchDocuments(
 
 	endpoint := fmt.Sprintf("%s/_search", index)
 	var response JsonResponse
-	err := postJSONResponseWithBody(endpoint, &response, requestBody)
+	err := postJSONResponseWithBody(ctx, endpoint, &response, requestBody)
 	if err != nil {
 		return nil, err
 	}

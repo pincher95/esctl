@@ -11,6 +11,7 @@ import (
 	"github.com/pincher95/esctl/cmd/describe"
 	"github.com/pincher95/esctl/cmd/get"
 	"github.com/pincher95/esctl/cmd/query"
+	"github.com/pincher95/esctl/cmd/show"
 	"github.com/pincher95/esctl/cmd/update"
 	"github.com/pincher95/esctl/constants"
 	"github.com/pincher95/esctl/internal/client"
@@ -39,11 +40,27 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVar(&shared.Context, "context", "", "Override context")
 	RootCmd.PersistentFlags().BoolVar(&shared.Debug, "debug", false, "Enable debug mode")
+	RootCmd.PersistentFlags().StringVarP(&shared.OutputFormat, "output", "o", "table", "Output format: table|json|yaml")
+	RootCmd.PersistentFlags().DurationVar(&shared.TimeoutDuration, "timeout", 0, "Global timeout for command execution (e.g. 30s, 2m)")
+
+	// Root level context timeout handling
+	RootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		if shared.TimeoutDuration > 0 {
+			ctx, cancel := context.WithTimeout(cmd.Context(), shared.TimeoutDuration)
+			cmd.SetContext(ctx)
+			// ensure cancel when command finishes
+			go func() {
+				<-ctx.Done()
+				cancel()
+			}()
+		}
+	}
 
 	RootCmd.AddCommand(config.Cmd())
 	RootCmd.AddCommand(count.Cmd())
 	RootCmd.AddCommand(describe.Cmd())
 	RootCmd.AddCommand(get.Cmd())
+	RootCmd.AddCommand(show.Cmd())
 	RootCmd.AddCommand(query.Cmd())
 	RootCmd.AddCommand(update.Cmd())
 }
@@ -148,5 +165,5 @@ func initClient() {
 		Debug:   shared.Debug,
 	}
 
-	shared.Client = client.NewClient(cfg)
+	shared.SetClient(client.NewClient(cfg))
 }

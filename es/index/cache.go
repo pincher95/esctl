@@ -1,7 +1,9 @@
 package index
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -15,26 +17,30 @@ type IndexCacheClearResponse struct {
 	} `json:"_shards"`
 }
 
-func (i *index) CacheClear(endpoint, index *string) (*IndexCacheClearResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cache/clear?format=json"
-
-		if index != nil {
-			*endpoint = fmt.Sprintf("_alias/%s?format=json", *index)
-		}
+func (i *index) CacheClear(ctx context.Context, indexName string) (*IndexCacheClearResponse, error) {
+	u := url.URL{}
+	if indexName != "" {
+		u.Path = fmt.Sprintf("%s/_cache/clear", indexName)
+	} else {
+		u.Path = "_cache/clear"
 	}
+	q := u.Query()
+	q.Set("format", "json")
+	u.RawQuery = q.Encode()
 
-	var cacheClear IndexCacheClearResponse
+	endpoint := u.String()
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&cacheClear).Post(*endpoint)
+	var out IndexCacheClearResponse
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&out).
+		Post(endpoint)
 	if err != nil {
 		return nil, err
 	}
-
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to get alias: %s", resp.Status())
+		return nil, fmt.Errorf("failed to clear cache: %s", resp.Status())
 	}
-
-	return &cacheClear, nil
+	return &out, nil
 }

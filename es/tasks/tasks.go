@@ -1,28 +1,24 @@
 package tasks
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/pincher95/esctl/shared"
 )
 
 type Tasks interface {
-	// GetTask returns the task with the given ID.
-	GetTasks(endpoint, taskID *string, actions *[]string) (*TasksResponse, error)
-	// ListTasks returns a list of tasks.
-	// ListTasks() ([]Task, error)
-	// // CancelTask cancels the task with the given ID.
-	// CancelTask(id string) error
-	// // CancelTasks cancels the tasks with the given IDs.
-	// CancelTasks(ids []string) error
-	// // CancelAllTasks cancels all tasks.
-	// CancelAllTasks() error
+	// GetTasks returns running tasks optionally filtered by taskID and actions.
+	GetTasks(ctx context.Context, taskID string, actions []string) (*TasksResponse, error)
+	// CancelTasks stops running tasks optionally filtered by taskID and actions.
+	CancelTasks(ctx context.Context, taskID string, actions []string) (*TasksResponse, error)
 }
 
-type tasks struct {
-	Tasks
-}
+// tasks is a concrete implementation of the Tasks interface.
+// It carries no internal state at the moment.
+type tasks struct{}
 
 func NewTasks() Tasks {
 	return &tasks{}
@@ -56,24 +52,30 @@ type Task struct {
 	Headers            map[string]any `json:"headers"`
 }
 
-func (t *tasks) GetTasks(endpoint, taskID *string, actions *[]string) (*TasksResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_tasks?detailed&format=json"
-
-		if taskID != nil {
-			*endpoint = fmt.Sprintf("_tasks/%s?format=json", *taskID)
-		}
+func (t *tasks) GetTasks(ctx context.Context, taskID string, actions []string) (*TasksResponse, error) {
+	// Build endpoint using url.URL for safety.
+	u := url.URL{Path: "_tasks"}
+	if taskID != "" {
+		u.Path = fmt.Sprintf("_tasks/%s", taskID)
 	}
 
-	if len(*actions) > 0 {
-		actionsParam := strings.Join(*actions, ",")
-		*endpoint = fmt.Sprintf("%s&actions=%s", *endpoint, actionsParam)
+	q := u.Query()
+	q.Set("format", "json")
+	q.Set("detailed", "")
+	if len(actions) > 0 {
+		q.Set("actions", strings.Join(actions, ","))
 	}
+	u.RawQuery = q.Encode()
 
-	var tasks TasksResponse
+	endpoint := u.String()
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&tasks).Get(*endpoint)
+	var respBody TasksResponse
+
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&respBody).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -82,5 +84,39 @@ func (t *tasks) GetTasks(endpoint, taskID *string, actions *[]string) (*TasksRes
 		return nil, fmt.Errorf("failed to get tasks: %s", resp.String())
 	}
 
-	return &tasks, nil
+	return &respBody, nil
+}
+
+func (t *tasks) CancelTasks(ctx context.Context, taskID string, actions []string) (*TasksResponse, error) {
+	u := url.URL{Path: "_tasks/_cancel"}
+	if taskID != "" {
+		u.Path = fmt.Sprintf("_tasks/%s/_cancel", taskID)
+	}
+
+	q := u.Query()
+	q.Set("format", "json")
+	q.Set("detailed", "")
+	if len(actions) > 0 {
+		q.Set("actions", strings.Join(actions, ","))
+	}
+	u.RawQuery = q.Encode()
+
+	endpoint := u.String()
+
+	var respBody TasksResponse
+
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&respBody).
+		Post(endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("failed to cancel tasks: %s", resp.String())
+	}
+
+	return &respBody, nil
 }

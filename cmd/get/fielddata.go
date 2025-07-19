@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -29,19 +30,18 @@ var getFielddataCmd = &cobra.Command{
 	esctl get fielddata --bytes kb
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		feilddataClient := cat.NewCat()
-		config := config.ParseConfigFile()
+		fielddataClient := cat.NewCat()
+		conf := config.ParseConfigFile()
 
-		// If --watch is NOT set, just run once
+		ctx := cmd.Context()
+
 		if !flagRefresh {
-			return handleFielddataLogic(feilddataClient, *config)
+			return handleFielddataLogic(ctx, fielddataClient, *conf)
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			err := handleFielddataLogic(feilddataClient, *config)
-			if err != nil {
+			clearScreen()
+			if err := handleFielddataLogic(ctx, fielddataClient, *conf); err != nil {
 				return err
 			}
 			time.Sleep(flagRefreshInterval)
@@ -63,8 +63,8 @@ var fielddataColumns = []output.ColumnDefaults{
 	{Header: "SIZE", Type: output.Text},
 }
 
-func handleFielddataLogic(client cat.Cat, conf config.Config) error {
-	fielddata, err := client.CatFielddata(nil, &flagFields, &flagBytes)
+func handleFielddataLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
+	fielddata, err := client.CatFielddata(ctx, "", flagFields, flagBytes)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve fielddata: %v", err)
 	}
@@ -77,7 +77,7 @@ func handleFielddataLogic(client cat.Cat, conf config.Config) error {
 	data := [][]string{}
 
 	if fielddata != nil {
-		for _, feild := range *fielddata {
+		for _, feild := range fielddata {
 			rowData := map[string]string{
 				// "ID":    feild.ID,
 				"HOST":  feild.Host,

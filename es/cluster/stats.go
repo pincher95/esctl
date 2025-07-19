@@ -1,8 +1,10 @@
 package cluster
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -247,30 +249,33 @@ type ClusterStatsNodes struct {
 	} `json:"ingest"`
 }
 
-func ClusterStats(endpoint, node_id *string, remotes bool) (*Stats, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cluster/stats?format=json"
-
-		if *node_id != "" {
-			*endpoint = fmt.Sprintf("_cluster/stats/nodes/%s?format=json", *node_id)
-		}
+func ClusterStats(ctx context.Context, nodeID string, includeRemotes bool) (*Stats, error) {
+	u := url.URL{}
+	if nodeID != "" {
+		u.Path = fmt.Sprintf("_cluster/stats/nodes/%s", nodeID)
+	} else {
+		u.Path = "_cluster/stats"
 	}
-
-	if remotes {
-		*endpoint += fmt.Sprintf("&%t", remotes)
+	q := u.Query()
+	q.Set("format", "json")
+	if includeRemotes {
+		q.Set("include_remotes", "true")
 	}
+	u.RawQuery = q.Encode()
 
-	var stats Stats
+	endpoint := u.String()
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&stats).Get(*endpoint)
+	var out Stats
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&out).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
-
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to get cluster stats: %s", resp.Status())
 	}
-
-	return &stats, nil
+	return &out, nil
 }

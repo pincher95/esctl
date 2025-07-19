@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -30,18 +31,18 @@ var getSnapshotsCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		snapshotsClient := cat.NewCat()
-		config := config.ParseConfigFile()
+		conf := config.ParseConfigFile()
 
-		// If --watch is NOT set, just run once
+		ctx := cmd.Context()
+
 		if !flagRefresh {
-			handleSnapshotsLogic(snapshotsClient, *config)
+			handleSnapshotsLogic(ctx, snapshotsClient, *conf)
 			return
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			handleSnapshotsLogic(snapshotsClient, *config)
+			clearScreen()
+			handleSnapshotsLogic(ctx, snapshotsClient, *conf)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -68,8 +69,8 @@ var snapshotsColumns = []output.ColumnDefaults{
 	{Header: "TOTAL-SHARDS", Type: output.Number},
 }
 
-func handleSnapshotsLogic(client cat.Cat, conf config.Config) {
-	snapshots, err := client.CatSnapshots(nil, &flagRepository, &flagFilter)
+func handleSnapshotsLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+	snapshots, err := client.CatSnapshots(ctx, "", flagRepository, flagFilter)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)
@@ -83,7 +84,7 @@ func handleSnapshotsLogic(client cat.Cat, conf config.Config) {
 
 	data := [][]string{}
 
-	for _, snapshot := range *snapshots {
+	for _, snapshot := range snapshots {
 		if includeSnaphotByStatus(snapshot) {
 			rowData := map[string]string{
 				"ID":                snapshot.ID,

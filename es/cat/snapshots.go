@@ -1,7 +1,9 @@
 package cat
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/pincher95/esctl/shared"
@@ -22,19 +24,27 @@ type CatSnapshotResponse struct {
 	Reason           string `json:"reason"`
 }
 
-func (c *cat) CatSnapshots(endpoint, repository, snapshotName *string) (*[]CatSnapshotResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cat/snapshots?format=json"
-	}
+func (c *cat) CatSnapshots(ctx context.Context, endpoint, repository, snapshotName string) ([]CatSnapshotResponse, error) {
+	if endpoint == "" {
+		path := "_cat/snapshots"
+		if repository != "" {
+			path = fmt.Sprintf("_cat/snapshots/%s", repository)
+		}
 
-	if *repository != "" {
-		*endpoint = fmt.Sprintf("_cat/snapshots/%s?format=json", *repository)
+		u := url.URL{Path: path}
+		q := u.Query()
+		q.Set("format", "json")
+		u.RawQuery = q.Encode()
+		endpoint = u.String()
 	}
 
 	snapshots := make([]CatSnapshotResponse, 0)
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&snapshots).Get(*endpoint)
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&snapshots).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -43,23 +53,18 @@ func (c *cat) CatSnapshots(endpoint, repository, snapshotName *string) (*[]CatSn
 		return nil, fmt.Errorf("failed to get snapshots: %s", resp.Status())
 	}
 
-	if snapshotName != nil {
+	if snapshotName != "" {
 		filtered := make([]CatSnapshotResponse, 0, len(snapshots))
-
-		for _, snapshot := range snapshots {
-			if strings.Contains(snapshot.ID, *snapshotName) {
-				filtered = append(filtered, snapshot)
+		for _, s := range snapshots {
+			if strings.Contains(s.ID, snapshotName) {
+				filtered = append(filtered, s)
 			}
 		}
-
-		// If no matches found, return error
 		if len(filtered) == 0 {
-			return nil, fmt.Errorf("node not found: %s", *snapshotName)
+			return nil, fmt.Errorf("snapshot not found: %s", snapshotName)
 		}
-
-		// Replace the original slice with the filtered one
 		snapshots = filtered
 	}
 
-	return &snapshots, nil
+	return snapshots, nil
 }

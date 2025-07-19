@@ -1,7 +1,9 @@
 package cat
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/pincher95/esctl/shared"
@@ -109,23 +111,29 @@ type CatNodesResponse struct {
 	SuggestTotal                    *int    `json:"suggest.total,string"`
 }
 
-func (c *cat) CatNodes(endpoint, nodeName, bytes, time *string) (*[]CatNodesResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cat/nodes?format=json&h=name,ip,node.role,node.roles,master,heap.percent,cpu,load_1m,load_5m,load_15m,ram.percent"
-	}
-
-	if bytes != nil {
-		*endpoint += fmt.Sprintf("&bytes=%s", *bytes)
-	}
-
-	if time != nil {
-		*endpoint += fmt.Sprintf("&time=%s", *time)
+func (c *cat) CatNodes(ctx context.Context, endpoint, nodeName, bytes, timeUnit string) ([]CatNodesResponse, error) {
+	if endpoint == "" {
+		u := url.URL{Path: "_cat/nodes"}
+		q := u.Query()
+		q.Set("format", "json")
+		q.Set("h", "name,ip,node.role,node.roles,master,heap.percent,cpu,load_1m,load_5m,load_15m,ram.percent")
+		if bytes != "" {
+			q.Set("bytes", bytes)
+		}
+		if timeUnit != "" {
+			q.Set("time", timeUnit)
+		}
+		u.RawQuery = q.Encode()
+		endpoint = u.String()
 	}
 
 	nodes := make([]CatNodesResponse, 0)
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&nodes).Get(*endpoint)
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&nodes).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -134,23 +142,18 @@ func (c *cat) CatNodes(endpoint, nodeName, bytes, time *string) (*[]CatNodesResp
 		return nil, fmt.Errorf("failed to get nodes: %s", resp.Status())
 	}
 
-	if nodeName != nil {
+	if nodeName != "" {
 		filtered := make([]CatNodesResponse, 0, len(nodes))
-
-		for _, node := range nodes {
-			if strings.Contains(node.Name, *nodeName) {
-				filtered = append(filtered, node)
+		for _, n := range nodes {
+			if strings.Contains(n.Name, nodeName) {
+				filtered = append(filtered, n)
 			}
 		}
-
-		// If no matches found, return error
 		if len(filtered) == 0 {
-			return nil, fmt.Errorf("node not found: %s", *nodeName)
+			return nil, fmt.Errorf("node not found: %s", nodeName)
 		}
-
-		// Replace the original slice with the filtered one
 		nodes = filtered
 	}
 
-	return &nodes, nil
+	return nodes, nil
 }

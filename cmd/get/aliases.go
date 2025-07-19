@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -28,19 +29,18 @@ var getAliasesCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		aliasClient := index.NewIndex()
+		conf := config.ParseConfigFile()
 
-		config := config.ParseConfigFile()
+		ctx := cmd.Context()
 
-		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handleAliasLogic(aliasClient, *config)
+			handleAliasLogic(ctx, aliasClient, *conf)
 			return
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			handleAliasLogic(aliasClient, *config)
+			clearScreen()
+			handleAliasLogic(ctx, aliasClient, *conf)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -61,8 +61,8 @@ var aliasColumns = []output.ColumnDefaults{
 	{Header: "IS_WRITE_INDEX", Type: output.Boolean},
 }
 
-func handleAliasLogic(client index.Index, conf config.Config) {
-	aliases, err := client.GetAliases(nil, &flagIndex)
+func handleAliasLogic(ctx context.Context, client index.Index, conf config.Config) {
+	aliases, err := client.GetAliases(ctx, flagIndex)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve aliases:", err)
 		os.Exit(1)
@@ -76,12 +76,12 @@ func handleAliasLogic(client index.Index, conf config.Config) {
 
 	data := [][]string{}
 
-	for index, detail := range *aliases {
+	for idx, detail := range *aliases {
 		for alias := range detail.Aliases {
 			if includeIndexByWriteIndex(detail.Aliases[alias]) {
 				rowData := map[string]string{
 					"ALIAS":          alias,
-					"INDEX":          index,
+					"INDEX":          idx,
 					"INDEX-ROUTING":  detail.Aliases[alias].IndexRouting,
 					"SEARCH-ROUTING": detail.Aliases[alias].SearchRouting,
 					"ROUTING":        detail.Aliases[alias].Routing,

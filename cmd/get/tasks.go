@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -17,18 +18,20 @@ var getTasksCmd = &cobra.Command{
 	Long:  `This command retrieves and displays tasks information from Elasticsearch cluster.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		tasksClient := tasks.NewTasks()
-		config := config.ParseConfigFile()
+		cfg := config.ParseConfigFile()
+
+		ctx := cmd.Context()
 
 		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			handleTaskLogic(tasksClient, *config)
+			handleTaskLogic(ctx, tasksClient, *cfg)
 			return
 		}
 
 		// If --watch is set, run in a loop
 		for {
 			clearScreen() // optional, to mimic "watch" clearing
-			handleTaskLogic(tasksClient, *config)
+			handleTaskLogic(ctx, tasksClient, *cfg)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -49,8 +52,8 @@ var taskColumns = []output.ColumnDefaults{
 	{Header: "RUNNING-TIME", Type: output.Number},
 }
 
-func handleTaskLogic(client tasks.Tasks, config config.Config) {
-	tasksResponse, err := client.GetTasks(nil, &flagTasksID, &flagActions)
+func handleTaskLogic(ctx context.Context, client tasks.Tasks, config config.Config) {
+	tasksResponse, err := client.GetTasks(ctx, flagTasksID, flagActions)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve tasks:", err)
 		os.Exit(1)
@@ -69,6 +72,7 @@ func handleTaskLogic(client tasks.Tasks, config config.Config) {
 			rowData := map[string]string{
 				"NODE":         node.Name,
 				"TASK-ID":      fmt.Sprintf("%s:%d", task.Node, task.ID),
+				"ID":           fmt.Sprintf("%d", task.ID),
 				"ACTION":       task.Action,
 				"DESCRIPTION":  task.Description,
 				"START-TIME":   fmt.Sprintf("%d", task.StartTimeInMillis),

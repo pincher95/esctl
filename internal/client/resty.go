@@ -6,8 +6,14 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-// Config holds any configuration you want to expose for the HTTP client.
-// Add more fields as needed (e.g. base URL, timeouts, etc.).
+// ESClient is the minimal contract the rest of the codebase relies on.
+// Having this interface makes it easy to replace the implementation in unit tests.
+type ESClient interface {
+	// R returns a Resty request that callers can further configure (headers, body, etc.).
+	R() *resty.Request
+}
+
+// Config holds HTTP-client configuration.
 type Config struct {
 	RetryWaitTime time.Duration
 	Timeout       time.Duration
@@ -16,42 +22,42 @@ type Config struct {
 	Debug         bool
 }
 
-// Client is a wrapper around *resty.Client that you can customize.
-type Client struct {
+// RestyClient is a thin wrapper around *resty.Client that implements ESClient.
+type RestyClient struct {
 	*resty.Client
 }
 
-// NewClient returns a configured resty client based on the given Config.
-func NewClient(cfg *Config) *Client {
+// NewClient returns an ESClient backed by Resty and configured via Config.
+func NewClient(cfg *Config) ESClient {
 	r := resty.New()
 
-	// Set base URL if provided
 	if cfg.BaseURL != "" {
 		r.SetBaseURL(cfg.BaseURL)
 	}
 
-	// Set request timeout
 	r.SetTimeout(cfg.Timeout)
-
-	// Enable debug if needed
 	r.SetDebug(cfg.Debug)
 
-	// Set retry count and wait time
 	if cfg.RetryCount > 0 {
 		r.
 			SetRetryCount(cfg.RetryCount).
 			SetRetryWaitTime(cfg.RetryWaitTime)
 	}
 
-	return &Client{r}
+	return &RestyClient{r}
 }
 
-func (c *Client) WithAuthToken(token string) *Client {
+// Compile-time assertion that RestyClient satisfies ESClient.
+var _ ESClient = (*RestyClient)(nil)
+
+// WithAuthToken helper for fluent auth setting.
+func (c *RestyClient) WithAuthToken(token string) *RestyClient {
 	c.SetAuthToken(token)
 	return c
 }
 
-func (c *Client) WithHeader(key, value string) *Client {
+// WithHeader helper for fluent header setting.
+func (c *RestyClient) WithHeader(key, value string) *RestyClient {
 	c.SetHeader(key, value)
 	return c
 }

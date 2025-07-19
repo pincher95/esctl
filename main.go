@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/pincher95/esctl/cmd"
 )
@@ -13,14 +14,14 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// sigChan := make(chan os.Signal, 1)
-	// signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
 
-	// go func() {
-	// 	<-sigChan
-	// 	fmt.Println("Received an interrupt, cancelling context...")
-	// 	cancel()
-	// }()
+	go func() {
+		<-sigChan
+		fmt.Println("Received interrupt, shutting down...")
+		cancel()
+	}()
 
 	// Execute our root command with the context
 	if err := cmd.Execute(ctx); err != nil {

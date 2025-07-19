@@ -1,15 +1,14 @@
 package es
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/pincher95/esctl/shared"
 )
 
@@ -27,67 +26,70 @@ func debugLog(format string, args ...any) {
 	}
 }
 
-func httpRequest(method, endpoint string, body, target any, expectedStatusCode int) error {
-	baseURL := fmt.Sprintf("%s://%s:%d/%s", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort, endpoint)
-
-	if shared.Debug {
-		debugLog("Request URL: %s", baseURL)
+func httpRequest(ctx context.Context, method, endpoint string, body, target any, expectedStatusCode int) error {
+	// Build URL relative to base configured in shared.Client (which already has base URL set).
+	// If shared.Client is nil, return error.
+	if shared.Client == nil {
+		return errors.New("shared.Client not initialised")
 	}
 
-	var bodyReader io.Reader
+	// Ensure endpoint has no leading slash to avoid double slashes with baseURL.
+	endpoint = strings.TrimPrefix(endpoint, "/")
+
+	req := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(target)
+
 	if body != nil {
-		bodyBytes, err := json.Marshal(body)
-		if err != nil {
-			return err
-		}
-		if shared.Debug {
-			debugLog("Request Body: %s", bodyBytes)
-		}
-		bodyReader = bytes.NewReader(bodyBytes)
+		req = req.SetBody(body)
 	}
 
-	req, err := http.NewRequest(method, baseURL, bodyReader)
+	var resp *resty.Response
+	var err error
+
+	switch strings.ToUpper(method) {
+	case "GET":
+		resp, err = req.Get(endpoint)
+	case "POST":
+		resp, err = req.Post(endpoint)
+	case "PUT":
+		resp, err = req.Put(endpoint)
+	case "DELETE":
+		resp, err = req.Delete(endpoint)
+	default:
+		return fmt.Errorf("unsupported method %s", method)
+	}
+
 	if err != nil {
 		return err
 	}
 
-	if shared.ElasticsearchUsername != "" && shared.ElasticsearchPassword != "" {
-		req.SetBasicAuth(shared.ElasticsearchUsername, shared.ElasticsearchPassword)
-	}
-
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != expectedStatusCode {
+	if resp.StatusCode() != expectedStatusCode {
 		var esError EsError
-		if err := json.NewDecoder(resp.Body).Decode(&esError); err != nil {
-			return fmt.Errorf("unexpected http status: %s", resp.Status)
+		if err := json.Unmarshal(resp.Body(), &esError); err != nil {
+			return fmt.Errorf("unexpected http status: %d", resp.StatusCode())
 		}
 		return errors.New(esError.Error.Reason)
 	}
 
-	return json.NewDecoder(resp.Body).Decode(target)
+	return nil
 }
 
-func getJSONResponse(endpoint string, target any) error {
-	return httpRequest(http.MethodGet, endpoint, nil, target, http.StatusOK)
+func getJSONResponse(ctx context.Context, endpoint string, target any) error {
+	return httpRequest(ctx, "GET", endpoint, nil, target, 200)
 }
 
 // func getJSONResponseWithBody(endpoint string, target any, body any) error {
 // 	return httpRequest(http.MethodGet, endpoint, body, target, http.StatusOK)
 // }
 
-func postJSONResponseWithBody(endpoint string, target any, body any) error {
-	return httpRequest(http.MethodPost, endpoint, body, target, http.StatusOK)
+func postJSONResponseWithBody(ctx context.Context, endpoint string, target any, body any) error {
+	return httpRequest(ctx, "POST", endpoint, body, target, 200)
 }
 
-func postWithoutBody(endpoint string, target any) error {
-	return httpRequest(http.MethodPost, endpoint, nil, target, http.StatusOK)
+func postWithoutBody(ctx context.Context, endpoint string, target any) error {
+	return httpRequest(ctx, "POST", endpoint, nil, target, 200)
 }
 
 func getNestedPath(field string, nestedPaths []string) (string, bool) {

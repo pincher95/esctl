@@ -1,14 +1,16 @@
 package cat
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
 
 type CatAllocationResponse struct {
 	Shards int `json:"shards,string"`
-	// Pointer of string as the api can returns null for those fileds with Node set to "UNASSIGNED"
+	// API returns null for certain fields when node is UNASSIGNED
 	DiskIndices *string `json:"disk.indices"`
 	DiskUsed    *string `json:"disk.used"`
 	DiskAvail   *string `json:"disk.avail"`
@@ -19,23 +21,32 @@ type CatAllocationResponse struct {
 	Node        string  `json:"node"`
 }
 
-func (c *cat) CatAllocation(endpoint, nodeID, bytes *string) (*[]CatAllocationResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cat/allocation?format=json&h=shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node,disk.percent"
-
-		if nodeID != nil {
-			*endpoint = fmt.Sprintf("_cat/allocation/%s?format=json&h=shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node,disk.percent", *nodeID)
+func (c *cat) CatAllocation(ctx context.Context, endpoint, nodeID, bytes string) ([]CatAllocationResponse, error) {
+	// Allow caller to override full endpoint when necessary
+	if endpoint == "" {
+		path := "_cat/allocation"
+		if nodeID != "" {
+			path = fmt.Sprintf("_cat/allocation/%s", nodeID)
 		}
-	}
 
-	if bytes != nil {
-		*endpoint += fmt.Sprintf("&bytes=%s", *bytes)
+		u := url.URL{Path: path}
+		q := u.Query()
+		q.Set("format", "json")
+		q.Set("h", "shards,disk.indices,disk.used,disk.avail,disk.total,host,ip,node,disk.percent")
+		if bytes != "" {
+			q.Set("bytes", bytes)
+		}
+		u.RawQuery = q.Encode()
+		endpoint = u.String()
 	}
 
 	allocations := make([]CatAllocationResponse, 0)
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&allocations).Get(*endpoint)
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&allocations).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -44,5 +55,5 @@ func (c *cat) CatAllocation(endpoint, nodeID, bytes *string) (*[]CatAllocationRe
 		return nil, fmt.Errorf("failed to get nodes allocations: %s", resp.Status())
 	}
 
-	return &allocations, nil
+	return allocations, nil
 }

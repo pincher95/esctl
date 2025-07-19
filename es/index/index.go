@@ -1,16 +1,18 @@
 package index
 
+import "context"
+
 type IndexSettingsResponse map[string]any
 
+// Index exposes typed helpers around index-level Elasticsearch APIs.
+// All parameters are plain values; pass empty strings when you don’t want to set them.
 type Index interface {
-	UpdateIndexSettings(endpoint, index *string, body *map[string]any, flat bool) (*IndexSettingsResponse, error)
-	GetAliases(endpoint, index *string) (*IndexAliasResponse, error)
-	CacheClear(endpoint, index *string) (*IndexCacheClearResponse, error)
+	UpdateIndexSettings(ctx context.Context, index string, body map[string]any, flatSettings bool) (*IndexSettingsResponse, error)
+	GetAliases(ctx context.Context, index string) (*IndexAliasResponse, error)
+	CacheClear(ctx context.Context, index string) (*IndexCacheClearResponse, error)
 }
 
-type index struct {
-	Index
-}
+type index struct{}
 
 func NewIndex() Index {
 	return &index{}
@@ -42,12 +44,8 @@ type FailuresCause struct {
 	Reason string `json:"reason"`
 	NodeID string `json:"node_id"`
 	Cause  *struct {
-		Type   string `json:"type"`
-		Reason string `json:"reason"`
-		Cause  *struct {
-			Type   string  `json:"type"`
-			Reason *string `json:"reason"`
-		} `json:"caused_by,omitempty"`
+		Type   string  `json:"type"`
+		Reason *string `json:"reason"`
 	} `json:"caused_by,omitempty"`
 }
 

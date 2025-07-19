@@ -1,8 +1,10 @@
 package cluster
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -80,38 +82,31 @@ type ClusterStateRoutingNodes struct {
 	Nodes      map[string][]ClusterStateRoutingIndex `json:"nodes"`
 }
 
-func ClusterReroute(endpoint, flagMertic *string, dryRun, explain, retryFailed bool) (*Reroute, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cluster/reroute?format=json"
+func ClusterReroute(ctx context.Context, metric string, dryRun, explain, retryFailed bool) (*Reroute, error) {
+	u := url.URL{Path: "_cluster/reroute"}
+	q := u.Query()
+	q.Set("format", "json")
+	if metric != "" {
+		q.Set("metric", metric)
 	}
+	q.Set("dry_run", fmt.Sprintf("%t", dryRun))
+	q.Set("explain", fmt.Sprintf("%t", explain))
+	q.Set("retry_failed", fmt.Sprintf("%t", retryFailed))
+	u.RawQuery = q.Encode()
 
-	if dryRun {
-		*endpoint += fmt.Sprintf("&dry_run=%t", dryRun)
-	}
+	endpoint := u.String()
 
-	if explain {
-		*endpoint += fmt.Sprintf("&explain=%t", explain)
-	}
-
-	if retryFailed {
-		*endpoint += fmt.Sprintf("&retry_failed=%t", retryFailed)
-	}
-
-	if *flagMertic != "" {
-		*endpoint += fmt.Sprintf("&metric=%s", *flagMertic)
-	}
-
-	var reroute Reroute
-
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&reroute).Post(*endpoint)
+	var out Reroute
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&out).
+		Post(endpoint)
 	if err != nil {
 		return nil, err
 	}
-
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to post cluster reroute: %s", resp.Status())
 	}
-
-	return &reroute, nil
+	return &out, nil
 }

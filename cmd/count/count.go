@@ -1,8 +1,8 @@
 package count
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -15,8 +15,9 @@ var countCmd = &cobra.Command{
 	Use:   "count [--index index] [--group-by field]",
 	Short: "Count documents in an index or in all indices matching a pattern",
 	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		handleCount()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+		return handleCount(ctx)
 	},
 }
 
@@ -24,14 +25,13 @@ func Cmd() *cobra.Command {
 	return countCmd
 }
 
-func handleCount() {
+func handleCount(ctx context.Context) error {
 	var counts map[string]es.GroupCount
 	var err error
 
-	counts, err = es.CountDocuments(flagIndex, flagTerm, flagExists, flagNested, flagGroupBy, flagSize, flagTimeout, flagRefresh)
+	counts, err = es.CountDocuments(ctx, flagIndex, flagTerm, flagExists, flagNested, flagGroupBy, flagSize, flagTimeout, flagRefresh)
 	if err != nil {
-		fmt.Printf("Failed to get document counts: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Failed to get document counts: %v", err)
 	}
 
 	columnDefs := []output.ColumnDefaults{
@@ -65,6 +65,7 @@ func handleCount() {
 		sortCols := output.ParseSortColumns("INDEX")
 		output.PrintTable(columnDefs, data, sortCols)
 	}
+	return nil
 }
 
 func init() {

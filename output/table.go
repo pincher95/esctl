@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/pincher95/esctl/shared"
 )
 
 type ColumnDefaults struct {
@@ -46,6 +48,27 @@ func compareValues(left, right string, columnType ColumnType) bool {
 }
 
 func PrintTable(columnDefs []ColumnDefaults, data [][]string, sortCols []sortColumn) {
+	// If user requested json or yaml, convert rows and delegate.
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		rows := make([]map[string]string, 0, len(data))
+		for _, row := range data {
+			m := make(map[string]string)
+			for i, cell := range row {
+				hdr := columnDefs[i].Header
+				if cell != "" {
+					m[hdr] = cell
+				}
+			}
+			rows = append(rows, m)
+		}
+		if shared.OutputFormat == "json" {
+			PrintJson(rows)
+		} else {
+			PrintYaml(rows)
+		}
+		return
+	}
+
 	// Detect empty columns (unchanged from your snippet):
 	emptyColumns := make([]bool, len(columnDefs))
 	for i := range columnDefs {

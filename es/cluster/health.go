@@ -1,7 +1,9 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -54,34 +56,36 @@ type ShardHealth struct {
 	UnassingedPrimaryShards int    `json:"unassinged_primary_shards"`
 }
 
-func ClusterHealth(endpoint, level, expand, index *string) (*Health, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cluster/health?format=json"
-
-		if *index != "" {
-			*endpoint = fmt.Sprintf("_cluster/health/%s?format=json", *index)
-		}
+func ClusterHealth(ctx context.Context, level, expandWildcard, index string) (*Health, error) {
+	u := url.URL{}
+	if index != "" {
+		u.Path = fmt.Sprintf("_cluster/health/%s", index)
+	} else {
+		u.Path = "_cluster/health"
 	}
-
-	if level != nil {
-		*endpoint += fmt.Sprintf("&level=%s", *level)
+	q := u.Query()
+	q.Set("format", "json")
+	if level != "" {
+		q.Set("level", level)
 	}
-
-	if expand != nil {
-		*endpoint += fmt.Sprintf("&expand_wildcards=%s", *expand)
+	if expandWildcard != "" {
+		q.Set("expand_wildcards", expandWildcard)
 	}
+	u.RawQuery = q.Encode()
 
-	var health Health
+	endpoint := u.String()
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&health).Get(*endpoint)
+	var result Health
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&result).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
-
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to get cluster health: %s", resp.Status())
 	}
-
-	return &health, nil
+	return &result, nil
 }

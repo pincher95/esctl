@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -41,18 +42,18 @@ esctl get shards --started --relocating
 `),
 	Run: func(cmd *cobra.Command, args []string) {
 		shardsClient := cat.NewCat()
-		config := config.ParseConfigFile()
+		conf := config.ParseConfigFile()
 
-		// If --watch is NOT set, just run once
+		ctx := cmd.Context()
+
 		if !flagRefresh {
-			handleShardLogic(shardsClient, *config)
+			handleShardLogic(ctx, shardsClient, *conf)
 			return
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			handleShardLogic(shardsClient, *config)
+			clearScreen()
+			handleShardLogic(ctx, shardsClient, *conf)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -81,8 +82,8 @@ var shardColumns = []output.ColumnDefaults{
 	{Header: "NODE", Type: output.Text},
 }
 
-func handleShardLogic(client cat.Cat, conf config.Config) {
-	shards, err := client.CatShards(nil, &flagIndex, nil, nil)
+func handleShardLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+	shards, err := client.CatShards(ctx, "", flagIndex, "", "")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve shards:", err)
 		os.Exit(1)
@@ -96,7 +97,7 @@ func handleShardLogic(client cat.Cat, conf config.Config) {
 
 	data := [][]string{}
 
-	for _, shard := range *shards {
+	for _, shard := range shards {
 		if includeShardByState(shard) && includeShardByNumber(shard) &&
 			includeShardByPriRep(shard) && includeShardByNode(shard) {
 

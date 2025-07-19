@@ -1,6 +1,7 @@
 package index
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -23,7 +24,9 @@ var SettingsCmd = &cobra.Command{
 	esctl update index --index my_index --replicas 2
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		index := index.NewIndex()
+		idxClient := index.NewIndex()
+
+		ctx := cmd.Context()
 
 		// Split the user input into key and value
 		kv := strings.SplitN(flagBody, "=", 2)
@@ -40,7 +43,7 @@ var SettingsCmd = &cobra.Command{
 			applySetting(&body, &key, &value)
 		}
 
-		handleIndexLogic(index, &body)
+		handleIndexLogic(ctx, idxClient, body)
 	},
 }
 
@@ -53,7 +56,7 @@ func init() {
 	_ = SettingsCmd.MarkFlagRequired("settings")
 }
 
-func handleIndexLogic(index index.Index, body *map[string]any) {
+func handleIndexLogic(ctx context.Context, idx index.Index, body map[string]any) {
 	// fmt.Fprintf(os.Stderr, "This operation will update the settings of the index: %s.", flagIndex)
 	approved, err := utils.GetApproval()
 	if err != nil {
@@ -61,7 +64,7 @@ func handleIndexLogic(index index.Index, body *map[string]any) {
 	}
 
 	if approved {
-		settings, err := index.UpdateIndexSettings(nil, &flagIndex, body, flagFlatSettings)
+		settings, err := idx.UpdateIndexSettings(ctx, flagIndex, body, flagFlatSettings)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to update index:", err)
 			os.Exit(1)

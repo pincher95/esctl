@@ -1,7 +1,9 @@
 package cat
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -155,23 +157,31 @@ type CatIndiceResponse struct {
 	SearchThrottled                      bool    `json:"search.throttled,string"`
 }
 
-func (c *cat) CatIndices(endpoint, index, bytes *string) (*[]CatIndiceResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cat/indices?format=json&h=health,status,index,uuid,pri,rep,docs.count,docs.deleted,creation.date.string,store.size,pri.store.size"
-
-		if *index != "" {
-			*endpoint = fmt.Sprintf("_cat/indices/%s?format=json&h=health,status,index,uuid,pri,rep,docs.count,docs.deleted,creation.date.string,store.size,pri.store.size", *index)
+func (c *cat) CatIndices(ctx context.Context, endpoint, index, bytes string) ([]CatIndiceResponse, error) {
+	if endpoint == "" {
+		path := "_cat/indices"
+		if index != "" {
+			path = fmt.Sprintf("_cat/indices/%s", index)
 		}
+
+		u := url.URL{Path: path}
+		q := u.Query()
+		q.Set("format", "json")
+		q.Set("h", "health,status,index,uuid,pri,rep,docs.count,docs.deleted,creation.date.string,store.size,pri.store.size")
+		if bytes != "" {
+			q.Set("bytes", bytes)
+		}
+		u.RawQuery = q.Encode()
+		endpoint = u.String()
 	}
 
-	if bytes != nil {
-		*endpoint += fmt.Sprintf("&bytes=%s", *bytes)
-	}
+	data := make([]CatIndiceResponse, 0)
 
-	indices := make([]CatIndiceResponse, 0)
-
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&indices).Get(*endpoint)
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&data).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -180,5 +190,5 @@ func (c *cat) CatIndices(endpoint, index, bytes *string) (*[]CatIndiceResponse, 
 		return nil, fmt.Errorf("failed to get indices: %s", resp.Status())
 	}
 
-	return &indices, nil
+	return data, nil
 }

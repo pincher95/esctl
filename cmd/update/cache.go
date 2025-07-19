@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -28,8 +29,9 @@ var updateCacheClearCmd = &cobra.Command{
 	esctl update cache --index my_index --fielddata true
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		index := index.NewIndex()
-		handleCacheLogic(index)
+		idxClient := index.NewIndex()
+		ctx := cmd.Context()
+		handleCacheLogic(ctx, idxClient)
 	},
 }
 
@@ -39,8 +41,8 @@ func init() {
 	updateCacheClearCmd.Flags().BoolVar(&flagFielddata, "fielddata", true, "If true, clears the fields cache. Use the fields parameter to clear the cache of specific fields only..")
 }
 
-func handleCacheLogic(client index.Index) {
-	cache, err := client.CacheClear(nil, nil)
+func handleCacheLogic(ctx context.Context, client index.Index) {
+	cache, err := client.CacheClear(ctx, "")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve cache:", err)
 		os.Exit(1)

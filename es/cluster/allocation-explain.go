@@ -1,7 +1,9 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -59,31 +61,31 @@ type ClusterAllocationExplainDeciders struct {
 	Explanation string `json:"explanation"`
 }
 
-func ClusterAllocationExplain(endpoint *string, includeDiskInfo, includeYesDecisions bool) (*AllocationExplain, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cluster/allocation/explain?format=json"
-	}
-
+func ClusterAllocationExplain(ctx context.Context, includeDiskInfo, includeYesDecisions bool) (*AllocationExplain, error) {
+	u := url.URL{Path: "_cluster/allocation/explain"}
+	q := u.Query()
+	q.Set("format", "json")
 	if includeDiskInfo {
-		*endpoint += fmt.Sprintf("&%s", "include_disk_info")
+		q.Set("include_disk_info", "")
 	}
-
 	if includeYesDecisions {
-		*endpoint += fmt.Sprintf("&%s", "include_yes_decisions")
+		q.Set("include_yes_decisions", "")
 	}
+	u.RawQuery = q.Encode()
 
-	var allocation AllocationExplain
+	endpoint := u.String()
 
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&allocation).Get(*endpoint)
+	var out AllocationExplain
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&out).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
-
 	if resp.StatusCode() != 200 {
-		// return nil, fmt.Errorf("failed to get cluster allocation explain: %s", resp.Status())
-		return nil, fmt.Errorf("\n%s", resp.String())
+		return nil, fmt.Errorf("%s", resp.String())
 	}
-
-	return &allocation, nil
+	return &out, nil
 }

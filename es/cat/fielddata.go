@@ -1,7 +1,9 @@
 package cat
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -15,23 +17,30 @@ type CatFielddataResponse struct {
 	Size  string `json:"size"`
 }
 
-func (c *cat) CatFielddata(endpoint, fields, bytes *string) (*[]CatFielddataResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cat/fielddata?format=json"
-
-		if *fields != "" {
-			*endpoint = fmt.Sprintf("_cat/fielddata/%s?format=json", *fields)
+func (c *cat) CatFielddata(ctx context.Context, endpoint, fields, bytes string) ([]CatFielddataResponse, error) {
+	if endpoint == "" {
+		path := "_cat/fielddata"
+		if fields != "" {
+			path = fmt.Sprintf("_cat/fielddata/%s", fields)
 		}
+
+		u := url.URL{Path: path}
+		q := u.Query()
+		q.Set("format", "json")
+		if bytes != "" {
+			q.Set("bytes", bytes)
+		}
+		u.RawQuery = q.Encode()
+		endpoint = u.String()
 	}
 
-	if *bytes != "" {
-		*endpoint += fmt.Sprintf("&bytes=%s", *bytes)
-	}
+	data := make([]CatFielddataResponse, 0)
 
-	fieldData := make([]CatFielddataResponse, 0)
-
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&fieldData).Get(*endpoint)
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&data).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -40,5 +49,5 @@ func (c *cat) CatFielddata(endpoint, fields, bytes *string) (*[]CatFielddataResp
 		return nil, fmt.Errorf("failed to get field data: %s", resp.Status())
 	}
 
-	return &fieldData, nil
+	return data, nil
 }

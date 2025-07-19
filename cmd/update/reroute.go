@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -36,7 +37,8 @@ var updateRerouteCmd = &cobra.Command{
 	esctl update reroute --dry-run --explain --retry-failed --metric 'none'
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
-		handleRerouteLogic()
+		ctx := cmd.Context()
+		handleRerouteLogic(ctx)
 	},
 }
 
@@ -47,8 +49,8 @@ func init() {
 	updateRerouteCmd.Flags().StringVar(&flagMertic, "metric", "none", "Limits the information returned to the specified metrics (Default: none)")
 }
 
-func handleRerouteLogic() {
-	reroute, err := cluster.ClusterReroute(nil, &flagMertic, flagDryRun, flagExplain, flagRetryFailed)
+func handleRerouteLogic(ctx context.Context) {
+	reroute, err := cluster.ClusterReroute(ctx, flagMertic, flagDryRun, flagExplain, flagRetryFailed)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve reroute:", err)
 		os.Exit(1)

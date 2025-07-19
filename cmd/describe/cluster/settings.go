@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pincher95/esctl/cmd/utils"
@@ -23,7 +24,8 @@ var clusterSettingsCmd = &cobra.Command{
 	# Retrieve detailed information about the cluster settings including default settings.
 	esctl describe cluster settings --include-defaults`),
 	Run: func(cmd *cobra.Command, args []string) {
-		handleDescribeClusterSettings()
+		ctx := cmd.Context()
+		handleDescribeClusterSettings(ctx)
 	},
 }
 
@@ -32,8 +34,8 @@ func init() {
 	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings (Default is false)")
 }
 
-func handleDescribeClusterSettings() {
-	settings, err := cluster.ClusterSettings(nil, flagFlatSettings, flagIncludeDefaults)
+func handleDescribeClusterSettings(ctx context.Context) {
+	settings, err := cluster.ClusterSettings(ctx, flagFlatSettings, flagIncludeDefaults)
 	if err != nil {
 		fmt.Println("Failed to retrieve cluster information:", err)
 		return

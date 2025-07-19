@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -28,18 +29,15 @@ var getAllocationExplainCmd = &cobra.Command{
 	esctl get explain --include-yes-decisions
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// config := config.ParseConfigFile()
+		ctx := cmd.Context()
 
-		// If --watch is NOT set, just run once
 		if !flagRefresh {
-			return handleAllocationExplainLogic()
+			return handleAllocationExplainLogic(ctx)
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			err := handleAllocationExplainLogic()
-			if err != nil {
+			clearScreen()
+			if err := handleAllocationExplainLogic(ctx); err != nil {
 				return err
 			}
 			time.Sleep(flagRefreshInterval)
@@ -52,8 +50,8 @@ func init() {
 	getAllocationExplainCmd.Flags().BoolVar(&flagIncludeYesDecisions, "include-yes-decisions", false, "YES decisions in explanation")
 }
 
-func handleAllocationExplainLogic() error {
-	allocationsExplain, err := cluster.ClusterAllocationExplain(nil, flagIncludeDiskInfo, flagIncludeYesDecisions)
+func handleAllocationExplainLogic(ctx context.Context) error {
+	allocationsExplain, err := cluster.ClusterAllocationExplain(ctx, flagIncludeDiskInfo, flagIncludeYesDecisions)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve allocation explain%v", err)
 	}

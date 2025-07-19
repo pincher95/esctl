@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -29,18 +30,18 @@ var getIndicesCmd = &cobra.Command{
 	`),
 	Run: func(cmd *cobra.Command, args []string) {
 		indicesClient := cat.NewCat()
-		config := config.ParseConfigFile()
+		conf := config.ParseConfigFile()
 
-		// If --watch is NOT set, just run once
+		ctx := cmd.Context()
+
 		if !flagRefresh {
-			handleIndicesLogic(indicesClient, *config)
+			handleIndicesLogic(ctx, indicesClient, *conf)
 			return
 		}
 
-		// If --watch is set, run in a loop
 		for {
-			clearScreen() // optional, to mimic "watch" clearing
-			handleIndicesLogic(indicesClient, *config)
+			clearScreen()
+			handleIndicesLogic(ctx, indicesClient, *conf)
 			time.Sleep(flagRefreshInterval)
 		}
 	},
@@ -64,8 +65,8 @@ var indexColumns = []output.ColumnDefaults{
 	{Header: "PRI-STORE-SIZE", Type: output.DataSize},
 }
 
-func handleIndicesLogic(client cat.Cat, conf config.Config) {
-	indices, err := client.CatIndices(nil, &flagIndex, &flagBytes)
+func handleIndicesLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+	indices, err := client.CatIndices(ctx, "", flagIndex, flagBytes)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
 		os.Exit(1)
@@ -79,7 +80,7 @@ func handleIndicesLogic(client cat.Cat, conf config.Config) {
 
 	data := [][]string{}
 
-	for _, index := range *indices {
+	for _, index := range indices {
 		rowData := map[string]string{
 			"HEALTH":         index.Health,
 			"STATUS":         index.Status,

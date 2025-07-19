@@ -1,37 +1,40 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
 
 type Settings map[string]any
 
-func ClusterSettings(endpoint *string, flat, defaults bool) (*Settings, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_cluster/settings?format=json"
+func ClusterSettings(ctx context.Context, flatSettings, includeDefaults bool) (*Settings, error) {
+	u := url.URL{Path: "_cluster/settings"}
+	q := u.Query()
+	q.Set("format", "json")
+	if !flatSettings {
+		q.Set("flat_settings", "")
 	}
-
-	if !flat {
-		*endpoint += fmt.Sprintf("&%s", "flat_settings")
+	if includeDefaults {
+		q.Set("include_defaults", "")
 	}
+	u.RawQuery = q.Encode()
 
-	if defaults {
-		*endpoint += fmt.Sprintf("&%s", "include_defaults")
-	}
+	endpoint := u.String()
 
-	var settings Settings
-
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&settings).Get(*endpoint)
+	var out Settings
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&out).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
-
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to get cluster settings: %s", resp.Status())
 	}
-
-	return &settings, nil
+	return &out, nil
 }

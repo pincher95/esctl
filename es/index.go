@@ -1,6 +1,7 @@
 package es
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -25,20 +26,20 @@ type IndexDetails struct {
 
 type IndexDetailsResponse map[string]IndexDetails
 
-func GetIndexDetails(index string, shouldGetMappings, shouldGetSettings bool) (IndexDetailsResponse, error) {
+func GetIndexDetails(ctx context.Context, index string, shouldGetMappings, shouldGetSettings bool) (IndexDetailsResponse, error) {
 	var mappingsResponse MappingsResponse
 	var settingsResponse SettingsResponse
 
 	if shouldGetMappings {
 		mappingsEndpoint := fmt.Sprintf("%s/_mappings", index)
-		if err := getJSONResponse(mappingsEndpoint, &mappingsResponse); err != nil {
+		if err := getJSONResponse(ctx, mappingsEndpoint, &mappingsResponse); err != nil {
 			return nil, fmt.Errorf("failed to get index mappings: %w", err)
 		}
 	}
 
 	if shouldGetSettings {
 		settingsEndpoint := fmt.Sprintf("%s/_settings", index)
-		if err := getJSONResponse(settingsEndpoint, &settingsResponse); err != nil {
+		if err := getJSONResponse(ctx, settingsEndpoint, &settingsResponse); err != nil {
 			return nil, fmt.Errorf("failed to get index settings: %w", err)
 		}
 	}
@@ -162,7 +163,7 @@ func buildFilterQueries(termFilters, existsFilters []string, nestedPaths []strin
 	return filterQueries
 }
 
-func countDocumentsOfIndex(index string, termFilters, existsFilters, nestedPaths []string) (int, error) {
+func countDocumentsOfIndex(ctx context.Context, index string, termFilters, existsFilters, nestedPaths []string) (int, error) {
 	endpoint := index + "/_count"
 	query := map[string]any{
 		"match_all": map[string]any{},
@@ -181,7 +182,7 @@ func countDocumentsOfIndex(index string, termFilters, existsFilters, nestedPaths
 	}
 
 	var response CountResponse
-	if err := postJSONResponseWithBody(endpoint, &response, body); err != nil {
+	if err := postJSONResponseWithBody(ctx, endpoint, &response, body); err != nil {
 		return 0, err
 	}
 
@@ -190,13 +191,14 @@ func countDocumentsOfIndex(index string, termFilters, existsFilters, nestedPaths
 
 type RefreshResponse map[string]any
 
-func RefreshIndices(target string) error {
+func RefreshIndices(ctx context.Context, target string) error {
 	endpoint := target + "/_refresh"
 	var response RefreshResponse
-	return postWithoutBody(endpoint, &response)
+	return postWithoutBody(ctx, endpoint, &response)
 }
 
 func groupDocumentsOfIndex(
+	ctx context.Context,
 	index string,
 	termFilters []string,
 	existsFilters []string,
@@ -259,7 +261,7 @@ func groupDocumentsOfIndex(
 	}
 
 	var response CountResponse
-	if err := postJSONResponseWithBody(endpoint, &response, body); err != nil {
+	if err := postJSONResponseWithBody(ctx, endpoint, &response, body); err != nil {
 		return nil, err
 	}
 
@@ -288,6 +290,7 @@ func groupDocumentsOfIndex(
 }
 
 func CountDocuments(
+	ctx context.Context,
 	index string,
 	termFilters []string,
 	existsFilters []string,
@@ -298,35 +301,35 @@ func CountDocuments(
 	refresh bool,
 ) (map[string]GroupCount, error) {
 	if refresh {
-		err := RefreshIndices(index)
+		err := RefreshIndices(ctx, index)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	client := cat.NewCat()
-	indices, err := client.CatIndices(nil, &index, nil)
+	indicesResp, err := client.CatIndices(ctx, "", index, "")
 	if err != nil {
 		return nil, err
 	}
 
 	indexCounts := make(map[string]GroupCount)
-	for _, index := range *indices {
+	for _, idx := range indicesResp {
 		var groupCount GroupCount
 		if groupBy == "" {
-			count, err := countDocumentsOfIndex(index.Index, termFilters, existsFilters, nestedPaths)
+			count, err := countDocumentsOfIndex(ctx, idx.Index, termFilters, existsFilters, nestedPaths)
 			if err != nil {
 				return nil, err
 			}
 			groupCount = map[string]int{"": count}
 		} else {
-			groupCount, err = groupDocumentsOfIndex(index.Index, termFilters, existsFilters, nestedPaths, groupBy, size, timeout)
+			groupCount, err = groupDocumentsOfIndex(ctx, idx.Index, termFilters, existsFilters, nestedPaths, groupBy, size, timeout)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		indexCounts[index.Index] = groupCount
+		indexCounts[idx.Index] = groupCount
 	}
 
 	return indexCounts, nil

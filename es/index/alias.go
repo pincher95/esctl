@@ -1,7 +1,9 @@
 package index
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/pincher95/esctl/shared"
 )
@@ -21,28 +23,30 @@ type AliasInfo struct {
 	IsHidden      bool           `json:"is_hidden"`
 }
 
-func (i *index) GetAliases(endpoint, index *string) (*IndexAliasResponse, error) {
-	if endpoint == nil {
-		endpoint = new(string)
-		*endpoint = "_alias/_all?format=json"
-
-		if index != nil {
-			*endpoint = fmt.Sprintf("_alias/%s?format=json", *index)
-		}
+func (i *index) GetAliases(ctx context.Context, indexName string) (*IndexAliasResponse, error) {
+	u := url.URL{}
+	if indexName != "" {
+		u.Path = fmt.Sprintf("%s/_alias", indexName)
+	} else {
+		u.Path = "_alias/_all"
 	}
+	q := u.Query()
+	q.Set("format", "json")
+	u.RawQuery = q.Encode()
 
-	// alias := make([]IndexAliasResponse, 0)
+	endpoint := u.String()
 
 	var aliases IndexAliasResponse
-
-	resp, err := shared.Client.R().SetHeader("Content-Type", "application/json").SetResult(&aliases).Get(*endpoint)
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetResult(&aliases).
+		Get(endpoint)
 	if err != nil {
 		return nil, err
 	}
-
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to get alias: %s", resp.Status())
 	}
-
 	return &aliases, nil
 }
