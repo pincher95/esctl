@@ -71,23 +71,21 @@ func handleFielddataLogic(ctx context.Context, client cat.Cat, conf config.Confi
 
 	data := [][]string{}
 
-	if fielddata != nil {
-		for _, feild := range fielddata {
-			rowData := map[string]string{
-				// "ID":    feild.ID,
-				"HOST":  feild.Host,
-				"IP":    feild.IP,
-				"NODE":  feild.Node,
-				"FIELD": feild.Field,
-				"SIZE":  feild.Size,
-			}
-
-			row := make([]string, len(columnDefs))
-			for i, colDef := range columnDefs {
-				row[i] = rowData[colDef.Header]
-			}
-			data = append(data, row)
+	for _, feild := range fielddata {
+		rowData := map[string]string{
+			// "ID":    feild.ID,
+			"HOST":  feild.Host,
+			"IP":    feild.IP,
+			"NODE":  feild.Node,
+			"FIELD": feild.Field,
+			"SIZE":  feild.Size,
 		}
+
+		row := make([]string, len(columnDefs))
+		for i, colDef := range columnDefs {
+			row[i] = rowData[colDef.Header]
+		}
+		data = append(data, row)
 	}
 
 	if len(flagSortBy) > 0 {

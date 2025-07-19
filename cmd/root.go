@@ -11,6 +11,7 @@ import (
 	"github.com/pincher95/esctl/cmd/describe"
 	"github.com/pincher95/esctl/cmd/get"
 	"github.com/pincher95/esctl/cmd/query"
+	setcmd "github.com/pincher95/esctl/cmd/set"
 	"github.com/pincher95/esctl/cmd/show"
 	"github.com/pincher95/esctl/cmd/update"
 	"github.com/pincher95/esctl/constants"
@@ -63,6 +64,7 @@ func init() {
 	RootCmd.AddCommand(show.Cmd())
 	RootCmd.AddCommand(query.Cmd())
 	RootCmd.AddCommand(update.Cmd())
+	RootCmd.AddCommand(setcmd.Cmd())
 }
 
 func initialize() {
