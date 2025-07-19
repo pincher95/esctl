@@ -28,6 +28,7 @@ Available Entities:
 	- explain: List allocation explain in the Elasticsearch cluster.
 	- snapshots: List all snapshots in the Elasticsearch cluster.
 	- fielddata: List fielddata in the Elasticsearch cluster.
+	- health: Cluster health overview.
 	`),
 	// 	Example: utils.TrimAndIndent(`
 	// #Retrieve a list of all nodes in the Elasticsearch cluster.
@@ -71,6 +72,7 @@ func init() {
 	getCmd.AddCommand(getAllocationExplainCmd)
 	getCmd.AddCommand(getSnapshotsCmd)
 	getCmd.AddCommand(getFielddataCmd)
+	getCmd.AddCommand(getHealthCmd)
 }
 
 func Cmd() *cobra.Command {

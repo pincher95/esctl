@@ -7,6 +7,7 @@ import "context"
 type Cat interface {
 	CatAllocation(ctx context.Context, endpoint, nodeID, bytes string) ([]CatAllocationResponse, error)
 	CatFielddata(ctx context.Context, endpoint, fields, bytes string) ([]CatFielddataResponse, error)
+	CatHealth(ctx context.Context) (*CatHealthResponse, error)
 	CatIndices(ctx context.Context, endpoint, index, bytes string) ([]CatIndiceResponse, error)
 	CatNodes(ctx context.Context, endpoint, nodeName, bytes, timeUnit string) ([]CatNodesResponse, error)
 	CatShards(ctx context.Context, endpoint, index, bytes, timeUnit string) ([]CatShardResponse, error)
