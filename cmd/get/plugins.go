@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -34,11 +33,10 @@ var getPluginsCmd = &cobra.Command{
 			return
 		}
 
-		for {
-			clearScreen()
+		utils.WatchLoop(flagRefreshInterval, func() error {
 			handlePluginsLogic(ctx, pluginsClient, *conf)
-			time.Sleep(flagRefreshInterval)
-		}
+			return nil
+		})
 	},
 }
 

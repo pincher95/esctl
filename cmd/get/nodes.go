@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -45,11 +44,10 @@ var getNodesCmd = &cobra.Command{
 			return nil
 		}
 
-		for {
-			clearScreen()
+		return utils.WatchLoop(flagRefreshInterval, func() error {
 			handleNodeLogic(ctx, nodeClient, *conf)
-			time.Sleep(flagRefreshInterval)
-		}
+			return nil
+		})
 	},
 }
 

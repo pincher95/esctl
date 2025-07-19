@@ -40,11 +40,10 @@ var getSnapshotsCmd = &cobra.Command{
 			return
 		}
 
-		for {
-			clearScreen()
+		utils.WatchLoop(flagRefreshInterval, func() error {
 			handleSnapshotsLogic(ctx, snapshotsClient, *conf)
-			time.Sleep(flagRefreshInterval)
-		}
+			return nil
+		})
 	},
 }
 

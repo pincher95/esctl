@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/tasks"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
@@ -22,18 +22,15 @@ var getTasksCmd = &cobra.Command{
 
 		ctx := cmd.Context()
 
-		// If --watch is NOT set, just run once
 		if !flagRefresh {
 			handleTaskLogic(ctx, tasksClient, *cfg)
 			return
 		}
 
-		// If --watch is set, run in a loop
-		for {
-			clearScreen() // optional, to mimic "watch" clearing
+		utils.WatchLoop(flagRefreshInterval, func() error {
 			handleTaskLogic(ctx, tasksClient, *cfg)
-			time.Sleep(flagRefreshInterval)
-		}
+			return nil
+		})
 	},
 }
 

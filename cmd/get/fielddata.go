@@ -3,7 +3,6 @@ package get
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -39,13 +38,9 @@ var getFielddataCmd = &cobra.Command{
 			return handleFielddataLogic(ctx, fielddataClient, *conf)
 		}
 
-		for {
-			clearScreen()
-			if err := handleFielddataLogic(ctx, fielddataClient, *conf); err != nil {
-				return err
-			}
-			time.Sleep(flagRefreshInterval)
-		}
+		return utils.WatchLoop(flagRefreshInterval, func() error {
+			return handleFielddataLogic(ctx, fielddataClient, *conf)
+		})
 	},
 }
 

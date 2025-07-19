@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -39,11 +38,10 @@ var getIndicesCmd = &cobra.Command{
 			return
 		}
 
-		for {
-			clearScreen()
+		utils.WatchLoop(flagRefreshInterval, func() error {
 			handleIndicesLogic(ctx, indicesClient, *conf)
-			time.Sleep(flagRefreshInterval)
-		}
+			return nil
+		})
 	},
 }
 

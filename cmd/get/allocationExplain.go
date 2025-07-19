@@ -3,7 +3,6 @@ package get
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/cluster"
@@ -35,13 +34,9 @@ var getAllocationExplainCmd = &cobra.Command{
 			return handleAllocationExplainLogic(ctx)
 		}
 
-		for {
-			clearScreen()
-			if err := handleAllocationExplainLogic(ctx); err != nil {
-				return err
-			}
-			time.Sleep(flagRefreshInterval)
-		}
+		return utils.WatchLoop(flagRefreshInterval, func() error {
+			return handleAllocationExplainLogic(ctx)
+		})
 	},
 }
 

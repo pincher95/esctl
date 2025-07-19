@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -51,11 +50,10 @@ esctl get shards --started --relocating
 			return
 		}
 
-		for {
-			clearScreen()
+		utils.WatchLoop(flagRefreshInterval, func() error {
 			handleShardLogic(ctx, shardsClient, *conf)
-			time.Sleep(flagRefreshInterval)
-		}
+			return nil
+		})
 	},
 }
 
