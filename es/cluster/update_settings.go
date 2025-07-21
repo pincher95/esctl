@@ -10,7 +10,7 @@ import (
 type UpdateSettingsResponse map[string]any
 
 func UpdateClusterSettings(ctx context.Context, body map[string]any) (*UpdateSettingsResponse, error) {
-	endpoint := "_cluster/settings?pretty"
+	endpoint := "_cluster/settings?pretty&flat_settings=true"
 	var out UpdateSettingsResponse
 	resp, err := shared.Client.R().
 		SetContext(ctx).

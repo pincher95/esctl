@@ -47,7 +47,7 @@ Examples:
 	},
 }
 
-func Cmd() *cobra.Command {
+func SettingsCmd() *cobra.Command {
 	setClusterSettingsCmd.Flags().StringVar(&flagBody, "body", "", "Raw JSON settings body")
 	_ = setClusterSettingsCmd.MarkFlagRequired("body")
 	return setClusterSettingsCmd
