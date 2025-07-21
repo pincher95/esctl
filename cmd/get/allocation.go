@@ -79,13 +79,13 @@ func handleAllocationLogic(ctx context.Context, client cat.Cat, conf config.Conf
 	for _, allocation := range allocations {
 		rowData := map[string]string{
 			"SHARDS":       strconv.Itoa(allocation.Shards),
-			"DISK-INDICES": utils.SafeString(allocation.DiskIndices),
-			"DISK-USED":    utils.SafeString(allocation.DiskUsed),
-			"DISK-AVAIL":   utils.SafeString(allocation.DiskAvail),
-			"DISK-TOTAL":   utils.SafeString(allocation.DiskTotal),
-			"DISK-PERCENT": fmt.Sprintf("%d%%", utils.SafeInt(allocation.DiskPercent)),
-			"HOST":         utils.SafeString(allocation.Host),
-			"IP":           utils.SafeString(allocation.IP),
+			"DISK-INDICES": allocation.DiskIndices,
+			"DISK-USED":    allocation.DiskUsed,
+			"DISK-AVAIL":   allocation.DiskAvail,
+			"DISK-TOTAL":   allocation.DiskTotal,
+			"DISK-PERCENT": fmt.Sprintf("%d%%", allocation.DiskPercent),
+			"HOST":         allocation.Host,
+			"IP":           allocation.IP,
 			"NODE":         allocation.Node,
 		}
 

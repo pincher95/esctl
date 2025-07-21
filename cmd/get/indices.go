@@ -84,12 +84,12 @@ func handleIndicesLogic(ctx context.Context, client cat.Cat, conf config.Config)
 			"STATUS":         index.Status,
 			"INDEX":          index.Index,
 			"UUID":           index.UUID,
-			"PRIMARY":        strconv.Itoa(utils.SafeInt(index.Primary)),
-			"REPLICAS":       strconv.Itoa(utils.SafeInt(index.Replica)),
-			"DOCS-COUNT":     strconv.Itoa(utils.SafeInt(index.DocsCount)),
-			"DOCS-DELETED":   strconv.Itoa(utils.SafeInt(index.DocDeleted)),
-			"STORE-SIZE":     utils.SafeString(index.StoreSize),
-			"PRI-STORE-SIZE": utils.SafeString(index.PrimaryStoreSize),
+			"PRIMARY":        strconv.Itoa(index.Primary),
+			"REPLICAS":       strconv.Itoa(index.Replica),
+			"DOCS-COUNT":     strconv.Itoa(index.DocsCount),
+			"DOCS-DELETED":   strconv.Itoa(index.DocDeleted),
+			"STORE-SIZE":     index.StoreSize,
+			"PRI-STORE-SIZE": index.PrimaryStoreSize,
 		}
 
 		row := make([]string, len(columnDefs))

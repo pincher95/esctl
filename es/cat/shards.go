@@ -9,21 +9,12 @@ import (
 )
 
 type CatShardResponse struct {
-	Index                          string  `json:"index"`
-	Shard                          int     `json:"shard,string"`
-	Prirep                         string  `json:"prirep"`
-	State                          string  `json:"state"`
-	Docs                           *string `json:"docs"`
-	Store                          *string `json:"store"`
-	IP                             *string `json:"ip"`
-	ID                             *string `json:"id"`
-	Node                           *string `json:"node"`
+	ShardIdentity       // embedded: index, shard, prirep, state
+	ShardStorageStats   // embedded: docs, store
+	ShardNodeInfo       // embedded: ip, id, node
+	ShardUnassignedInfo // unassigned.* fields
+
 	SyncID                         *string `json:"sync_id"`
-	UnassignedReason               *string `json:"unassigned.reason"`
-	UnassignedAt                   *string `json:"unassigned.at"`
-	UnassignedFor                  *string `json:"unassigned.for"`
-	UnassignedDetails              *string `json:"unassigned.details"`
-	RecoverysourceType             *string `json:"recoverysource.type"`
 	CompletionSize                 *string `json:"completion.size"`
 	FielddataMemorySize            *string `json:"fielddata.memory_size"`
 	FielddataEvictions             *int    `json:"fielddata.evictions,string"`

@@ -10,105 +10,29 @@ import (
 )
 
 type CatNodesResponse struct {
-	ID                              string  `json:"id"`
-	PID                             *string `json:"pid"`
-	IP                              string  `json:"ip"`
-	Port                            int     `json:"port,string"`
-	HTTPAddress                     string  `json:"http_address"`
-	Version                         string  `json:"version"`
-	Type                            *string `json:"type"`
-	Build                           *string `json:"build"`
-	JDK                             *string `json:"jdk"`
-	DiskTotal                       *string `json:"disk.total"`
-	DiskUsed                        *string `json:"disk.used"`
-	DiskAvail                       *string `json:"disk.avail"`
-	DiskUsedPercent                 *string `json:"disk.used_percent"`
-	HeapCurrent                     *string `json:"heap.current"`
-	HeapPercent                     *int    `json:"heap.percent,string"`
-	HeapMax                         *string `json:"heap.max"`
-	RAMCurrent                      *string `json:"ram.current"`
-	RAMPercent                      *int    `json:"ram.percent,string"`
-	RAMMax                          *string `json:"ram.max"`
-	FileDescCurrent                 *int    `json:"file_desc.current,string"`
-	FileDescPercent                 *int    `json:"file_desc.percent,string"`
-	FileDescMax                     *int    `json:"file_desc.max,string"`
-	CPU                             *int    `json:"cpu,string"`
-	Load1M                          *string `json:"load_1m"`
-	Load5M                          *string `json:"load_5m"`
-	Load15M                         *string `json:"load_15m"`
-	Uptime                          *string `json:"uptime"`
-	Role                            string  `json:"node.role"`
-	Roles                           string  `json:"node.roles"`
-	Master                          string  `json:"master"`
-	ClusterManager                  string  `json:"cluster_manager"`
-	Name                            string  `json:"name"`
-	CompletionSize                  *string `json:"completion.size"`
-	FieldDataMemorySize             *string `json:"fielddata.memory_size"`
-	FileldDataEvictions             *int    `json:"fielddata.evictions,string"`
-	QueryCacheMemorySize            *string `json:"query_cache.memory_size"`
-	QueryCacheEvictions             *int    `json:"query_cache.evictions,string"`
-	QueryCacheHitCount              *int    `json:"query_cache.hit_count,string"`
-	QueryCacheMissCount             *int    `json:"query_cache.miss_count,string"`
-	RequestCacheMemorySize          *string `json:"request_cache.memory_size"`
-	RequestCacheEvictions           *int    `json:"request_cache.evictions,string"`
-	RequestCacheHitCount            *int    `json:"request_cache.hit_count,string"`
-	RequestCacheMissCount           *int    `json:"request_cache.miss_count,string"`
-	FlushTotal                      *int    `json:"flush.total,string"`
-	FlushTotalTime                  *string `json:"flush.total_time"`
-	GetCurrent                      *int    `json:"get.current,string"`
-	GetTime                         *string `json:"get.time"`
-	GetTotal                        *int    `json:"get.total,string"`
-	GetExistsTime                   *string `json:"get.exists_time"`
-	GetExistsTotal                  *int    `json:"get.exists_total,string"`
-	GetMissingTime                  *string `json:"get.missing_time"`
-	GetMissingTotal                 *int    `json:"get.missing_total,string"`
-	IndexingDeleteCurrent           *int    `json:"indexing.delete_current,string"`
-	IndexingDeleteTime              *string `json:"indexing.delete_time"`
-	IndexingDeleteTotal             *int    `json:"indexing.delete_total,string"`
-	IndexingIndexCurrent            *int    `json:"indexing.index_current,string"`
-	IndexingIndexTime               *string `json:"indexing.index_time"`
-	IndexingIndexTotal              *int    `json:"indexing.index_total,string"`
-	IndexingIndexFailed             *int    `json:"indexing.index_failed,string"`
-	MergesCurrent                   *int    `json:"merges.current,string"`
-	MergesCurrentDoc                *int    `json:"merges.current_docs,string"`
-	MergesCurrentSize               *string `json:"merges.current_size"`
-	MergesTotal                     *int    `json:"merges.total,string"`
-	MergesTotalDocs                 *int    `json:"merges.total_docs,string"`
-	MergesTotalSize                 *string `json:"merges.total_size"`
-	MergesTotalTime                 *string `json:"merges.total_time"`
-	RefreshTotal                    *int    `json:"refresh.total,string"`
-	RefreshTime                     *string `json:"refresh.time"`
-	RefreshExternalTotal            *int    `json:"refresh.external_total,string"`
-	RefreshExternalTime             *string `json:"refresh.external_time"`
-	RefreshListeners                *int    `json:"refresh.listeners,string"`
-	ScriptCompilations              *int    `json:"script.compilations,string"`
-	ScriptCacheEvictions            *int    `json:"script.cache_evictions,string"`
-	ScriptCompilationLimitTriggered *int    `json:"script.compilation_limit_triggered,string"`
-	SearchFetchCurrent              *int    `json:"search.fetch_current,string"`
-	SearchFetchTime                 *string `json:"search.fetch_time"`
-	SearchFetchTotal                *int    `json:"search.fetch_total,string"`
-	SearchOpenContexts              *int    `json:"search.open_contexts,string"`
-	SearchQueryCurrent              *int    `json:"search.query_current,string"`
-	SearchQueryTime                 *string `json:"search.query_time"`
-	SearchQueryTotal                *int    `json:"search.query_total,string"`
-	SearchConcurrentQueryCurrent    *int    `json:"search.concurrent_query_current,string"`
-	SearchConcurrentQueryTime       *string `json:"search.concurrent_query_time"`
-	SearchConcurrentQueryTotal      *int    `json:"search.concurrent_query_total,string"`
-	SearchConcurrentAvgSliceCount   *string `json:"search.concurrent_avg_slice_count"`
-	SearchScrollCurrent             *int    `json:"search.scroll_current,string"`
-	SearchScrollTime                *string `json:"search.scroll_time"`
-	SearchScrollTotal               *int    `json:"search.scroll_total,string"`
-	SearchPointInTimeCurrent        *int    `json:"search.point_in_time_current,string"`
-	SearchPointInTimeTime           *string `json:"search.point_in_time_time"`
-	SearchPointInTimeTotal          *int    `json:"search.point_in_time_total,string"`
-	SegmentsCount                   *int    `json:"segments.count,string"`
-	SegmentsMemory                  *string `json:"segments.memory"`
-	SegmentsIndexWriteMemory        *string `json:"segments.index_writer_memory"`
-	SegmentsVersionMapMemory        *string `json:"segments.version_map_memory"`
-	SegmentsFixedBitsetMemory       *string `json:"segments.fixed_bitset_memory"`
-	SuggestCurrent                  *int    `json:"suggest.current,string"`
-	SuggestTime                     *string `json:"suggest.time"`
-	SuggestTotal                    *int    `json:"suggest.total,string"`
+	// 32-bit scalars first (minimise padding)
+	Port int `json:"port,string"`
+	CPU  int `json:"cpu,string,omitempty"`
+
+	// Embedded metric groups (contain a mix but large)
+	DiskStats     // disk.*
+	HeapStats     // heap.*
+	RAMStats      // ram.*
+	FileDescStats // file_desc.*
+	LoadStats     // load_*.
+
+	// Strings / reference fields
+	ID          string `json:"id"`
+	PID         string `json:"pid,omitempty"`
+	IP          string `json:"ip"`
+	HTTPAddress string `json:"http_address"`
+	Version     string `json:"version"`
+	Type        string `json:"type,omitempty"`
+	Build       string `json:"build,omitempty"`
+	JDK         string `json:"jdk,omitempty"`
+	Uptime      string `json:"uptime,omitempty"`
+
+	NodeIdentity // node.role(s), name, master
 }
 
 func (c *cat) CatNodes(ctx context.Context, endpoint, nodeName, bytes, timeUnit string) ([]CatNodesResponse, error) {
@@ -156,4 +80,83 @@ func (c *cat) CatNodes(ctx context.Context, endpoint, nodeName, bytes, timeUnit 
 	}
 
 	return nodes, nil
+}
+
+// RolesList returns the individual single-letter roles exposed by _cat/nodes.
+func (n CatNodesResponse) RolesList() []string {
+	var set = make(map[string]struct{})
+
+	raw := n.Roles
+	if raw == "" {
+		raw = n.Role // fallback
+	}
+
+	if strings.Contains(raw, ",") {
+		tokens := strings.Split(raw, ",")
+		for _, t := range tokens {
+			t = strings.TrimSpace(t)
+			if t == "" {
+				continue
+			}
+			set[roleAbbrev(t)] = struct{}{}
+		}
+	} else {
+		// If no comma and length >1 we treat as sequence of single-letter codes
+		if len(raw) > 1 {
+			for _, r := range raw {
+				set[string(r)] = struct{}{}
+			}
+		} else if raw != "" {
+			set[raw] = struct{}{}
+		}
+	}
+
+	delete(set, "r") // remote_cluster_client not counted in health output
+
+	roles := make([]string, 0, len(set))
+	for r := range set {
+		roles = append(roles, r)
+	}
+	return roles
+}
+
+// roleAbbrev maps verbose role tokens to single-letter abbreviations.
+func roleAbbrev(token string) string {
+	switch token {
+	case "data", "data_hot", "data_warm", "data_cold", "data_frozen", "data_content":
+		return "d"
+	case "master", "cluster_manager":
+		return "m"
+	case "coordinating_only":
+		return "c"
+	case "ingest":
+		return "i"
+	case "remote_cluster_client":
+		return "r"
+	case "search":
+		return "s"
+	default:
+		if len(token) > 0 {
+			return strings.ToLower(token[:1])
+		}
+		return token
+	}
+}
+
+// HasRole checks whether the node advertises the given single-letter role (e.g. "d" for data).
+func (n CatNodesResponse) HasRole(r string) bool {
+	for _, rr := range n.RolesList() {
+		if rr == r {
+			return true
+		}
+	}
+	return false
+}
+
+// IsData returns true when the node has the data ("d") role.
+func (n CatNodesResponse) IsData() bool { return n.HasRole("d") }
+
+// IsMaster returns true when the node is master-eligible ("m") or currently elected (master == "*").
+func (n CatNodesResponse) IsMaster() bool {
+	return n.HasRole("m") || n.Master == "*" || n.ClusterManager == "*"
 }

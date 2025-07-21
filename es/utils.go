@@ -41,6 +41,9 @@ func httpRequest(ctx context.Context, method, endpoint string, body, target any,
 		SetHeader("Content-Type", "application/json").
 		SetResult(target)
 
+	// Emit debug output before the request is sent.
+	debugLog("HTTP %s %s", strings.ToUpper(method), endpoint)
+
 	if body != nil {
 		req = req.SetBody(body)
 	}
@@ -64,6 +67,9 @@ func httpRequest(ctx context.Context, method, endpoint string, body, target any,
 	if err != nil {
 		return err
 	}
+
+	// Emit debug output after receiving the response.
+	debugLog("HTTP %s %s -> %d", strings.ToUpper(method), endpoint, resp.StatusCode())
 
 	if resp.StatusCode() != expectedStatusCode {
 		var esError EsError

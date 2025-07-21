@@ -9,16 +9,15 @@ import (
 )
 
 type CatAllocationResponse struct {
-	Shards int `json:"shards,string"`
-	// API returns null for certain fields when node is UNASSIGNED
-	DiskIndices *string `json:"disk.indices"`
-	DiskUsed    *string `json:"disk.used"`
-	DiskAvail   *string `json:"disk.avail"`
-	DiskTotal   *string `json:"disk.total"`
-	DiskPercent *int    `json:"disk.percent,string"`
-	Host        *string `json:"host"`
-	IP          *string `json:"ip"`
-	Node        string  `json:"node"`
+	Shards      int    `json:"shards,string"`
+	DiskIndices string `json:"disk.indices,omitempty"`
+	DiskUsed    string `json:"disk.used,omitempty"`
+	DiskAvail   string `json:"disk.avail,omitempty"`
+	DiskTotal   string `json:"disk.total,omitempty"`
+	DiskPercent int    `json:"disk.percent,string,omitempty"`
+	Host        string `json:"host,omitempty"`
+	IP          string `json:"ip,omitempty"`
+	Node        string `json:"node"`
 }
 
 func (c *cat) CatAllocation(ctx context.Context, endpoint, nodeID, bytes string) ([]CatAllocationResponse, error) {

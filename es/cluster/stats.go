@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/pincher95/esctl/es/common"
 	"github.com/pincher95/esctl/shared"
 )
 
@@ -24,20 +25,8 @@ type Stats struct {
 	Nodes       ClusterStatsNodes   `json:"nodes"`
 }
 
-// FailuresCause contains information about failure cause
-type FailuresCause struct {
-	Type   string `json:"type"`
-	Reason string `json:"reason"`
-	NodeID string `json:"node_id"`
-	Cause  *struct {
-		Type   string `json:"type"`
-		Reason string `json:"reason"`
-		Cause  *struct {
-			Type   string  `json:"type"`
-			Reason *string `json:"reason"`
-		} `json:"caused_by,omitempty"`
-	} `json:"caused_by,omitempty"`
-}
+// FailuresCause is shared via es/common to avoid duplication across packages.
+type FailuresCause = common.FailuresCause
 
 // ClusterStatsIndices is a sub type of ClusterStatsResp containing cluster information about indices
 type ClusterStatsIndices struct {

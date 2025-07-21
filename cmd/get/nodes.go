@@ -89,12 +89,12 @@ func handleNodeLogic(ctx context.Context, client cat.Cat, conf config.Config) {
 	for _, node := range nodes {
 		rowData := map[string]string{
 			"IP":           node.IP,
-			"HEAP-PERCENT": fmt.Sprintf("%d%%", utils.SafeInt(node.HeapPercent)),
-			"RAM-PERCENT":  fmt.Sprintf("%d%%", utils.SafeInt(node.RAMPercent)),
-			"CPU":          fmt.Sprintf("%d%%", utils.SafeInt(node.CPU)),
-			"LOAD-1M":      utils.SafeString(node.Load1M),
-			"LOAD-5M":      utils.SafeString(node.Load5M),
-			"LOAD-15M":     utils.SafeString(node.Load15M),
+			"HEAP-PERCENT": fmt.Sprintf("%d%%", node.HeapPercent),
+			"RAM-PERCENT":  fmt.Sprintf("%d%%", node.RAMPercent),
+			"CPU":          fmt.Sprintf("%d%%", node.CPU),
+			"LOAD-1M":      node.Load1M,
+			"LOAD-5M":      node.Load5M,
+			"LOAD-15M":     node.Load15M,
 			"NODE-ROLE":    node.Role,
 			"NODE-ROLES":   node.Roles,
 			"MASTER":       node.Master,

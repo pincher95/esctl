@@ -1,6 +1,10 @@
 package index
 
-import "context"
+import (
+	"context"
+
+	"github.com/pincher95/esctl/es/common"
+)
 
 type IndexSettingsResponse map[string]any
 
@@ -18,41 +22,14 @@ func NewIndex() Index {
 	return &index{}
 }
 
-// ResponseShards is a sub type of api repsonses containing information about shards
-type ResponseShards struct {
-	Total      int                     `json:"total"`
-	Successful int                     `json:"successful"`
-	Failed     int                     `json:"failed"`
-	Failures   []ResponseShardsFailure `json:"failures"`
-	Skipped    int                     `json:"skipped"`
-}
+// ResponseShards is shared via es/common.
+type ResponseShards = common.ResponseShards
 
-// ResponseShardsFailure is a sub type of ReponseShards containing information about a failed shard
-type ResponseShardsFailure struct {
-	Shard  int    `json:"shard"`
-	Index  any    `json:"index"`
-	Node   string `json:"node"`
-	Reason struct {
-		Type   string `json:"type"`
-		Reason string `json:"reason"`
-	} `json:"reason"`
-}
+// ResponseShardsFailure is shared via es/common.
+type ResponseShardsFailure = common.ResponseShardsFailure
 
-// FailuresCause contains information about failure cause
-type FailuresCause struct {
-	Type   string `json:"type"`
-	Reason string `json:"reason"`
-	NodeID string `json:"node_id"`
-	Cause  *struct {
-		Type   string  `json:"type"`
-		Reason *string `json:"reason"`
-	} `json:"caused_by,omitempty"`
-}
+// FailuresCause is shared via es/common to avoid duplication across packages.
+type FailuresCause = common.FailuresCause
 
-// FailuresShard contains information about shard failures
-type FailuresShard struct {
-	Shard  int           `json:"shard"`
-	Index  string        `json:"index"`
-	Status string        `json:"status"`
-	Reason FailuresCause `json:"reason"`
-}
+// FailuresShard is shared via es/common.
+type FailuresShard = common.FailuresShard

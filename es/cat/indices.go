@@ -9,19 +9,22 @@ import (
 )
 
 type CatIndiceResponse struct {
+	// compact numeric scalars first
+	Primary      int `json:"pri,string"`
+	Replica      int `json:"rep,string"`
+	DocsCount    int `json:"docs.count,string"`
+	DocDeleted   int `json:"docs.deleted,string"`
+	CreationDate int `json:"creation.date,string"`
+
+	// reference types
 	Health             string `json:"health"`
 	Status             string `json:"status"`
 	Index              string `json:"index"`
 	UUID               string `json:"uuid"`
-	Primary            *int   `json:"pri,string"`
-	Replica            *int   `json:"rep,string"`
-	DocsCount          *int   `json:"docs.count,string"`
-	DocDeleted         *int   `json:"docs.deleted,string"`
-	CreationDate       int    `json:"creation.date,string"`
 	CreationDateString string `json:"creation.date.string"`
-	// Pointer as newly created indices can return null
-	StoreSize                            *string `json:"store.size"`
-	PrimaryStoreSize                     *string `json:"pri.store.size"`
+
+	StoreSize                            string  `json:"store.size,omitempty"`
+	PrimaryStoreSize                     string  `json:"pri.store.size,omitempty"`
 	CompletionSize                       *string `json:"completion.size"`
 	PrimaryCompletionSize                *string `json:"pri.completion.size"`
 	FieldDataMemorySize                  *string `json:"fielddata.memory_size"`

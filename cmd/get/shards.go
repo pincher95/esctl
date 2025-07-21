@@ -104,10 +104,10 @@ func handleShardLogic(ctx context.Context, client cat.Cat, conf config.Config) {
 				"SHARD":   strconv.Itoa(shard.Shard),
 				"PRI-REP": humanizePriRep(shard.Prirep),
 				"STATE":   shard.State,
-				"DOCS":    utils.SafeString(shard.Docs),
-				"STORE":   utils.SafeString(shard.Store),
-				"IP":      utils.SafeString(shard.IP),
-				"NODE":    utils.SafeString(shard.Node),
+				"DOCS":    shard.Docs,
+				"STORE":   shard.Store,
+				"IP":      shard.IP,
+				"NODE":    shard.Node,
 			}
 
 			row := make([]string, len(columnDefs))
@@ -158,7 +158,7 @@ func includeShardByNode(shard cat.CatShardResponse) bool {
 		return true
 	}
 
-	return utils.SafeString(shard.Node) == flagNode
+	return shard.Node == flagNode
 }
 
 func humanizePriRep(priRep string) string {
