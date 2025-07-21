@@ -5,6 +5,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	flagOutput          string
+	flagLevel           string
+	flagIndex           string
+	flagFlatSettings    bool
+	flagIncludeDefaults bool
+	flagSettings        bool
+	flagExpandWildcards string
+	flagNodeID          string
+	flagIncludeRemotes  bool
+)
+
 var clusterCmd = &cobra.Command{
 	Use:   "cluster",
 	Short: "Print detailed information about an entity",

@@ -19,7 +19,7 @@ var updateIndexCmd = &cobra.Command{
 }
 
 func init() {
-	updateIndexCmd.PersistentFlags().BoolVar(&flagFlatSettings, "no-flat-settings", false, "If set, print settings in a none flat format (Default is false)")
+	updateIndexCmd.PersistentFlags().BoolVar(&flagFlatSettings, "no-flat-settings", true, "If set, print settings in a none flat format (Default is false)")
 	updateIndexCmd.PersistentFlags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
 	// updateIndexCmd.Flags().StringVar(&flagFlatBody, "flat-settings", "", "Index settings")
 

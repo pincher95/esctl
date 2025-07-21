@@ -2,6 +2,8 @@ package describe
 
 import (
 	"github.com/pincher95/esctl/cmd/describe/cluster"
+	"github.com/pincher95/esctl/cmd/describe/index"
+	"github.com/pincher95/esctl/cmd/describe/node"
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/spf13/cobra"
 )
@@ -46,6 +48,8 @@ Available Entities:
 
 func init() {
 	describeCmd.AddCommand(cluster.Cmd())
+	describeCmd.AddCommand(index.Cmd())
+	describeCmd.AddCommand(node.Cmd())
 
 	// describeCmd.Use = fmt.Sprintf(`describe [%s] [NAME]`, strings.Join(describeCmd.ValidArgs, "|"))
 	// describeCmd.Long = fmt.Sprintf("Print detailed information about the specified entity.\nAvailable entities: %s.", strings.Join(describeCmd.ValidArgs, ", "))

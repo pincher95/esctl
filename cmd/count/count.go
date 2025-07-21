@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pincher95/esctl/es"
+	es "github.com/pincher95/esctl/es"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )

@@ -30,7 +30,7 @@ var clusterSettingsCmd = &cobra.Command{
 }
 
 func init() {
-	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat", false, "If set, print settings in a none flat format (Default is false)")
+	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-setting", true, "If set, print settings in a non-flat format (Default is false)")
 	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings (Default is false)")
 }
 
