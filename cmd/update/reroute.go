@@ -36,9 +36,10 @@ var updateRerouteCmd = &cobra.Command{
 	# Reroute the shards in the cluster with a dry-run, explanation, retry-failed, and metric.
 	esctl update reroute --dry-run --explain --retry-failed --metric 'none'
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		handleRerouteLogic(ctx)
+		return nil
 	},
 }
 

@@ -27,9 +27,10 @@ var clusterHealthCmd = &cobra.Command{
 	# Retrieve detailed information about the cluster health including default settings.
 	esctl describe cluster health --index=my_index
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		handleDescribeClusterHealth(ctx)
+		return nil
 	},
 }
 

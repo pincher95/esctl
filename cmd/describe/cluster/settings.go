@@ -23,14 +23,15 @@ var clusterSettingsCmd = &cobra.Command{
 
 	# Retrieve detailed information about the cluster settings including default settings.
 	esctl describe cluster settings --include-defaults`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		handleDescribeClusterSettings(ctx)
+		return nil
 	},
 }
 
 func init() {
-	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-setting", true, "If set, print settings in a non-flat format (Default is false)")
+	clusterSettingsCmd.Flags().BoolVar(&flagFlatSettings, "no-flat-setting", false, "If set, print settings in a non-flat format (Default is false)")
 	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings (Default is false)")
 }
 

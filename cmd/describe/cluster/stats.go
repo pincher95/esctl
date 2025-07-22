@@ -15,9 +15,10 @@ var clusterStatsCmd = &cobra.Command{
 	Short:   "Print detailed information about an entity",
 	Long:    "By default, it returns only settings that have been explicitly defined.",
 	Example: utils.TrimAndIndent(``),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		handleDescribeClusterStats(ctx)
+		return nil
 	},
 }
 

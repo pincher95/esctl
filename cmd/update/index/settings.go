@@ -3,7 +3,6 @@ package index
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -30,27 +29,24 @@ var SettingsCmd = &cobra.Command{
 	# Update the number of replicas for an index.
 	esctl update index --index my_index --replicas 2
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		idxClient := index.NewIndex()
-
 		ctx := cmd.Context()
 
 		// Split the user input into key and value
 		kv := strings.SplitN(flagBody, "=", 2)
 		if len(kv) != 2 {
-			log.Fatalf("Invalid --setting format. Must be key=value, got: %s", flagBody)
+			return fmt.Errorf("Invalid --setting format. Must be key=value, got: %s", flagBody)
 		}
 		key, value := kv[0], kv[1]
 
-		// Our top-level container
-		// You might keep it at just `root := make(map[string]any)`
-		// but ES typically expects the "index" block at the top for these settings.
 		body := make(map[string]any, 0)
 		if flagSettings == "" {
 			applySetting(&body, &key, &value)
 		}
 
 		handleIndexLogic(ctx, idxClient, body)
+		return nil
 	},
 }
 

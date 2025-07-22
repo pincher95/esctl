@@ -28,10 +28,11 @@ var updateCacheClearCmd = &cobra.Command{
 	# Update the number of replicas for an index.
 	esctl update cache --index my_index --fielddata true
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		idxClient := index.NewIndex()
 		ctx := cmd.Context()
 		handleCacheLogic(ctx, idxClient)
+		return nil
 	},
 }
 
