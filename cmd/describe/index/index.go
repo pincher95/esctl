@@ -34,7 +34,7 @@ var describeIndexCmd = &cobra.Command{
 
 func Cmd() *cobra.Command {
 	describeIndexCmd.Flags().BoolVar(&flagMappings, "mappings", false, "Include mappings")
-	describeIndexCmd.Flags().BoolVar(&flagSettings, "settings", false, "Include settings")
+	describeIndexCmd.Flags().BoolVar(&flagSettings, "settings", true, "Include settings")
 	describeIndexCmd.Flags().BoolVar(&flagNoFlat, "no-flat-setting", false, "Return nested (non-flat) settings in response")
 	describeIndexCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "Include default settings in response")
 	return describeIndexCmd

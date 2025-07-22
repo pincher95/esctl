@@ -7,6 +7,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	flagId     []string
+	flagTerm   []string
+	flagNested []string
+	flagSort   []string
+	flagFrom   int
+	flagSize   int
+)
+
 var queryCmd = &cobra.Command{
 	Use:   "query",
 	Short: "Query Elasticsearch",

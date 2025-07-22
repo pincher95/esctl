@@ -13,6 +13,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	flagBody         string
+	flagSettings     string
+	flagFlatSettings bool
+	flagIndex        string
+)
+
 var SettingsCmd = &cobra.Command{
 	Use:   "settings",
 	Short: "Updates the settings of an index",

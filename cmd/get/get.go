@@ -11,6 +11,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	flagActions             []string
+	flagColumns             []string
+	flagIndex               string
+	flagNode                string
+	flagNodeID              string
+	flagSortBy              string
+	flagBytes               string
+	flagTime                string
+	flagRepository          string
+	flagFields              string
+	flagStatus              string
+	flagFilter              string
+	flagTasksID             string
+	flagRefreshInterval     time.Duration
+	flagShard               int
+	flagInitializing        bool
+	flagPrimary             bool
+	flagRelocating          bool
+	flagReplica             bool
+	flagStarted             bool
+	flagUnassigned          bool
+	flagRefresh             bool
+	flagIncludeDiskInfo     bool
+	flagIncludeYesDecisions bool
+	flagWritable            bool
+)
+
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get Elasticsearch entities",

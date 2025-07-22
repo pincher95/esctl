@@ -8,6 +8,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	flagOutput       string
+	flagFlatSettings bool
+	flagMappings     bool
+	flagSettings     bool
+)
+
 var describeCmd = &cobra.Command{
 	Use:   "describe",
 	Short: "Print detailed information about a cluster entity e.g. cluster, index, node",

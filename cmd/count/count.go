@@ -11,6 +11,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	flagExists  []string
+	flagNested  []string
+	flagTerm    []string
+	flagGroupBy string
+	flagIndex   string
+	flagSortBy  string
+	flagTimeout string
+	flagSize    int
+	flagRefresh bool
+)
+
 var countCmd = &cobra.Command{
 	Use:   "count [--index index] [--group-by field]",
 	Short: "Count documents in an index or in all indices matching a pattern",
