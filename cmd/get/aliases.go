@@ -77,14 +77,14 @@ func handleAliasLogic(ctx context.Context, client index.Index, conf config.Confi
 	data := [][]string{}
 
 	for idx, detail := range *aliases {
-		for alias := range detail.Aliases {
-			if includeIndexByWriteIndex(detail.Aliases[alias]) {
+		for alias, aliasDetails := range detail.Aliases {
+			if includeIndexByWriteIndex(aliasDetails) {
 				rowData := map[string]string{
 					"ALIAS":          alias,
 					"INDEX":          idx,
-					"INDEX-ROUTING":  detail.Aliases[alias].IndexRouting,
-					"SEARCH-ROUTING": detail.Aliases[alias].SearchRouting,
-					"ROUTING":        detail.Aliases[alias].Routing,
+					"INDEX-ROUTING":  aliasDetails.IndexRouting,
+					"SEARCH-ROUTING": aliasDetails.SearchRouting,
+					"ROUTING":        aliasDetails.Routing,
 				}
 
 				row := make([]string, len(columnDefs))
@@ -101,9 +101,9 @@ func handleAliasLogic(ctx context.Context, client index.Index, conf config.Confi
 	output.PrintTable(columnDefs, data, sortCols)
 }
 
-func includeIndexByWriteIndex(aliasInfo index.AliasInfo) bool {
+func includeIndexByWriteIndex(aliasDetails index.AliasDetails) bool {
 	switch {
-	case flagWritable && aliasInfo.IsWriteIndex:
+	case flagWritable && aliasDetails.IsWriteIndex:
 		return true
 	case !flagWritable:
 		return true

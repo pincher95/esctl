@@ -6,12 +6,17 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/pincher95/esctl/cmd/alias"
+	"github.com/pincher95/esctl/cmd/bulk"
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/count"
+	"github.com/pincher95/esctl/cmd/delete"
 	"github.com/pincher95/esctl/cmd/describe"
 	"github.com/pincher95/esctl/cmd/get"
 	"github.com/pincher95/esctl/cmd/query"
+	"github.com/pincher95/esctl/cmd/reindex"
 	setcmd "github.com/pincher95/esctl/cmd/set"
+	"github.com/pincher95/esctl/cmd/snapshot"
 	"github.com/pincher95/esctl/cmd/update"
 	"github.com/pincher95/esctl/constants"
 	"github.com/pincher95/esctl/internal/client"
@@ -56,11 +61,16 @@ func init() {
 		}
 	}
 
+	RootCmd.AddCommand(alias.Cmd())
+	RootCmd.AddCommand(bulk.Cmd())
 	RootCmd.AddCommand(config.Cmd())
 	RootCmd.AddCommand(count.Cmd())
+	RootCmd.AddCommand(delete.Cmd())
 	RootCmd.AddCommand(describe.Cmd())
 	RootCmd.AddCommand(get.Cmd())
 	RootCmd.AddCommand(query.Cmd())
+	RootCmd.AddCommand(reindex.Cmd())
+	RootCmd.AddCommand(snapshot.Cmd())
 	RootCmd.AddCommand(update.Cmd())
 	RootCmd.AddCommand(setcmd.Cmd())
 }
