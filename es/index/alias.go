@@ -14,10 +14,10 @@ type AliasAction struct {
 }
 
 type AliasAdd struct {
-	Index   string                 `json:"index"`
-	Alias   string                 `json:"alias"`
-	Filter  map[string]interface{} `json:"filter,omitempty"`
-	Routing string                 `json:"routing,omitempty"`
+	Index   string         `json:"index"`
+	Alias   string         `json:"alias"`
+	Filter  map[string]any `json:"filter,omitempty"`
+	Routing string         `json:"routing,omitempty"`
 }
 
 type AliasRemove struct {
@@ -38,18 +38,18 @@ type AliasInfo struct {
 }
 
 type AliasDetails struct {
-	Filter         map[string]interface{} `json:"filter,omitempty"`
-	Routing        string                 `json:"routing,omitempty"`
-	IndexRouting   string                 `json:"index_routing,omitempty"`
-	SearchRouting  string                 `json:"search_routing,omitempty"`
-	IsWriteIndex   bool                   `json:"is_write_index,omitempty"`
-	IsHidden       bool                   `json:"is_hidden,omitempty"`
+	Filter        map[string]any `json:"filter,omitempty"`
+	Routing       string         `json:"routing,omitempty"`
+	IndexRouting  string         `json:"index_routing,omitempty"`
+	SearchRouting string         `json:"search_routing,omitempty"`
+	IsWriteIndex  bool           `json:"is_write_index,omitempty"`
+	IsHidden      bool           `json:"is_hidden,omitempty"`
 }
 
 type AliasListResponse map[string]AliasInfo
 
 // AddAlias adds an alias to one or more indices
-func AddAlias(ctx context.Context, indices []string, alias string, filter map[string]interface{}, routing string) error {
+func AddAlias(ctx context.Context, indices []string, alias string, filter map[string]any, routing string) error {
 	if len(indices) == 0 {
 		return fmt.Errorf("no indices specified")
 	}
@@ -209,23 +209,28 @@ func ListAliases(ctx context.Context, indexPattern, aliasPattern string) (AliasL
 func GetAlias(ctx context.Context, indices []string, aliases []string) (AliasListResponse, error) {
 	var result AliasListResponse
 
-	var path strings.Builder
-	if len(indices) > 0 {
-		path.WriteString(strings.Join(indices, ","))
+	var path string
+	if len(indices) == 0 && len(aliases) == 0 {
+		path = "_alias/_all"
 	} else {
-		path.WriteString("*")
-	}
-	path.WriteString("/_alias")
-	if len(aliases) > 0 {
-		path.WriteString("/")
-		path.WriteString(strings.Join(aliases, ","))
+		var sb strings.Builder
+		if len(indices) > 0 {
+			sb.WriteString(strings.Join(indices, ","))
+		}
+		// if indices are empty, leave prefix empty so path starts with _alias
+		sb.WriteString("/_alias")
+		if len(aliases) > 0 {
+			sb.WriteString("/")
+			sb.WriteString(strings.Join(aliases, ","))
+		}
+		path = sb.String()
 	}
 
 	resp, err := shared.Client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
 		SetResult(&result).
-		Get(path.String())
+		Get(path)
 	if err != nil {
 		return nil, err
 	}
