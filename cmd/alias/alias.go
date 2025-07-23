@@ -7,13 +7,12 @@ import (
 var aliasCmd = &cobra.Command{
 	Use:   "alias",
 	Short: "Manage Elasticsearch index aliases",
-	Long:  "Add, remove, move, and list aliases for Elasticsearch indices",
+	Long:  "Add, remove, and move aliases for Elasticsearch indices",
 }
 
 func Cmd() *cobra.Command {
 	aliasCmd.AddCommand(addCmd)
 	aliasCmd.AddCommand(removeCmd)
 	aliasCmd.AddCommand(moveCmd)
-	aliasCmd.AddCommand(listCmd)
 	return aliasCmd
 }
