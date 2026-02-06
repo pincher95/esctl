@@ -28,40 +28,40 @@ var addContextCmd = &cobra.Command{
 	Use:   "add-context",
 	Short: "Add a new context to the configuration",
 	Long:  `Add a new named context with connection details (e.g., host, port, username, password) to esctl.yml`,
-	Run:   runAddContext,
+	RunE:  runAddContext,
 }
 
 var updateContextCmd = &cobra.Command{
 	Use:   "update-context",
 	Short: "Update an existing context",
 	Long:  `Update an existing context with new connection details (e.g., host, port, username, password) in esctl.yml`,
-	Run:   runUpdateContext,
+	RunE:  runUpdateContext,
 }
 
 var deleteContextCmd = &cobra.Command{
 	Use:   "delete-context",
 	Short: `Delete a context`,
 	Long:  `Delete an existing context from the configuration`,
-	Run:   runDeleteContext,
+	RunE:  runDeleteContext,
 }
 
 var useContextCmd = &cobra.Command{
 	Use:   "use-context",
 	Short: "Set the current context",
 	Long:  `Set the current context to connect to. This command updates the 'current-context' field in the configuration file.`,
-	Run:   runUseContext,
+	RunE:  runUseContext,
 }
 
 var getContextsCmd = &cobra.Command{
 	Use:   "get-contexts",
 	Short: "List the contexts defined in the esctl.yml file",
-	Run:   runGetContexts,
+	RunE:  runGetContexts,
 }
 
 var currentContextCmd = &cobra.Command{
 	Use:   "current-context",
 	Short: "Display the current context",
-	Run:   runCurrentContext,
+	RunE:  runCurrentContext,
 }
 
 func init() {
@@ -109,14 +109,16 @@ func Cmd() *cobra.Command {
 }
 
 // runAddContext is executed when someone calls `esctl config add-context --host=... --name=...`
-func runAddContext(cmd *cobra.Command, args []string) {
+func runAddContext(cmd *cobra.Command, args []string) error {
 	// 1. Parse existing config
-	config := ParseConfigFile()
+	config, err := ParseConfigFile()
+	if err != nil {
+		return err
+	}
 
 	// 2. Validate required flags
 	if contextName == "" {
-		fmt.Println("Error: --name is required")
-		os.Exit(1)
+		return fmt.Errorf("--name is required")
 	}
 
 	contextExists := false
@@ -128,8 +130,7 @@ func runAddContext(cmd *cobra.Command, args []string) {
 	}
 
 	if contextExists {
-		fmt.Printf("Error: Context already exist with the name '%s' in the configuration.\n", contextName)
-		os.Exit(1)
+		return fmt.Errorf("context already exists with the name '%s' in the configuration", contextName)
 	}
 
 	// 3. Create a new Context from the flags
@@ -149,22 +150,23 @@ func runAddContext(cmd *cobra.Command, args []string) {
 	viper.Set("contexts", config.Contexts)
 
 	// 6. Write the updated config to file
-	err := viper.WriteConfig()
-	if err != nil {
-		fmt.Printf("Error writing updated configuration: %s\n", err)
-		os.Exit(1)
+	if err := viper.WriteConfig(); err != nil {
+		return fmt.Errorf("error writing updated configuration: %w", err)
 	}
 
 	// 7. Print success or new context
 	fmt.Printf("Context %q added successfully.\n", contextName)
+	return nil
 }
 
-func runUpdateContext(cmd *cobra.Command, args []string) {
-	config := ParseConfigFile()
+func runUpdateContext(cmd *cobra.Command, args []string) error {
+	config, err := ParseConfigFile()
+	if err != nil {
+		return err
+	}
 
 	if contextName == "" {
-		fmt.Println("Error: --name is required")
-		os.Exit(1)
+		return fmt.Errorf("--name is required")
 	}
 
 	contextExists := false
@@ -194,29 +196,29 @@ func runUpdateContext(cmd *cobra.Command, args []string) {
 	}
 
 	if !contextExists {
-		fmt.Printf("Error: No context found with the name '%s' in the configuration.\n", contextName)
-		os.Exit(1)
+		return fmt.Errorf("no context found with the name '%s' in the configuration", contextName)
 	}
 
 	// Update Viper in-memory
 	viper.Set("contexts", config.Contexts)
 
 	// Write the updated config to file
-	err := viper.WriteConfig()
-	if err != nil {
-		fmt.Printf("Error writing updated configuration: %s\n", err)
-		os.Exit(1)
+	if err := viper.WriteConfig(); err != nil {
+		return fmt.Errorf("error writing updated configuration: %w", err)
 	}
 
 	fmt.Printf("Context %q updated successfully.\n", contextName)
+	return nil
 }
 
-func runDeleteContext(cmd *cobra.Command, args []string) {
-	config := ParseConfigFile()
+func runDeleteContext(cmd *cobra.Command, args []string) error {
+	config, err := ParseConfigFile()
+	if err != nil {
+		return err
+	}
 
 	if contextName == "" {
-		fmt.Println("Error: --name is required")
-		os.Exit(1)
+		return fmt.Errorf("--name is required")
 	}
 
 	contextExists := false
@@ -229,27 +231,27 @@ func runDeleteContext(cmd *cobra.Command, args []string) {
 	}
 
 	if !contextExists {
-		fmt.Printf("Error: No context found with the name '%s' in the configuration.\n", contextName)
-		os.Exit(1)
+		return fmt.Errorf("no context found with the name '%s' in the configuration", contextName)
 	}
 
 	viper.Set("contexts", config.Contexts)
 
-	err := viper.WriteConfig()
-	if err != nil {
-		fmt.Printf("Error writing updated configuration: %s\n", err)
-		os.Exit(1)
+	if err := viper.WriteConfig(); err != nil {
+		return fmt.Errorf("error writing updated configuration: %w", err)
 	}
 
 	fmt.Printf("Context %q deleted successfully.\n", contextName)
+	return nil
 }
 
-func runUseContext(cmd *cobra.Command, args []string) {
-	config := ParseConfigFile()
+func runUseContext(cmd *cobra.Command, args []string) error {
+	config, err := ParseConfigFile()
+	if err != nil {
+		return err
+	}
 
 	if contextName == "" {
-		fmt.Println("Error: --name is required")
-		os.Exit(1)
+		return fmt.Errorf("--name is required")
 	}
 
 	contextExists := false
@@ -261,21 +263,22 @@ func runUseContext(cmd *cobra.Command, args []string) {
 	}
 
 	if !contextExists {
-		fmt.Printf("Error: No context found with the name '%s' in the configuration.\n", contextName)
-		os.Exit(1)
+		return fmt.Errorf("no context found with the name '%s' in the configuration", contextName)
 	}
 
 	viper.Set("current-context", contextName)
 
-	err := viper.WriteConfig()
-	if err != nil {
-		fmt.Printf("Error writing updated configuration: %s\n", err)
-		os.Exit(1)
+	if err := viper.WriteConfig(); err != nil {
+		return fmt.Errorf("error writing updated configuration: %w", err)
 	}
+	return nil
 }
 
-func runGetContexts(cmd *cobra.Command, args []string) {
-	config := ParseConfigFile()
+func runGetContexts(cmd *cobra.Command, args []string) error {
+	config, err := ParseConfigFile()
+	if err != nil {
+		return err
+	}
 	for _, context := range config.Contexts {
 		contextName := context.Name
 		if contextName == config.CurrentContext {
@@ -296,11 +299,16 @@ func runGetContexts(cmd *cobra.Command, args []string) {
 			fmt.Printf("  password: %s\n", context.Password)
 		}
 	}
+	return nil
 }
 
-func runCurrentContext(cmd *cobra.Command, args []string) {
-	config := ParseConfigFile()
+func runCurrentContext(cmd *cobra.Command, args []string) error {
+	config, err := ParseConfigFile()
+	if err != nil {
+		return err
+	}
 	fmt.Println(config.CurrentContext)
+	return nil
 }
 
 type Context struct {
@@ -322,29 +330,24 @@ type Config struct {
 	Entities       map[string]Entity `mapstructure:"entities"`
 }
 
-func ParseConfigFile() *Config {
+func ParseConfigFile() (*Config, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Printf("Error getting user's home directory: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("error getting user's home directory: %w", err)
 	}
 
 	viper.AddConfigPath(filepath.Join(home, ".config"))
 	viper.SetConfigName("esctl")
 	viper.SetConfigType("yml")
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		fmt.Printf("Error reading config file: %s\n", err)
-		os.Exit(1)
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
 
 	var config Config
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		fmt.Printf("Error unmarshaling config into struct: %v\n", err)
-		os.Exit(1)
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, fmt.Errorf("error unmarshaling config into struct: %w", err)
 	}
 
-	return &config
+	return &config, nil
 }

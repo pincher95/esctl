@@ -3,6 +3,7 @@ package query
 import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -29,13 +30,15 @@ esctl query articles --sort "price:desc" --from 10 --size 10`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		index := args[0]
+		if err := validation.ValidateIndexPattern(index); err != nil {
+			return err
+		}
 
 		response, err := es.SearchDocuments(ctx, index, flagId, flagTerm, flagFrom, flagSize, flagNested, flagSort)
 		if err != nil {
 			return err
 		}
-		output.PrintJson(response["hits"])
-		return nil
+		return output.Render(response["hits"])
 	},
 }
 

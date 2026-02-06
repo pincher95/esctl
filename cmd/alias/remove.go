@@ -5,52 +5,39 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
-	"github.com/spf13/cobra"
+	"github.com/pincher95/esctl/internal/validation"
 )
 
-var (
-	removeIndices string
-)
-
-var removeCmd = &cobra.Command{
-	Use:   "remove <alias> --indices=<index1,index2,...>",
-	Short: "Remove an alias from one or more indices",
-	Args:  cobra.ExactArgs(1),
-	Example: utils.TrimAndIndent(`
-	# Remove alias from a single index
-	esctl alias remove my-alias --indices=my-index
-
-	# Remove alias from multiple indices
-	esctl alias remove logs-current --indices="logs-2023,logs-2024"
-	`),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-		return handleAliasRemove(ctx, args[0])
-	},
-}
-
-func init() {
-	removeCmd.Flags().StringVar(&removeIndices, "indices", "", "Comma-separated list of indices to remove the alias from")
-	removeCmd.MarkFlagRequired("indices")
-}
-
-func handleAliasRemove(ctx context.Context, alias string) error {
-	if removeIndices == "" {
+func HandleAliasRemove(ctx context.Context, alias, indicesCSV string) error {
+	if indicesCSV == "" {
 		return fmt.Errorf("indices must be specified")
 	}
 
-	indices := strings.Split(removeIndices, ",")
-	for i, idx := range indices {
-		indices[i] = strings.TrimSpace(idx)
+	if err := validation.ValidateAliasName(alias); err != nil {
+		return err
 	}
 
-	err := index.RemoveAlias(ctx, indices, alias)
-	if err != nil {
+	indices := strings.Split(indicesCSV, ",")
+	trimmed := make([]string, 0, len(indices))
+	for _, idx := range indices {
+		clean := strings.TrimSpace(idx)
+		if clean == "" {
+			continue
+		}
+		if err := validation.ValidateIndexPattern(clean); err != nil {
+			return err
+		}
+		trimmed = append(trimmed, clean)
+	}
+	if len(trimmed) == 0 {
+		return fmt.Errorf("indices must be specified")
+	}
+
+	if err := index.RemoveAlias(ctx, trimmed, alias); err != nil {
 		return fmt.Errorf("failed to remove alias: %w", err)
 	}
 
-	fmt.Printf("Successfully removed alias '%s' from indices: %s\n", alias, strings.Join(indices, ", "))
+	fmt.Printf("Successfully removed alias '%s' from indices: %s\n", alias, strings.Join(trimmed, ", "))
 	return nil
 }

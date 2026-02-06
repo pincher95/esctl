@@ -50,13 +50,20 @@ Available Entities:
   - indices: List all indices in the Elasticsearch cluster.
   - shards: List detailed information about shards, including their sizes and placement.
   - aliases: List all aliases in the Elasticsearch cluster.
+  - alias: Get details of a specific alias.
   - tasks: List all tasks in the Elasticsearch cluster.
 	- allocation: List allocation in the Elasticsearch cluster.
 	- plugins: List all plugins in the Elasticsearch cluster.
 	- explain: List allocation explain in the Elasticsearch cluster.
-	- snapshots: List all snapshots in the Elasticsearch cluster.
+  - snapshot: Get snapshot details or list snapshots.
+  - snapshot-status: Show snapshot status.
+  - snapshot-repo: Get snapshot repository details.
 	- fielddata: List fielddata in the Elasticsearch cluster.
 	- health: Cluster health overview.
+  - pipeline: Get ingest pipeline details.
+  - user: Get user details.
+  - role: Get role details.
+  - reindex: Get reindex task status.
 	`),
 	// 	Example: utils.TrimAndIndent(`
 	// #Retrieve a list of all nodes in the Elasticsearch cluster.
@@ -98,9 +105,20 @@ func init() {
 	getCmd.AddCommand(getAllocationCmd)
 	getCmd.AddCommand(getPluginsCmd)
 	getCmd.AddCommand(getAllocationExplainCmd)
-	getCmd.AddCommand(getSnapshotsCmd)
 	getCmd.AddCommand(getFielddataCmd)
 	getCmd.AddCommand(getHealthCmd)
+	getCmd.AddCommand(getAliasCmd)
+	getCmd.AddCommand(getPipelineCmd)
+	getCmd.AddCommand(getPipelinesCmd)
+	getCmd.AddCommand(getSnapshotCmd)
+	getCmd.AddCommand(getSnapshotStatusCmd)
+	getCmd.AddCommand(getSnapshotRepoCmd)
+	getCmd.AddCommand(getSnapshotReposCmd)
+	getCmd.AddCommand(getUserCmd)
+	getCmd.AddCommand(getUsersCmd)
+	getCmd.AddCommand(getRoleCmd)
+	getCmd.AddCommand(getRolesCmd)
+	getCmd.AddCommand(getReindexCmd)
 }
 
 func Cmd() *cobra.Command {

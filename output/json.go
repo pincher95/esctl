@@ -5,12 +5,12 @@ import (
 	"fmt"
 )
 
-func PrintJson(data any) {
+func PrintJson(data any) error {
 	prettyJSON, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		fmt.Println("Failed to generate pretty JSON:", err)
-		return
+		return fmt.Errorf("failed to generate pretty JSON: %w", err)
 	}
 
 	fmt.Println(string(prettyJSON))
+	return nil
 }

@@ -23,7 +23,10 @@ var updateCmd = &cobra.Command{
 The 'update' command allows you to update Elasticsearch entities.
 
 Available Entities:
-  - reroute: Changes the allocation of shards in a cluster.`),
+  - reroute: Changes the allocation of shards in a cluster.
+  - alias: Move an alias between indices.
+  - pipeline: Simulate pipeline execution.
+  - snapshot: Restore a snapshot.`),
 	Example: utils.TrimAndIndent(`
 # Reroute the shards in the cluster.
 esctl update reroute
@@ -39,6 +42,9 @@ func init() {
 	updateCmd.AddCommand(updateRerouteCmd)
 	updateCmd.AddCommand(updateIndexCmd)
 	updateCmd.AddCommand(updateCacheClearCmd)
+	updateCmd.AddCommand(updateAliasCmd)
+	updateCmd.AddCommand(updateSnapshotCmd)
+	updateCmd.AddCommand(updatePipelineCmd)
 }
 
 func Cmd() *cobra.Command {

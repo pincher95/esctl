@@ -3,11 +3,11 @@ package index
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +36,7 @@ var SettingsCmd = &cobra.Command{
 		// Split the user input into key and value
 		kv := strings.SplitN(flagBody, "=", 2)
 		if len(kv) != 2 {
-			return fmt.Errorf("Invalid --setting format. Must be key=value, got: %s", flagBody)
+			return fmt.Errorf("invalid --setting format. Must be key=value, got: %s", flagBody)
 		}
 		key, value := kv[0], kv[1]
 
@@ -45,8 +45,7 @@ var SettingsCmd = &cobra.Command{
 			applySetting(&body, &key, &value)
 		}
 
-		handleIndexLogic(ctx, idxClient, body)
-		return nil
+		return handleIndexLogic(ctx, idxClient, body)
 	},
 }
 
@@ -59,22 +58,26 @@ func init() {
 	_ = SettingsCmd.MarkFlagRequired("settings")
 }
 
-func handleIndexLogic(ctx context.Context, idx index.Index, body map[string]any) {
+func handleIndexLogic(ctx context.Context, idx index.Index, body map[string]any) error {
+	if err := validation.ValidateIndexName(flagIndex); err != nil {
+		return err
+	}
+
 	// fmt.Fprintf(os.Stderr, "This operation will update the settings of the index: %s.", flagIndex)
 	approved, err := utils.GetApproval()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		return err
 	}
 
 	if approved {
 		settings, err := idx.UpdateIndexSettings(ctx, flagIndex, body, flagFlatSettings)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to update index:", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to update index: %w", err)
 		}
 
-		output.PrintJson(&settings)
+		return output.Render(&settings)
 	}
+	return nil
 }
 
 // applySetting creates nested maps in 'root' based on dot-separated key segments

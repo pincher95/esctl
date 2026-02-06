@@ -32,7 +32,10 @@ var getAllocationCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		allocationClient := cat.NewCat()
-		conf := config.ParseConfigFile()
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
+		}
 
 		ctx := cmd.Context()
 
@@ -40,7 +43,7 @@ var getAllocationCmd = &cobra.Command{
 			return handleAllocationLogic(ctx, allocationClient, *conf)
 		}
 
-		return utils.WatchLoop(flagRefreshInterval, func() error {
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
 			return handleAllocationLogic(ctx, allocationClient, *conf)
 		})
 	},
@@ -66,12 +69,12 @@ var allocationColumns = []output.ColumnDefaults{
 func handleAllocationLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
 	allocations, err := client.CatAllocation(ctx, "", flagNodeID, flagBytes)
 	if err != nil {
-		return fmt.Errorf("Failed to retrieve allocation: %v", err)
+		return fmt.Errorf("failed to retrieve allocation: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "shards", allocationColumns)
 	if err != nil {
-		return fmt.Errorf("Failed to get column definitions: %v", err)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -98,11 +101,8 @@ func handleAllocationLogic(ctx context.Context, client cat.Cat, conf config.Conf
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("SHARDS")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
-
-	return nil
+	sortCols := output.ParseSortColumns("SHARDS")
+	return output.PrintTable(columnDefs, data, sortCols)
 }

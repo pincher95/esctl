@@ -9,12 +9,19 @@ import (
 
 var setCmd = &cobra.Command{
 	Use:   "set",
-	Short: "Lightweight updates to cluster or index settings",
+	Short: "Create or update Elasticsearch resources",
 }
 
 func Cmd() *cobra.Command {
 	setCmd.AddCommand(clustersettings.Cmd())
 	setCmd.AddCommand(indexsettings.Cmd())
 	setCmd.AddCommand(nodesettings.Cmd())
+	setCmd.AddCommand(setAliasCmd)
+	setCmd.AddCommand(setPipelineCmd)
+	setCmd.AddCommand(setReindexCmd)
+	setCmd.AddCommand(setSnapshotCmd)
+	setCmd.AddCommand(setSnapshotRepoCmd)
+	setCmd.AddCommand(setUserCmd)
+	setCmd.AddCommand(setRoleCmd)
 	return setCmd
 }

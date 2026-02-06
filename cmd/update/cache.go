@@ -3,7 +3,6 @@ package update
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
@@ -31,8 +30,7 @@ var updateCacheClearCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		idxClient := index.NewIndex()
 		ctx := cmd.Context()
-		handleCacheLogic(ctx, idxClient)
-		return nil
+		return handleCacheLogic(ctx, idxClient)
 	},
 }
 
@@ -42,12 +40,11 @@ func init() {
 	updateCacheClearCmd.Flags().BoolVar(&flagFielddata, "fielddata", true, "If true, clears the fields cache. Use the fields parameter to clear the cache of specific fields only..")
 }
 
-func handleCacheLogic(ctx context.Context, client index.Index) {
+func handleCacheLogic(ctx context.Context, client index.Index) error {
 	cache, err := client.CacheClear(ctx, "")
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve cache:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve cache: %w", err)
 	}
 
-	output.PrintJson(cache)
+	return output.Render(cache)
 }

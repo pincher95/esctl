@@ -3,7 +3,6 @@ package get
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -22,20 +21,21 @@ var getPluginsCmd = &cobra.Command{
 	# Retrieve all plugins.
 	esctl get plugins
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		pluginsClient := cat.NewCat()
-		conf := config.ParseConfigFile()
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
+		}
 
 		ctx := cmd.Context()
 
 		if !flagRefresh {
-			handlePluginsLogic(ctx, pluginsClient, *conf)
-			return
+			return handlePluginsLogic(ctx, pluginsClient, *conf)
 		}
 
-		utils.WatchLoop(flagRefreshInterval, func() error {
-			handlePluginsLogic(ctx, pluginsClient, *conf)
-			return nil
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
+			return handlePluginsLogic(ctx, pluginsClient, *conf)
 		})
 	},
 }
@@ -51,17 +51,15 @@ var pluginsColumns = []output.ColumnDefaults{
 	{Header: "DESCRIPTION", Type: output.Text},
 }
 
-func handlePluginsLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+func handlePluginsLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
 	plugins, err := client.CatPlugins(ctx, "")
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve plugins:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve plugins: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "plugins", pluginsColumns)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to get column definitions:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -83,9 +81,8 @@ func handlePluginsLogic(ctx context.Context, client cat.Cat, conf config.Config)
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("NAME")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
+	sortCols := output.ParseSortColumns("NAME")
+	return output.PrintTable(columnDefs, data, sortCols)
 }

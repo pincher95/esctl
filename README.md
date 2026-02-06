@@ -19,6 +19,7 @@ Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 - [Installation](#installation)
 - [Examples](#examples)
+- [Migration](#migration)
 - [Configuration](#configuration)
 - [Usage](#usage)
   - [Get](#get)
@@ -26,7 +27,10 @@ Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file.
   - [Count](#count)
   - [Count with Grouping](#count-with-grouping)
   - [Query](#query)
+  - [Index Maintenance](#index-maintenance)
+  - [Tasks](#tasks)
 - [License](#license)
+ - [Testing](#testing)
 
 ## Installation
 
@@ -79,6 +83,31 @@ es-data-0          127.0.0.1  cdfhilmrstw  *       4gb       1.6gb         41%  
 ALIAS           INDEX
 articles_alias  articles
 ```
+
+## Migration
+
+The CLI now standardizes on verb-first commands. Old top-level command trees for
+`alias`, `pipeline`, `security`, `snapshot`, `reindex`, and `list` were removed.
+
+Common mappings:
+
+- `esctl alias list` → `esctl get aliases`
+- `esctl alias get <alias>` → `esctl get alias <alias>`
+- `esctl alias add/remove/move` → `esctl set/delete/update alias`
+- `esctl pipeline list` → `esctl get pipelines`
+- `esctl pipeline get <id>` → `esctl get pipeline <id>`
+- `esctl pipeline put <id>` → `esctl set pipeline <id>`
+- `esctl pipeline delete <id>` → `esctl delete pipeline <id>`
+- `esctl pipeline simulate` → `esctl update pipeline --file=...`
+- `esctl snapshot list/get` → `esctl get snapshot [repo] [snapshot]`
+- `esctl snapshot create/delete/restore` → `esctl set/delete/update snapshot`
+- `esctl snapshot repo list` → `esctl get snapshot-repos`
+- `esctl snapshot repo get <repo>` → `esctl get snapshot-repo <repo>`
+- `esctl snapshot repo create <repo>` → `esctl set snapshot-repo <repo>`
+- `esctl snapshot repo delete <repo>` → `esctl delete snapshot-repo <repo>`
+- `esctl security user/role ...` → `esctl get/set/delete user|role`
+- `esctl reindex start/status/cancel` → `esctl set/get/delete reindex`
+- `esctl list <resource>` → `esctl get <resource>`
 
 ## Configuration
 
@@ -272,6 +301,18 @@ esctl get ENTITY [flags]
 - `indices`: List all indices in the Elasticsearch cluster.
 - `shards`: List detailed information about shards, including their sizes and placement.
 - `aliases`: List all aliases in the Elasticsearch cluster.
+- `alias`: Get details of a specific alias.
+- `pipelines`: List ingest pipelines.
+- `pipeline`: Get details of a specific ingest pipeline.
+- `snapshot`: Get snapshot details or list snapshots.
+- `snapshot-status`: Get snapshot status.
+- `snapshot-repo`: Get snapshot repository details.
+- `snapshot-repos`: List snapshot repositories.
+- `users`: List users.
+- `user`: Get user details.
+- `roles`: List roles.
+- `role`: Get role details.
+- `reindex`: Get reindex task status.
 - `tasks`: List all tasks in the Elasticsearch cluster.
 
 #### Flags
@@ -412,12 +453,12 @@ To count all documents across all indices, use the following command:
 esctl count
 ```
 
-#### Count Documents in Specific Index
+#### Count Documents in a Specific Index
 
 To count all documents in a specific index, use the following command:
 
 ```shell
-esctl count --index index
+esctl count --index articles
 ```
 
 #### Count Documents with Term Filters
@@ -502,6 +543,45 @@ This would respectively:
 - Query the `articles` index and get the document with ID `61`.
 - Query the `articles` index filtering by the term `price:10` and return 2 hits.
 
+### Index Maintenance
+
+Operations for routine index care and performance tuning.
+
+Refresh an index (or all indices):
+
+```sh
+esctl index refresh --index articles
+esctl index refresh               # all indices
+```
+
+Flush an index (or all indices):
+
+```sh
+esctl index flush --index articles
+```
+
+Force-merge segments (use with care):
+
+```sh
+esctl index forcemerge --index articles --max-num-segments 1 --only-expunge-deletes --flush
+```
+
+### Tasks
+
+Cancel running tasks, filtered by ID and/or actions:
+
+```sh
+esctl tasks cancel --task-id node-1:123
+esctl tasks cancel --actions 'index*' --actions '*search*'
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+## Testing
+
+See TESTING.md for setup, commands, and tips. Quick start:
+
+- Ensure Go 1.23.x is installed
+- Run unit tests: `go test ./...`

@@ -20,6 +20,8 @@ type Config struct {
 	BaseURL       string
 	RetryCount    int
 	Debug         bool
+	Username      string
+	Password      string
 }
 
 // RestyClient is a thin wrapper around *resty.Client that implements ESClient.
@@ -35,14 +37,39 @@ func NewClient(cfg *Config) ESClient {
 		r.SetBaseURL(cfg.BaseURL)
 	}
 
-	r.SetTimeout(cfg.Timeout)
+	// Set default timeout if not specified
+	timeout := cfg.Timeout
+	if timeout == 0 {
+		timeout = 30 * time.Second
+	}
+	r.SetTimeout(timeout)
 	r.SetDebug(cfg.Debug)
 
-	if cfg.RetryCount > 0 {
-		r.
-			SetRetryCount(cfg.RetryCount).
-			SetRetryWaitTime(cfg.RetryWaitTime)
+	// Configure basic auth if provided
+	if cfg.Username != "" {
+		r.SetBasicAuth(cfg.Username, cfg.Password)
 	}
+
+	// Configure retries with sensible defaults
+	retryCount := cfg.RetryCount
+	if retryCount == 0 {
+		retryCount = 3
+	}
+	retryWaitTime := cfg.RetryWaitTime
+	if retryWaitTime == 0 {
+		retryWaitTime = 1 * time.Second
+	}
+
+	r.SetRetryCount(retryCount).
+		SetRetryWaitTime(retryWaitTime).
+		SetRetryMaxWaitTime(10 * time.Second).
+		AddRetryCondition(func(r *resty.Response, err error) bool {
+			// Retry on network errors or 5xx status codes
+			if err != nil {
+				return true
+			}
+			return r.StatusCode() >= 500
+		})
 
 	return &RestyClient{r}
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/delete"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -62,6 +63,21 @@ func init() {
 }
 
 func handleByQueryDelete(ctx context.Context) error {
+	if byQueryConflicts != "abort" && byQueryConflicts != "proceed" {
+		return fmt.Errorf("invalid conflicts value: %s (must be 'abort' or 'proceed')", byQueryConflicts)
+	}
+	if byQueryMaxDocs < 0 {
+		return fmt.Errorf("max-docs cannot be negative: %d", byQueryMaxDocs)
+	}
+	if byQueryRequestsPerSecond < -1 {
+		return fmt.Errorf("requests-per-second must be -1 or >= 0, got %f", byQueryRequestsPerSecond)
+	}
+	if byQueryTimeout != "" {
+		if err := validation.ValidateTimeout(byQueryTimeout); err != nil {
+			return err
+		}
+	}
+
 	// Parse query JSON
 	var queryMap map[string]interface{}
 	if err := json.Unmarshal([]byte(byQueryQuery), &queryMap); err != nil {
@@ -71,9 +87,19 @@ func handleByQueryDelete(ctx context.Context) error {
 	// Parse indices
 	var indices []string
 	if byQueryIndices != "" {
-		indices = strings.Split(byQueryIndices, ",")
-		for i, idx := range indices {
-			indices[i] = strings.TrimSpace(idx)
+		parts := strings.Split(byQueryIndices, ",")
+		for _, idx := range parts {
+			clean := strings.TrimSpace(idx)
+			if clean == "" {
+				continue
+			}
+			if err := validation.ValidateIndexPattern(clean); err != nil {
+				return err
+			}
+			indices = append(indices, clean)
+		}
+		if len(indices) == 0 {
+			return fmt.Errorf("indices must be specified")
 		}
 	}
 
@@ -97,6 +123,9 @@ func handleByQueryDelete(ctx context.Context) error {
 	// Parse slices
 	if byQuerySlices != "" {
 		if slicesInt, err := strconv.Atoi(byQuerySlices); err == nil {
+			if slicesInt <= 0 {
+				return fmt.Errorf("slices must be greater than 0, got %d", slicesInt)
+			}
 			request.Slices = slicesInt
 		} else {
 			request.Slices = byQuerySlices
@@ -117,6 +146,5 @@ func handleByQueryDelete(ctx context.Context) error {
 		}
 	}
 
-	output.PrintJson(result)
-	return nil
+	return output.Render(result)
 }

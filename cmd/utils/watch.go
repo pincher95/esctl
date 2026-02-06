@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,11 @@ import (
 // WatchLoop runs draw() every interval inside an alternate screen buffer.
 // It restores the original screen and cursor even on Ctrl-C.
 func WatchLoop(interval time.Duration, draw func() error) error {
+	return WatchLoopContext(context.Background(), interval, draw)
+}
+
+// WatchLoopContext runs draw() every interval until ctx is done.
+func WatchLoopContext(ctx context.Context, interval time.Duration, draw func() error) error {
 	// switch to alternate screen & hide cursor
 	// os.Stdout.WriteString("\x1b[?1049h\x1b[?25l")
 	os.Stdout.WriteString("\x1b[H\x1b[J")
@@ -54,6 +60,8 @@ func WatchLoop(interval time.Duration, draw func() error) error {
 		case <-time.After(interval):
 		case <-done:
 			return nil
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	es "github.com/pincher95/esctl/es"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -41,9 +42,20 @@ func handleCount(ctx context.Context) error {
 	var counts map[string]es.GroupCount
 	var err error
 
+	if flagIndex != "" {
+		if err := validation.ValidateIndexPattern(flagIndex); err != nil {
+			return err
+		}
+	}
+	if flagTimeout != "" {
+		if err := validation.ValidateTimeout(flagTimeout); err != nil {
+			return err
+		}
+	}
+
 	counts, err = es.CountDocuments(ctx, flagIndex, flagTerm, flagExists, flagNested, flagGroupBy, flagSize, flagTimeout, flagRefresh)
 	if err != nil {
-		return fmt.Errorf("Failed to get document counts: %v", err)
+		return fmt.Errorf("failed to get document counts: %w", err)
 	}
 
 	columnDefs := []output.ColumnDefaults{
@@ -72,12 +84,10 @@ func handleCount(ctx context.Context) error {
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("INDEX")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
-	return nil
+	sortCols := output.ParseSortColumns("INDEX")
+	return output.PrintTable(columnDefs, data, sortCols)
 }
 
 func init() {

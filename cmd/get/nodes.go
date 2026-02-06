@@ -3,7 +3,6 @@ package get
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -35,18 +34,19 @@ var getNodesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		nodeClient := cat.NewCat()
-		conf := config.ParseConfigFile()
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
+		}
 
 		ctx := cmd.Context()
 
 		if !flagRefresh {
-			handleNodeLogic(ctx, nodeClient, *conf)
-			return nil
+			return handleNodeLogic(ctx, nodeClient, *conf)
 		}
 
-		return utils.WatchLoop(flagRefreshInterval, func() error {
-			handleNodeLogic(ctx, nodeClient, *conf)
-			return nil
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
+			return handleNodeLogic(ctx, nodeClient, *conf)
 		})
 	},
 }
@@ -71,17 +71,15 @@ var nodeColumns = []output.ColumnDefaults{
 	{Header: "NAME", Type: output.Text},
 }
 
-func handleNodeLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+func handleNodeLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
 	nodes, err := client.CatNodes(ctx, "", flagFilter, flagBytes, flagTime)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to retrieve nodes: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve nodes: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "node", nodeColumns)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to get column definitions:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -110,9 +108,8 @@ func handleNodeLogic(ctx context.Context, client cat.Cat, conf config.Config) {
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("NAME")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
+	sortCols := output.ParseSortColumns("NAME")
+	return output.PrintTable(columnDefs, data, sortCols)
 }

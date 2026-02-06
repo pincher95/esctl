@@ -30,7 +30,10 @@ var getFielddataCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fielddataClient := cat.NewCat()
-		conf := config.ParseConfigFile()
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
+		}
 
 		ctx := cmd.Context()
 
@@ -38,7 +41,7 @@ var getFielddataCmd = &cobra.Command{
 			return handleFielddataLogic(ctx, fielddataClient, *conf)
 		}
 
-		return utils.WatchLoop(flagRefreshInterval, func() error {
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
 			return handleFielddataLogic(ctx, fielddataClient, *conf)
 		})
 	},
@@ -61,12 +64,12 @@ var fielddataColumns = []output.ColumnDefaults{
 func handleFielddataLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
 	fielddata, err := client.CatFielddata(ctx, "", flagFields, flagBytes)
 	if err != nil {
-		return fmt.Errorf("Failed to retrieve fielddata: %v", err)
+		return fmt.Errorf("failed to retrieve fielddata: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "id", fielddataColumns)
 	if err != nil {
-		return fmt.Errorf("Failed to get column definitions: %v", err)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -90,11 +93,8 @@ func handleFielddataLogic(ctx context.Context, client cat.Cat, conf config.Confi
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("id")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
-
-	return nil
+	sortCols := output.ParseSortColumns("id")
+	return output.PrintTable(columnDefs, data, sortCols)
 }

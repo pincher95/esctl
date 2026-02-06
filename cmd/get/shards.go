@@ -3,13 +3,13 @@ package get
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/constants"
 	"github.com/pincher95/esctl/es/cat"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -39,20 +39,26 @@ esctl get shards --index my_index
 # Retrieve shard information filtered by state.
 esctl get shards --started --relocating
 `),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		shardsClient := cat.NewCat()
-		conf := config.ParseConfigFile()
-
-		ctx := cmd.Context()
-
-		if !flagRefresh {
-			handleShardLogic(ctx, shardsClient, *conf)
-			return
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
 		}
 
-		utils.WatchLoop(flagRefreshInterval, func() error {
-			handleShardLogic(ctx, shardsClient, *conf)
-			return nil
+		ctx := cmd.Context()
+		if flagIndex != "" {
+			if err := validation.ValidateIndexPattern(flagIndex); err != nil {
+				return err
+			}
+		}
+
+		if !flagRefresh {
+			return handleShardLogic(ctx, shardsClient, *conf)
+		}
+
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
+			return handleShardLogic(ctx, shardsClient, *conf)
 		})
 	},
 }
@@ -80,17 +86,15 @@ var shardColumns = []output.ColumnDefaults{
 	{Header: "NODE", Type: output.Text},
 }
 
-func handleShardLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+func handleShardLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
 	shards, err := client.CatShards(ctx, "", flagIndex, "", "")
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve shards:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve shards: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "shard", shardColumns)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to get column definitions:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -120,11 +124,10 @@ func handleShardLogic(ctx context.Context, client cat.Cat, conf config.Config) {
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("SHARD")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
+	sortCols := output.ParseSortColumns("SHARD")
+	return output.PrintTable(columnDefs, data, sortCols)
 }
 
 func includeShardByState(shard cat.CatShardResponse) bool {

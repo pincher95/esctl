@@ -25,8 +25,7 @@ var clusterSettingsCmd = &cobra.Command{
 	esctl describe cluster settings --include-defaults`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		handleDescribeClusterSettings(ctx)
-		return nil
+		return handleDescribeClusterSettings(ctx)
 	},
 }
 
@@ -35,12 +34,11 @@ func init() {
 	clusterSettingsCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "If set, include default settings (Default is false)")
 }
 
-func handleDescribeClusterSettings(ctx context.Context) {
+func handleDescribeClusterSettings(ctx context.Context) error {
 	settings, err := cluster.ClusterSettings(ctx, flagFlatSettings, flagIncludeDefaults)
 	if err != nil {
-		fmt.Println("Failed to retrieve cluster information:", err)
-		return
+		return fmt.Errorf("failed to retrieve cluster information: %w", err)
 	}
 
-	output.PrintJson(settings)
+	return output.Render(settings)
 }

@@ -14,10 +14,14 @@ type Index interface {
 	UpdateIndexSettings(ctx context.Context, index string, body map[string]any, flatSettings bool) (*IndexSettingsResponse, error)
 	GetAliases(ctx context.Context, index string) (*AliasListResponse, error)
 	CacheClear(ctx context.Context, index string) (*IndexCacheClearResponse, error)
+	Refresh(ctx context.Context, index string) (*IndexOpResponse, error)
+	Flush(ctx context.Context, index string) (*IndexOpResponse, error)
+	Forcemerge(ctx context.Context, index string, maxNumSegments int, onlyExpungeDeletes bool, flush bool) (*IndexOpResponse, error)
 }
 
 type index struct{}
 
+// NewIndex constructs an Index implementation backed by the default HTTP client.
 func NewIndex() Index {
 	return &index{}
 }

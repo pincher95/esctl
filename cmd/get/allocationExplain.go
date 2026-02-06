@@ -34,7 +34,7 @@ var getAllocationExplainCmd = &cobra.Command{
 			return handleAllocationExplainLogic(ctx)
 		}
 
-		return utils.WatchLoop(flagRefreshInterval, func() error {
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
 			return handleAllocationExplainLogic(ctx)
 		})
 	},
@@ -48,10 +48,8 @@ func init() {
 func handleAllocationExplainLogic(ctx context.Context) error {
 	allocationsExplain, err := cluster.ClusterAllocationExplain(ctx, flagIncludeDiskInfo, flagIncludeYesDecisions)
 	if err != nil {
-		return fmt.Errorf("Failed to retrieve allocation explain%v", err)
+		return fmt.Errorf("failed to retrieve allocation explain: %w", err)
 	}
 
-	output.PrintJson(allocationsExplain)
-
-	return nil
+	return output.Render(allocationsExplain)
 }

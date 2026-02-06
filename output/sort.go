@@ -90,7 +90,6 @@ func parseDataSize(sizeStr string) (float64, error) {
 		if (sizeStr[i] < '0' || sizeStr[i] > '9') && sizeStr[i] != '.' {
 			value, err = strconv.ParseFloat(sizeStr[:i], 64)
 			if err != nil {
-				fmt.Println(err)
 				return 0, err
 			}
 			unit = sizeStr[i:]
@@ -110,7 +109,6 @@ func parseDataSize(sizeStr string) (float64, error) {
 	case "tb":
 		return value * 1024 * 1024 * 1024 * 1024, nil
 	default:
-		fmt.Printf("unknown unit: %s\n", unit)
 		return 0, fmt.Errorf("unknown unit: %s", unit)
 	}
 }

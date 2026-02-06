@@ -18,13 +18,16 @@ var getHealthCmd = &cobra.Command{
 	Short: "Get cluster health in cat format",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client := cat.NewCat()
-		conf := config.ParseConfigFile()
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 
 		if !flagRefresh {
 			return handleHealth(ctx, client, *conf)
 		}
-		return utils.WatchLoop(flagRefreshInterval, func() error {
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
 			return handleHealth(ctx, client, *conf)
 		})
 	},
@@ -71,7 +74,10 @@ func handleHealth(ctx context.Context, client cat.Cat, conf config.Config) error
 	// insert role columns after NODE_TOTAL (index 2)
 	allColumns = append(allColumns[:2], append(dynamicCols, allColumns[2:]...)...)
 
-	columnDefs, _ := getColumnDefs(conf, "STATUS", allColumns)
+	columnDefs, err := getColumnDefs(conf, "STATUS", allColumns)
+	if err != nil {
+		return fmt.Errorf("failed to get column definitions: %w", err)
+	}
 
 	// build row matching columns order
 	row := []string{
@@ -90,8 +96,7 @@ func handleHealth(ctx context.Context, client cat.Cat, conf config.Config) error
 		h.ActiveShardsPercent,
 	)
 
-	output.PrintTable(columnDefs, [][]string{row}, nil)
-	return nil
+	return output.PrintTable(columnDefs, [][]string{row}, nil)
 }
 
 func countRoles(ctx context.Context, c cat.Cat) map[string]int {

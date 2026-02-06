@@ -3,12 +3,11 @@ package get
 import (
 	"context"
 	"fmt"
-	"os"
-	"time"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -27,22 +26,27 @@ var getAliasesCmd = &cobra.Command{
 	# Retrieve aliases for a specific index.
 	esctl get aliases --index my_index
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		aliasClient := index.NewIndex()
-		conf := config.ParseConfigFile()
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
+		}
 
 		ctx := cmd.Context()
+		if flagIndex != "" {
+			if err := validation.ValidateIndexPattern(flagIndex); err != nil {
+				return err
+			}
+		}
 
 		if !flagRefresh {
-			handleAliasLogic(ctx, aliasClient, *conf)
-			return
+			return handleAliasLogic(ctx, aliasClient, *conf)
 		}
 
-		for {
-			clearScreen()
-			handleAliasLogic(ctx, aliasClient, *conf)
-			time.Sleep(flagRefreshInterval)
-		}
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
+			return handleAliasLogic(ctx, aliasClient, *conf)
+		})
 	},
 }
 
@@ -61,17 +65,15 @@ var aliasColumns = []output.ColumnDefaults{
 	{Header: "IS_WRITE_INDEX", Type: output.Boolean},
 }
 
-func handleAliasLogic(ctx context.Context, client index.Index, conf config.Config) {
+func handleAliasLogic(ctx context.Context, client index.Index, conf config.Config) error {
 	aliases, err := client.GetAliases(ctx, flagIndex)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve aliases:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve aliases: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "alias", aliasColumns)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to get column definitions:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -98,7 +100,7 @@ func handleAliasLogic(ctx context.Context, client index.Index, conf config.Confi
 
 	sortCols := output.ParseSortColumns(flagSortBy)
 
-	output.PrintTable(columnDefs, data, sortCols)
+	return output.PrintTable(columnDefs, data, sortCols)
 }
 
 func includeIndexByWriteIndex(aliasDetails index.AliasDetails) bool {

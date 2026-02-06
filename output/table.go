@@ -47,7 +47,7 @@ func compareValues(left, right string, columnType ColumnType) bool {
 	return false
 }
 
-func PrintTable(columnDefs []ColumnDefaults, data [][]string, sortCols []sortColumn) {
+func PrintTable(columnDefs []ColumnDefaults, data [][]string, sortCols []sortColumn) error {
 	// If user requested json or yaml, convert rows and delegate.
 	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
 		rows := make([]map[string]string, 0, len(data))
@@ -62,11 +62,9 @@ func PrintTable(columnDefs []ColumnDefaults, data [][]string, sortCols []sortCol
 			rows = append(rows, m)
 		}
 		if shared.OutputFormat == "json" {
-			PrintJson(rows)
-		} else {
-			PrintYaml(rows)
+			return PrintJson(rows)
 		}
-		return
+		return PrintYaml(rows)
 	}
 
 	// Detect empty columns (unchanged from your snippet):
@@ -94,8 +92,7 @@ func PrintTable(columnDefs []ColumnDefaults, data [][]string, sortCols []sortCol
 		// Validate each column
 		for _, sc := range sortCols {
 			if _, exists := headerIndexMap[strings.ToLower(sc.header)]; !exists {
-				fmt.Fprintf(os.Stderr, "header '%s' is not a valid column\n", sc.header)
-				os.Exit(1)
+				return fmt.Errorf("header '%s' is not a valid column", sc.header)
 			}
 		}
 
@@ -144,6 +141,7 @@ func PrintTable(columnDefs []ColumnDefaults, data [][]string, sortCols []sortCol
 		}
 		fmt.Fprintln(w)
 	}
+	return nil
 }
 
 func ParseSortColumns(sortByStr string) []sortColumn {

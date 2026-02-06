@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pincher95/esctl/es/index"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +29,9 @@ Example:
 		if flagIndexName == "" {
 			return fmt.Errorf("--index is required")
 		}
+		if err := validation.ValidateIndexName(flagIndexName); err != nil {
+			return err
+		}
 		if flagBody == "" {
 			return fmt.Errorf("--body JSON is required")
 		}
@@ -40,8 +44,7 @@ Example:
 		if err != nil {
 			return err
 		}
-		output.PrintJson(resp)
-		return nil
+		return output.Render(resp)
 	},
 }
 

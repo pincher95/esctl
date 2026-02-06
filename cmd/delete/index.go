@@ -7,6 +7,7 @@ import (
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/delete"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -48,6 +49,12 @@ func init() {
 }
 
 func handleIndexDelete(ctx context.Context, indices []string) error {
+	for _, idx := range indices {
+		if err := validation.ValidateIndexPattern(idx); err != nil {
+			return err
+		}
+	}
+
 	if !indexForce {
 		fmt.Printf("WARNING: This will permanently delete the following indices: %s\n", strings.Join(indices, ", "))
 		fmt.Print("Are you sure you want to continue? (y/N): ")

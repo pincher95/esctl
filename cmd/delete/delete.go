@@ -7,11 +7,18 @@ import (
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete Elasticsearch resources",
-	Long:  "Delete indices and documents by query in Elasticsearch",
+	Long:  "Delete Elasticsearch resources (indices, pipelines, snapshots, users, roles, etc.)",
 }
 
 func Cmd() *cobra.Command {
 	deleteCmd.AddCommand(indexCmd)
 	deleteCmd.AddCommand(byQueryCmd)
+	deleteCmd.AddCommand(deleteAliasCmd)
+	deleteCmd.AddCommand(deletePipelineCmd)
+	deleteCmd.AddCommand(deleteSnapshotCmd)
+	deleteCmd.AddCommand(deleteSnapshotRepoCmd)
+	deleteCmd.AddCommand(deleteUserCmd)
+	deleteCmd.AddCommand(deleteRoleCmd)
+	deleteCmd.AddCommand(deleteReindexCmd)
 	return deleteCmd
 }

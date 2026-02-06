@@ -26,8 +26,7 @@ var describeNodeCmd = &cobra.Command{
 		if len(nodes) == 0 {
 			return fmt.Errorf("node not found")
 		}
-		output.PrintJson(nodes)
-		return nil
+		return output.Render(nodes)
 	},
 }
 

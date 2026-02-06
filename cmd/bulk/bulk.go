@@ -8,6 +8,7 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/bulk"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -106,8 +107,10 @@ func handleBulkFromFile(ctx context.Context, filename string) error {
 		return fmt.Errorf("bulk operation failed: %w", err)
 	}
 
-	// Print summary
-	fmt.Printf("Bulk operation completed in %dms\n", result.Took)
+	// Print summary only for table output to avoid mixing with JSON/YAML.
+	if shared.OutputFormat == "table" {
+		fmt.Printf("Bulk operation completed in %dms\n", result.Took)
+	}
 
 	successCount := 0
 	errorCount := 0
@@ -121,9 +124,11 @@ func handleBulkFromFile(ctx context.Context, filename string) error {
 		}
 	}
 
-	fmt.Printf("Operations: %d successful, %d errors\n", successCount, errorCount)
+	if shared.OutputFormat == "table" {
+		fmt.Printf("Operations: %d successful, %d errors\n", successCount, errorCount)
+	}
 
-	if result.Errors {
+	if result.Errors && shared.OutputFormat == "table" {
 		fmt.Println("Errors occurred during bulk operation:")
 		for i, item := range result.Items {
 			for opType, op := range item {
@@ -134,8 +139,7 @@ func handleBulkFromFile(ctx context.Context, filename string) error {
 		}
 	}
 
-	output.PrintJson(result)
-	return nil
+	return output.Render(result)
 }
 
 func handleBulkGenerate(filename string) error {

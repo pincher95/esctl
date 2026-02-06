@@ -2,23 +2,16 @@ package es
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
+	eserrors "github.com/pincher95/esctl/internal/errors"
 	"github.com/pincher95/esctl/shared"
 )
-
-type EsError struct {
-	Error struct {
-		Type   string `json:"type"`
-		Reason string `json:"reason"`
-	} `json:"error"`
-	Status int `json:"status"`
-}
 
 func debugLog(format string, args ...any) {
 	if shared.Debug {
@@ -26,7 +19,7 @@ func debugLog(format string, args ...any) {
 	}
 }
 
-func httpRequest(ctx context.Context, method, endpoint string, body, target any, expectedStatusCode int) error {
+func httpRequest(ctx context.Context, method, endpoint string, body, target any, expectedStatusCodes ...int) error {
 	// Build URL relative to base configured in shared.Client (which already has base URL set).
 	// If shared.Client is nil, return error.
 	if shared.Client == nil {
@@ -71,19 +64,15 @@ func httpRequest(ctx context.Context, method, endpoint string, body, target any,
 	// Emit debug output after receiving the response.
 	debugLog("HTTP %s %s -> %d", strings.ToUpper(method), endpoint, resp.StatusCode())
 
-	if resp.StatusCode() != expectedStatusCode {
-		var esError EsError
-		if err := json.Unmarshal(resp.Body(), &esError); err != nil {
-			return fmt.Errorf("unexpected http status: %d", resp.StatusCode())
-		}
-		return errors.New(esError.Error.Reason)
+	if !isExpectedStatus(resp.StatusCode(), expectedStatusCodes) {
+		return eserrors.NewESError(resp.StatusCode(), resp.Body())
 	}
 
 	return nil
 }
 
 func getJSONResponse(ctx context.Context, endpoint string, target any) error {
-	return httpRequest(ctx, "GET", endpoint, nil, target, 200)
+	return httpRequest(ctx, "GET", endpoint, nil, target)
 }
 
 // func getJSONResponseWithBody(endpoint string, target any, body any) error {
@@ -91,11 +80,11 @@ func getJSONResponse(ctx context.Context, endpoint string, target any) error {
 // }
 
 func postJSONResponseWithBody(ctx context.Context, endpoint string, target any, body any) error {
-	return httpRequest(ctx, "POST", endpoint, body, target, 200)
+	return httpRequest(ctx, "POST", endpoint, body, target)
 }
 
 func postWithoutBody(ctx context.Context, endpoint string, target any) error {
-	return httpRequest(ctx, "POST", endpoint, nil, target, 200)
+	return httpRequest(ctx, "POST", endpoint, nil, target)
 }
 
 func getNestedPath(field string, nestedPaths []string) (string, bool) {
@@ -112,4 +101,14 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func isExpectedStatus(code int, expected []int) bool {
+	if len(expected) == 0 {
+		return code >= 200 && code < 300
+	}
+	if slices.Contains(expected, code) {
+		return true
+	}
+	return false
 }

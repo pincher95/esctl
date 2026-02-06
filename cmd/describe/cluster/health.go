@@ -29,8 +29,7 @@ var clusterHealthCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		handleDescribeClusterHealth(ctx)
-		return nil
+		return handleDescribeClusterHealth(ctx)
 	},
 }
 
@@ -40,12 +39,11 @@ func init() {
 	clusterHealthCmd.Flags().StringVar(&flagExpandWildcards, "expand-wildcards", "", "Expands wildcard expressions to concrete indexes. Combine multiple values with commas. Supported values are all, open, closed, hidden, and none. (Default is open)")
 }
 
-func handleDescribeClusterHealth(ctx context.Context) {
+func handleDescribeClusterHealth(ctx context.Context) error {
 	health, err := cluster.ClusterHealth(ctx, flagLevel, flagExpandWildcards, flagIndex)
 	if err != nil {
-		fmt.Println("Failed to retrieve cluster information:", err)
-		return
+		return fmt.Errorf("failed to retrieve cluster information: %w", err)
 	}
 
-	output.PrintJson(health)
+	return output.Render(health)
 }

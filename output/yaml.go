@@ -2,17 +2,23 @@ package output
 
 import (
 	"fmt"
-	"os"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
-func PrintYaml(data any) {
+func PrintYaml(data any) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			// Convert panics from yaml.Marshal into a regular error.
+			err = fmt.Errorf("failed to marshal data to YAML: %v", r)
+		}
+	}()
+
 	yamlData, err := yaml.Marshal(data)
 	if err != nil {
-		fmt.Println("Failed to marshal data to YAML:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to marshal data to YAML: %w", err)
 	}
 
 	fmt.Println(string(yamlData))
+	return nil
 }

@@ -3,7 +3,6 @@ package update
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/cluster"
@@ -38,8 +37,7 @@ var updateRerouteCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		handleRerouteLogic(ctx)
-		return nil
+		return handleRerouteLogic(ctx)
 	},
 }
 
@@ -50,12 +48,11 @@ func init() {
 	updateRerouteCmd.Flags().StringVar(&flagMertic, "metric", "none", "Limits the information returned to the specified metrics (Default: none)")
 }
 
-func handleRerouteLogic(ctx context.Context) {
+func handleRerouteLogic(ctx context.Context) error {
 	reroute, err := cluster.ClusterReroute(ctx, flagMertic, flagDryRun, flagExplain, flagRetryFailed)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve reroute:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve reroute: %w", err)
 	}
 
-	output.PrintJson(reroute)
+	return output.Render(reroute)
 }

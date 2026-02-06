@@ -36,8 +36,7 @@ Example:
 		if err != nil {
 			return err
 		}
-		output.PrintJson(resp)
-		return nil
+		return output.Render(resp)
 	},
 }
 

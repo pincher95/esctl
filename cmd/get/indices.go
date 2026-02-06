@@ -3,12 +3,12 @@ package get
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
 	cat "github.com/pincher95/esctl/es/cat"
+	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
 )
@@ -27,20 +27,26 @@ var getIndicesCmd = &cobra.Command{
 	# Retrieve indices for a specific index.
 	esctl get indices --index my_index
 	`),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		indicesClient := cat.NewCat()
-		conf := config.ParseConfigFile()
-
-		ctx := cmd.Context()
-
-		if !flagRefresh {
-			handleIndicesLogic(ctx, indicesClient, *conf)
-			return
+		conf, err := config.ParseConfigFile()
+		if err != nil {
+			return err
 		}
 
-		utils.WatchLoop(flagRefreshInterval, func() error {
-			handleIndicesLogic(ctx, indicesClient, *conf)
-			return nil
+		ctx := cmd.Context()
+		if flagIndex != "" {
+			if err := validation.ValidateIndexPattern(flagIndex); err != nil {
+				return err
+			}
+		}
+
+		if !flagRefresh {
+			return handleIndicesLogic(ctx, indicesClient, *conf)
+		}
+
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
+			return handleIndicesLogic(ctx, indicesClient, *conf)
 		})
 	},
 }
@@ -63,17 +69,15 @@ var indexColumns = []output.ColumnDefaults{
 	{Header: "PRI-STORE-SIZE", Type: output.DataSize},
 }
 
-func handleIndicesLogic(ctx context.Context, client cat.Cat, conf config.Config) {
+func handleIndicesLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
 	indices, err := client.CatIndices(ctx, "", flagIndex, flagBytes)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve indices:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve indices: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "index", indexColumns)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to get column definitions:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -101,9 +105,8 @@ func handleIndicesLogic(ctx context.Context, client cat.Cat, conf config.Config)
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("INDEX")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
+	sortCols := output.ParseSortColumns("INDEX")
+	return output.PrintTable(columnDefs, data, sortCols)
 }

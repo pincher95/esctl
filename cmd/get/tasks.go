@@ -3,7 +3,6 @@ package get
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -16,20 +15,21 @@ var getTasksCmd = &cobra.Command{
 	Use:   "tasks",
 	Short: "Get tasks information",
 	Long:  `This command retrieves and displays tasks information from Elasticsearch cluster.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		tasksClient := tasks.NewTasks()
-		cfg := config.ParseConfigFile()
+		cfg, err := config.ParseConfigFile()
+		if err != nil {
+			return err
+		}
 
 		ctx := cmd.Context()
 
 		if !flagRefresh {
-			handleTaskLogic(ctx, tasksClient, *cfg)
-			return
+			return handleTaskLogic(ctx, tasksClient, *cfg)
 		}
 
-		utils.WatchLoop(flagRefreshInterval, func() error {
-			handleTaskLogic(ctx, tasksClient, *cfg)
-			return nil
+		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
+			return handleTaskLogic(ctx, tasksClient, *cfg)
 		})
 	},
 }
@@ -49,17 +49,15 @@ var taskColumns = []output.ColumnDefaults{
 	{Header: "RUNNING-TIME", Type: output.Number},
 }
 
-func handleTaskLogic(ctx context.Context, client tasks.Tasks, config config.Config) {
+func handleTaskLogic(ctx context.Context, client tasks.Tasks, config config.Config) error {
 	tasksResponse, err := client.GetTasks(ctx, flagTasksID, flagActions)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to retrieve tasks:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve tasks: %w", err)
 	}
 
 	columnDefs, err := getColumnDefs(config, "task", taskColumns)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to get column definitions:", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
 	data := [][]string{}
@@ -86,9 +84,8 @@ func handleTaskLogic(ctx context.Context, client tasks.Tasks, config config.Conf
 
 	if len(flagSortBy) > 0 {
 		sortCols := output.ParseSortColumns(flagSortBy)
-		output.PrintTable(columnDefs, data, sortCols)
-	} else {
-		sortCols := output.ParseSortColumns("NODE,TASK-ID")
-		output.PrintTable(columnDefs, data, sortCols)
+		return output.PrintTable(columnDefs, data, sortCols)
 	}
+	sortCols := output.ParseSortColumns("NODE,TASK-ID")
+	return output.PrintTable(columnDefs, data, sortCols)
 }
