@@ -13,19 +13,19 @@ var (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete <policy>",
+	Use:   "delete",
 	Short: "Delete an ILM policy",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 		# Delete policy (with confirmation)
-		esctl ilm delete old_policy
+		esctl ilm delete --name old_policy
 
 		# Delete without confirmation
-		esctl ilm delete old_policy --force
+		esctl ilm delete --name old_policy --force
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name := args[0]
+		name := deletePolicyName
 
 		// Check if policy exists
 		exists, err := ilm.Exists(ctx, name)
@@ -60,5 +60,9 @@ var deleteCmd = &cobra.Command{
 }
 
 func init() {
+	deleteCmd.Flags().StringVar(&deletePolicyName, "name", "", "Policy name")
 	deleteCmd.Flags().BoolVar(&flagForce, "force", false, "Skip confirmation")
+	deleteCmd.MarkFlagRequired("name")
 }
+
+var deletePolicyName string

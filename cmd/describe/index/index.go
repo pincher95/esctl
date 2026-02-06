@@ -14,11 +14,11 @@ var (
 )
 
 var describeIndexCmd = &cobra.Command{
-	Use:   "index [NAME]",
+	Use:   "index",
 	Short: "Describe an index (mappings, settings)",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		name := args[0]
+		name := describeIndexName
 		ctx := cmd.Context()
 		// default: both if neither flag set
 		m := flagMappings || (!flagMappings && !flagSettings)
@@ -32,9 +32,13 @@ var describeIndexCmd = &cobra.Command{
 }
 
 func Cmd() *cobra.Command {
+	describeIndexCmd.Flags().StringVar(&describeIndexName, "index", "", "Index name")
 	describeIndexCmd.Flags().BoolVar(&flagMappings, "mappings", false, "Include mappings")
 	describeIndexCmd.Flags().BoolVar(&flagSettings, "settings", true, "Include settings")
 	describeIndexCmd.Flags().BoolVar(&flagNoFlat, "no-flat-setting", false, "Return nested (non-flat) settings in response")
 	describeIndexCmd.Flags().BoolVar(&flagIncludeDefaults, "include-defaults", false, "Include default settings in response")
+	describeIndexCmd.MarkFlagRequired("index")
 	return describeIndexCmd
 }
+
+var describeIndexName string

@@ -9,14 +9,11 @@ import (
 )
 
 var describeNodeCmd = &cobra.Command{
-	Use:   "node [NAME]",
+	Use:   "node",
 	Short: "Describe a node (cat nodes output)",
-	Args:  cobra.RangeArgs(0, 1),
+	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var filter string
-		if len(args) == 1 {
-			filter = args[0]
-		}
+		filter := describeNodeFilter
 		c := cat.NewCat()
 		ctx := cmd.Context()
 		nodes, err := c.CatNodes(ctx, "", filter, "", "")
@@ -30,4 +27,9 @@ var describeNodeCmd = &cobra.Command{
 	},
 }
 
-func Cmd() *cobra.Command { return describeNodeCmd }
+func Cmd() *cobra.Command {
+	describeNodeCmd.Flags().StringVar(&describeNodeFilter, "name", "", "Filter by node name or substring of node name")
+	return describeNodeCmd
+}
+
+var describeNodeFilter string

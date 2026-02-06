@@ -8,19 +8,19 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:   "get <policy>",
+	Use:   "get",
 	Short: "Get details of a specific ILM policy",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 		# Get ILM policy details
-		esctl ilm get hot_delete_policy
+		esctl ilm get --name hot_delete_policy
 
 		# Get as JSON
-		esctl ilm get hot_delete_policy -o json
+		esctl ilm get --name hot_delete_policy -o json
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name := args[0]
+		name := getPolicyName
 
 		policy, err := ilm.Get(ctx, name)
 		if err != nil {
@@ -29,4 +29,11 @@ var getCmd = &cobra.Command{
 
 		return output.Render(policy)
 	},
+}
+
+var getPolicyName string
+
+func init() {
+	getCmd.Flags().StringVar(&getPolicyName, "name", "", "Policy name")
+	getCmd.MarkFlagRequired("name")
 }

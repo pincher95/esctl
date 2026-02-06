@@ -9,23 +9,23 @@ import (
 )
 
 var retryCmd = &cobra.Command{
-	Use:   "retry <index>",
+	Use:   "retry",
 	Short: "Retry failed ILM step for an index",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Long: `Retry the failed ILM step for an index.
 
 When an ILM action fails (e.g., rollover, shrink, force merge), the index
 remains stuck in that step. This command retries the failed step.`,
 	Example: utils.TrimAndIndent(`
 		# Retry failed ILM step
-		esctl ilm retry myindex
+		esctl ilm retry --index myindex
 
 		# Retry for multiple indices
-		esctl ilm retry "logs-*"
+		esctl ilm retry --index "logs-*"
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		index := args[0]
+		index := retryIndex
 
 		// First check if there's a failed step
 		result, err := ilm.Explain(ctx, index)
@@ -54,4 +54,11 @@ remains stuck in that step. This command retries the failed step.`,
 		fmt.Println("Use 'esctl ilm explain' to check the current status")
 		return nil
 	},
+}
+
+var retryIndex string
+
+func init() {
+	retryCmd.Flags().StringVar(&retryIndex, "index", "", "Index name or pattern")
+	retryCmd.MarkFlagRequired("index")
 }

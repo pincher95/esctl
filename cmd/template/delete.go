@@ -13,19 +13,19 @@ var (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete <name>",
+	Use:   "delete",
 	Short: "Delete an index template",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 		# Delete template (with confirmation)
-		esctl template delete logs-template
+		esctl template delete --name logs-template
 
 		# Delete without confirmation
-		esctl template delete logs-template --force
+		esctl template delete --name logs-template --force
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name := args[0]
+		name := templateDeleteName
 
 		// Check if template exists
 		exists, err := template.Exists(ctx, name)
@@ -60,5 +60,9 @@ var deleteCmd = &cobra.Command{
 }
 
 func init() {
+	deleteCmd.Flags().StringVar(&templateDeleteName, "name", "", "Template name")
 	deleteCmd.Flags().BoolVar(&flagForce, "force", false, "Skip confirmation")
+	deleteCmd.MarkFlagRequired("name")
 }
+
+var templateDeleteName string

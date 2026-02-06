@@ -9,16 +9,16 @@ import (
 )
 
 var existsCmd = &cobra.Command{
-	Use:   "exists <name>",
+	Use:   "exists",
 	Short: "Check if an index template exists",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 		# Check if template exists
-		esctl template exists logs-template
+		esctl template exists --name logs-template
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name := args[0]
+		name := templateExistsName
 
 		exists, err := template.Exists(ctx, name)
 		if err != nil {
@@ -33,4 +33,11 @@ var existsCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+var templateExistsName string
+
+func init() {
+	existsCmd.Flags().StringVar(&templateExistsName, "name", "", "Template name")
+	existsCmd.MarkFlagRequired("name")
 }

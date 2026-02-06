@@ -32,18 +32,18 @@
 esctl template list
 
 # Get template details
-esctl template get <name>
+esctl template get --name <name>
 
 # Create/update template
-esctl template put <name> --file template.json
-esctl template put <name> --patterns "logs-*" --priority 100
+esctl template put --name <name> --file template.json
+esctl template put --name <name> --patterns "logs-*" --priority 100
 
 # Delete template
-esctl template delete <name>
-esctl template delete <name> --force
+esctl template delete --name <name>
+esctl template delete --name <name> --force
 
 # Check existence
-esctl template exists <name>
+esctl template exists --name <name>
 ```
 
 ---
@@ -81,23 +81,23 @@ esctl template exists <name>
 1. **ILM Policy Management**
    ```bash
    esctl ilm list
-   esctl ilm get <policy>
-   esctl ilm put <policy> --file policy.json
-   esctl ilm delete <policy>
+   esctl ilm get --name <policy>
+   esctl ilm put --name <policy> --file policy.json
+   esctl ilm delete --name <policy>
    esctl ilm explain --index <index>
    ```
 
 2. **Data Stream Management**
    ```bash
    esctl get datastreams
-   esctl get datastream <name>
-   esctl set datastream <name>
-   esctl update datastream rollover <name>
+   esctl get datastream --name <name>
+   esctl set datastream --name <name>
+   esctl update datastream rollover --name <name>
    ```
 
 3. **Enhanced Snapshot/Restore**
    ```bash
-   esctl update snapshot <repo> <snapshot> \
+   esctl update snapshot --repository <repo> --name <snapshot> \
      --indices "index1,index2" \
      --rename-pattern "(.+)" \
      --rename-replacement "restored_$1"
@@ -105,9 +105,9 @@ esctl template exists <name>
 
 4. **Index Statistics**
    ```bash
-   esctl stats index <index> --groups indexing,search,merge
-   esctl stats segments <index>
-   esctl stats recovery <index>
+   esctl stats index --index <index> --groups indexing,search,merge
+   esctl stats segments --index <index>
+   esctl stats recovery --index <index>
    ```
 
 ### Priority 2: Important

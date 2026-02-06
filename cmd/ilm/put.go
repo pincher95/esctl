@@ -15,12 +15,12 @@ var (
 )
 
 var putCmd = &cobra.Command{
-	Use:   "put <policy>",
+	Use:   "put",
 	Short: "Create or update an ILM policy",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 		# Create ILM policy from file
-		esctl ilm put hot_delete_policy --file policy.json
+		esctl ilm put --name hot_delete_policy --file policy.json
 
 		# Example policy file (policy.json):
 		# {
@@ -46,7 +46,7 @@ var putCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name := args[0]
+		name := putPolicyName
 
 		if flagFile == "" {
 			return fmt.Errorf("--file is required")
@@ -73,6 +73,10 @@ var putCmd = &cobra.Command{
 }
 
 func init() {
+	putCmd.Flags().StringVar(&putPolicyName, "name", "", "Policy name")
 	putCmd.Flags().StringVar(&flagFile, "file", "", "JSON file containing policy definition (required)")
+	putCmd.MarkFlagRequired("name")
 	putCmd.MarkFlagRequired("file")
 }
+
+var putPolicyName string

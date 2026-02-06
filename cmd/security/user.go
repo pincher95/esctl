@@ -5,15 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pincher95/esctl/es/security"
 	"github.com/pincher95/esctl/output"
 )
 
-func HandleUserList(ctx context.Context) error {
+func HandleUserList(ctx context.Context, nameFilter string) error {
 	users, err := security.ListUsers(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list users: %w", err)
+	}
+	if nameFilter != "" {
+		filtered := make(security.UserResponse)
+		for name, user := range users {
+			if strings.Contains(name, nameFilter) {
+				filtered[name] = user
+			}
+		}
+		if len(filtered) == 0 {
+			return fmt.Errorf("no users matched: %s", nameFilter)
+		}
+		return output.Render(filtered)
 	}
 	return output.Render(users)
 }

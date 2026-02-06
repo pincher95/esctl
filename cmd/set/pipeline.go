@@ -9,19 +9,23 @@ import (
 var setPipelineFile string
 
 var setPipelineCmd = &cobra.Command{
-	Use:   "pipeline <pipeline-id> --file=pipeline.json",
+	Use:   "pipeline",
 	Short: "Create or update an ingest pipeline",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Create pipeline from file
-	esctl set pipeline my-pipeline --file=pipeline.json
+	esctl set pipeline --id my-pipeline --file=pipeline.json
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return pipeline.HandlePut(cmd.Context(), args[0], setPipelineFile)
+		return pipeline.HandlePut(cmd.Context(), setPipelineID, setPipelineFile)
 	},
 }
 
 func init() {
+	setPipelineCmd.Flags().StringVar(&setPipelineID, "id", "", "Pipeline ID")
 	setPipelineCmd.Flags().StringVar(&setPipelineFile, "file", "", "JSON file containing pipeline definition")
+	setPipelineCmd.MarkFlagRequired("id")
 	setPipelineCmd.MarkFlagRequired("file")
 }
+
+var setPipelineID string

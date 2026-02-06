@@ -9,12 +9,23 @@ import (
 	"github.com/pincher95/esctl/output"
 )
 
-func HandleRepoList(ctx context.Context) error {
+func HandleRepoList(ctx context.Context, nameFilter string) error {
 	repos, err := snapshots.ListRepositories(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list repositories: %w", err)
 	}
-
+	if nameFilter != "" {
+		filtered := make(snapshots.RepositoryResponse)
+		for name, repo := range repos {
+			if strings.Contains(name, nameFilter) {
+				filtered[name] = repo
+			}
+		}
+		if len(filtered) == 0 {
+			return fmt.Errorf("no repositories matched: %s", nameFilter)
+		}
+		return output.Render(filtered)
+	}
 	return output.Render(repos)
 }
 

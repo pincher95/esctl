@@ -9,19 +9,23 @@ import (
 var setUserFile string
 
 var setUserCmd = &cobra.Command{
-	Use:   "user <username> --file=user.json",
+	Use:   "user",
 	Short: "Create or update a user",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Create user from file
-	esctl set user john_doe --file=user.json
+	esctl set user --name john_doe --file=user.json
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return security.HandleUserCreate(cmd.Context(), args[0], setUserFile)
+		return security.HandleUserCreate(cmd.Context(), setUserName, setUserFile)
 	},
 }
 
 func init() {
+	setUserCmd.Flags().StringVar(&setUserName, "name", "", "User name")
 	setUserCmd.Flags().StringVar(&setUserFile, "file", "", "JSON file containing user definition")
+	setUserCmd.MarkFlagRequired("name")
 	setUserCmd.MarkFlagRequired("file")
 }
+
+var setUserName string

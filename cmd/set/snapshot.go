@@ -16,15 +16,15 @@ var (
 )
 
 var setSnapshotCmd = &cobra.Command{
-	Use:   "snapshot <repository> <snapshot>",
+	Use:   "snapshot",
 	Short: "Create a new snapshot",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Create a snapshot of all indices
-	esctl set snapshot my-repo my-snapshot
+	esctl set snapshot --repository my-repo --name my-snapshot
 
 	# Create a snapshot with specific indices
-	esctl set snapshot my-repo my-snapshot --indices="index1,index2"
+	esctl set snapshot --repository my-repo --name my-snapshot --indices="index1,index2"
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		request := snapshots.CreateSnapshotRequest{
@@ -33,11 +33,13 @@ var setSnapshotCmd = &cobra.Command{
 			IncludeGlobalState: setSnapshotIncludeGlobalState,
 			Partial:            setSnapshotPartial,
 		}
-		return snapshot.HandleSnapshotCreate(cmd.Context(), args[0], args[1], request, setSnapshotWait)
+		return snapshot.HandleSnapshotCreate(cmd.Context(), setSnapshotRepo, setSnapshotName, request, setSnapshotWait)
 	},
 }
 
 func init() {
+	setSnapshotCmd.Flags().StringVar(&setSnapshotRepo, "repository", "", "Snapshot repository name")
+	setSnapshotCmd.Flags().StringVar(&setSnapshotName, "name", "", "Snapshot name")
 	setSnapshotCmd.Flags().StringVar(&setSnapshotIndices, "indices", "", "Comma-separated list of indices to snapshot")
 	setSnapshotCmd.Flags().BoolVar(&setSnapshotWait, "wait", false, "Wait for snapshot completion")
 	setSnapshotCmd.Flags().BoolVar(&setSnapshotIgnoreUnavailable, "ignore-unavailable", false, "Ignore unavailable indices")
@@ -46,4 +48,11 @@ func init() {
 	var includeGlobalState bool
 	setSnapshotCmd.Flags().BoolVar(&includeGlobalState, "include-global-state", true, "Include global cluster state")
 	setSnapshotIncludeGlobalState = &includeGlobalState
+	setSnapshotCmd.MarkFlagRequired("repository")
+	setSnapshotCmd.MarkFlagRequired("name")
 }
+
+var (
+	setSnapshotRepo string
+	setSnapshotName string
+)

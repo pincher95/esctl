@@ -19,62 +19,55 @@ var bulkCmd = &cobra.Command{
 }
 
 var (
+	fromFileName    string
 	fromFileIndex   string
 	fromFileRefresh string
 	fromFileTimeout string
+	generateOutput  string
 )
 
 var fromFileCmd = &cobra.Command{
-	Use:   "from-file <file>",
+	Use:   "from-file",
 	Short: "Execute bulk operations from a file or stdin",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Execute bulk operations from a file
-	esctl bulk from-file operations.ndjson
+	esctl bulk from-file --file operations.ndjson
 
 	# Execute bulk operations from stdin
 	cat operations.ndjson | esctl bulk from-file
 
 	# Execute with specific index and refresh
-	esctl bulk from-file operations.ndjson --index=my-index --refresh=wait_for
+	esctl bulk from-file --file operations.ndjson --index=my-index --refresh=wait_for
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-
-		var filename string
-		if len(args) > 0 {
-			filename = args[0]
-		}
-
-		return handleBulkFromFile(ctx, filename)
+		return handleBulkFromFile(ctx, fromFileName)
 	},
 }
 
 var generateCmd = &cobra.Command{
-	Use:   "generate [output-file]",
+	Use:   "generate",
 	Short: "Generate a sample bulk NDJSON template",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Generate template to stdout
 	esctl bulk generate
 
 	# Generate template to file
-	esctl bulk generate template.ndjson
+	esctl bulk generate --output template.ndjson
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var filename string
-		if len(args) > 0 {
-			filename = args[0]
-		}
-
-		return handleBulkGenerate(filename)
+		return handleBulkGenerate(generateOutput)
 	},
 }
 
 func init() {
+	fromFileCmd.Flags().StringVar(&fromFileName, "file", "", "NDJSON file containing bulk operations (reads stdin if omitted)")
 	fromFileCmd.Flags().StringVar(&fromFileIndex, "index", "", "Default index for operations that don't specify one")
 	fromFileCmd.Flags().StringVar(&fromFileRefresh, "refresh", "", "Refresh policy (true, false, wait_for)")
 	fromFileCmd.Flags().StringVar(&fromFileTimeout, "timeout", "", "Timeout for the bulk operation")
+	generateCmd.Flags().StringVar(&generateOutput, "output", "", "Output file path (prints to stdout if omitted)")
 
 	bulkCmd.AddCommand(fromFileCmd)
 	bulkCmd.AddCommand(generateCmd)

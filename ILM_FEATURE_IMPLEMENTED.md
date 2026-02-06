@@ -471,7 +471,7 @@ Works great with other esctl commands:
 esctl get indices | grep -i managed
 
 # Get details of an index and its ILM status
-esctl describe index myindex
+esctl describe index --index myindex
 esctl ilm explain myindex
 
 # Create template with ILM policy

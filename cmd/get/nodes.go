@@ -13,18 +13,18 @@ import (
 )
 
 var getNodesCmd = &cobra.Command{
-	Use:                   "nodes [--filter node] [--bytes unit] [--time unit]",
+	Use:                   "nodes [--name node] [--bytes unit] [--time unit]",
 	DisableFlagsInUseLine: true,
 	Short:                 "Get information about the nodes for the Elasticsearch cluster.",
 	Long: utils.Trim(`
-	Get information about the nodes in a cluster. You can filter the results using the filter flag.
+Get information about the nodes in a cluster. You can filter the results using the name flag.
 	`),
 	Example: utils.TrimAndIndent(`
 	# Retrieve all nodes.
 	esctl get nodes
 
 	# Retrieve nodes for a specific node.
-	esctl get nodes --filter my_node
+	esctl get nodes --name my_node
 
 	# Retrieve nodes in kilobytes.
 	esctl get nodes --bytes kb

@@ -3,6 +3,7 @@ package get
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
@@ -13,11 +14,11 @@ import (
 )
 
 var getAliasesCmd = &cobra.Command{
-	Use:                   "aliases [--index index]",
+	Use:                   "aliases [--index index] [--name substring]",
 	DisableFlagsInUseLine: true,
 	Short:                 "Retrieves information for one or more data stream or index aliases.",
 	Long: utils.Trim(`
-	Get Elasticsearch aliases. You can filter the results using the index flag.
+	Get Elasticsearch aliases. You can filter the results using the index or name flags.
 	`),
 	Example: utils.TrimAndIndent(`
 	# Retrieve all aliases.
@@ -25,6 +26,9 @@ var getAliasesCmd = &cobra.Command{
 
 	# Retrieve aliases for a specific index.
 	esctl get aliases --index my_index
+
+	# Retrieve aliases by name substring.
+	esctl get aliases --name logs
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		aliasClient := index.NewIndex()
@@ -52,6 +56,7 @@ var getAliasesCmd = &cobra.Command{
 
 func init() {
 	getAliasesCmd.Flags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
+	getAliasesCmd.Flags().StringVar(&flagAliasName, "name", "", "Filter aliases by name or substring of alias name")
 	getAliasesCmd.Flags().BoolVar(&flagWritable, "writable", true, "Filter by writable index")
 }
 
@@ -80,6 +85,9 @@ func handleAliasLogic(ctx context.Context, client index.Index, conf config.Confi
 
 	for idx, detail := range *aliases {
 		for alias, aliasDetails := range detail.Aliases {
+			if flagAliasName != "" && !strings.Contains(alias, flagAliasName) {
+				continue
+			}
 			if includeIndexByWriteIndex(aliasDetails) {
 				rowData := map[string]string{
 					"ALIAS":          alias,
@@ -112,3 +120,5 @@ func includeIndexByWriteIndex(aliasDetails index.AliasDetails) bool {
 	}
 	return false
 }
+
+var flagAliasName string

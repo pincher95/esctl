@@ -92,21 +92,21 @@ The CLI now standardizes on verb-first commands. Old top-level command trees for
 Common mappings:
 
 - `esctl alias list` → `esctl get aliases`
-- `esctl alias get <alias>` → `esctl get alias <alias>`
+- `esctl alias get <alias>` → `esctl get alias --name <alias>`
 - `esctl alias add/remove/move` → `esctl set/delete/update alias`
 - `esctl pipeline list` → `esctl get pipelines`
-- `esctl pipeline get <id>` → `esctl get pipeline <id>`
-- `esctl pipeline put <id>` → `esctl set pipeline <id>`
-- `esctl pipeline delete <id>` → `esctl delete pipeline <id>`
+- `esctl pipeline get <id>` → `esctl get pipeline --id <id>`
+- `esctl pipeline put <id>` → `esctl set pipeline --id <id>`
+- `esctl pipeline delete <id>` → `esctl delete pipeline --id <id>`
 - `esctl pipeline simulate` → `esctl update pipeline --file=...`
-- `esctl snapshot list/get` → `esctl get snapshot [repo] [snapshot]`
+- `esctl snapshot list/get` → `esctl get snapshot --repository <repo> [--name <snapshot>]`
 - `esctl snapshot create/delete/restore` → `esctl set/delete/update snapshot`
 - `esctl snapshot repo list` → `esctl get snapshot-repos`
-- `esctl snapshot repo get <repo>` → `esctl get snapshot-repo <repo>`
-- `esctl snapshot repo create <repo>` → `esctl set snapshot-repo <repo>`
-- `esctl snapshot repo delete <repo>` → `esctl delete snapshot-repo <repo>`
-- `esctl security user/role ...` → `esctl get/set/delete user|role`
-- `esctl reindex start/status/cancel` → `esctl set/get/delete reindex`
+- `esctl snapshot repo get <repo>` → `esctl get snapshot-repo --repository <repo>`
+- `esctl snapshot repo create <repo>` → `esctl set snapshot-repo --repository <repo>`
+- `esctl snapshot repo delete <repo>` → `esctl delete snapshot-repo --repository <repo>`
+- `esctl security user/role ...` → `esctl get/set/delete user|role --name <name>`
+- `esctl reindex start/status/cancel` → `esctl set/get/delete reindex (--task-id for get/delete)`
 - `esctl list <resource>` → `esctl get <resource>`
 
 ## Configuration
@@ -419,24 +419,24 @@ esctl describe cluster
 This command outputs the mappings and settings of a specified index in JSON format.
 
 ```shell
-esctl describe index INDEX
+esctl describe index --index INDEX
 ```
 
 This command also supports the `--mappings` and `--settings` flags, which can be used to get only the mappings or settings respectively.
 
 ```shell
 # To get only mappings
-esctl describe index INDEX --mappings
+esctl describe index --index INDEX --mappings
 
 # To get only settings
-esctl describe index INDEX --settings
+esctl describe index --index INDEX --settings
 ```
 
 > **Note**<br>
 > Consider piping the output of `describe index` to [fx](https://github.com/antonmedv/fx), a command-line JSON processing tool, for a more convenient experience.
 
 ```shell
-esctl describe index INDEX | fx
+esctl describe index --index INDEX | fx
 ```
 
 ### Count
@@ -512,7 +512,7 @@ This command will count the documents in the `articles` index that satisfy the t
 The `query` command allows you to execute queries against Elasticsearch.
 
 ```sh
-esctl query INDEX
+esctl query --index INDEX
 ```
 
 #### Flags
@@ -532,9 +532,9 @@ esctl query INDEX
 #### Examples
 
 ```sh
-esctl query articles
-esctl query articles --id 61
-esctl query articles --term "price:10" --size 2
+esctl query --index articles
+esctl query --index articles --id 61
+esctl query --index articles --term "price:10" --size 2
 ```
 
 This would respectively:

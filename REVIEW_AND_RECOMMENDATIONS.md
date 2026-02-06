@@ -189,13 +189,13 @@ func (l *Limiter) Stop() {
 esctl template list
 
 # Get template details
-esctl template get <name>
+esctl template get --name <name>
 
 # Create/update template
-esctl template put <name> --file template.json
+esctl template put --name <name> --file template.json
 
 # Delete template
-esctl template delete <name>
+esctl template delete --name <name>
 ```
 
 **Implementation:**
@@ -227,10 +227,10 @@ func init() {
 esctl ilm list
 
 # Get policy details
-esctl ilm get <policy>
+esctl ilm get --name <policy>
 
 # Create/update policy
-esctl ilm put <policy> --file policy.json
+esctl ilm put --name <policy> --file policy.json
 
 # Explain index lifecycle status
 esctl ilm explain --index <index>
@@ -243,10 +243,10 @@ esctl ilm retry --index <index>
 
 ```bash
 # Create repository
-esctl set snapshot-repo <name> --type fs --settings "location:/backup"
+esctl set snapshot-repo --repository <name> --type fs --settings "location:/backup"
 
 # Restore with options
-esctl update snapshot <repo> <snapshot> \
+esctl update snapshot --repository <repo> --name <snapshot> \
   --indices "index1,index2" \
   --rename-pattern "(.+)" \
   --rename-replacement "restored_$1" \
@@ -260,29 +260,29 @@ esctl update snapshot <repo> <snapshot> \
 esctl get datastreams
 
 # Get data stream details
-esctl get datastream <name>
+esctl get datastream --name <name>
 
 # Create data stream
-esctl set datastream <name> --template <template>
+esctl set datastream --name <name> --template <template>
 
 # Delete data stream
-esctl delete datastream <name>
+esctl delete datastream --name <name>
 
 # Rollover data stream
-esctl update datastream rollover <name>
+esctl update datastream rollover --name <name>
 ```
 
 #### 5. Index Statistics Deep Dive
 
 ```bash
 # Detailed index stats
-esctl stats index <index> --groups indexing,search,merge
+esctl stats index --index <index> --groups indexing,search,merge
 
 # Segment details
-esctl stats segments <index>
+esctl stats segments --index <index>
 
 # Recovery status
-esctl stats recovery <index>
+esctl stats recovery --index <index>
 ```
 
 ### Priority 2: Advanced Features
@@ -292,11 +292,11 @@ esctl stats recovery <index>
 ```bash
 # User management
 esctl get users
-esctl set user <username> --file user.json
+esctl set user --name <username> --file user.json
 
 # Role management
 esctl get roles
-esctl get role <role>
+esctl get role --name <role>
 ```
 
 #### 7. Index Disk Usage Analysis

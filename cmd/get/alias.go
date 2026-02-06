@@ -7,14 +7,21 @@ import (
 )
 
 var getAliasCmd = &cobra.Command{
-	Use:   "alias <alias>",
+	Use:   "alias",
 	Short: "Get details of a specific alias",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Get alias details
-	esctl get alias my-alias
+	esctl get alias --name my-alias
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return alias.HandleAliasGet(cmd.Context(), args[0])
+		return alias.HandleAliasGet(cmd.Context(), getAliasName)
 	},
+}
+
+var getAliasName string
+
+func init() {
+	getAliasCmd.Flags().StringVar(&getAliasName, "name", "", "Alias name")
+	getAliasCmd.MarkFlagRequired("name")
 }

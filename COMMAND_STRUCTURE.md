@@ -16,56 +16,55 @@
  ### Aliases
  ```bash
  esctl get aliases
- esctl get alias <alias>
- esctl set alias <alias> --indices=<index1,index2,...>
- esctl delete alias <alias> --indices=<index1,index2,...>
- esctl update alias <alias> --from=<from-index> --to=<to-index>
+esctl get alias --name <alias>
+esctl set alias --name <alias> --indices=<index1,index2,...>
+esctl delete alias --name <alias> --indices=<index1,index2,...>
+esctl update alias --name <alias> --from=<from-index> --to=<to-index>
  ```
  
  ### Pipelines
  ```bash
  esctl get pipelines
- esctl get pipeline <pipeline-id>
- esctl set pipeline <pipeline-id> --file=pipeline.json
- esctl delete pipeline <pipeline-id>
+esctl get pipeline --id <pipeline-id>
+esctl set pipeline --id <pipeline-id> --file=pipeline.json
+esctl delete pipeline --id <pipeline-id>
  esctl update pipeline --file=request.json [--pipeline=<pipeline-id>]
  ```
  
  ### Snapshots
  ```bash
- esctl get snapshot <repo> <snapshot>       # Get details
- esctl get snapshot <repo>                  # List snapshots in repo
- esctl get snapshot --repository <repo>     # List snapshots in repo
- esctl get snapshot-status [repo] [snapshot]
- esctl get snapshot-repo <repo>
+esctl get snapshot --repository <repo> --name <snapshot>       # Get details
+esctl get snapshot --repository <repo>                         # List snapshots in repo
+esctl get snapshot-status [--repository <repo>] [--name <snapshot>]
+esctl get snapshot-repo --repository <repo>
  esctl get snapshot-repos
  
- esctl set snapshot <repo> <snapshot>
- esctl update snapshot <repo> <snapshot>    # Restore
- esctl delete snapshot <repo> <snapshot>
+esctl set snapshot --repository <repo> --name <snapshot>
+esctl update snapshot --repository <repo> --name <snapshot>    # Restore
+esctl delete snapshot --repository <repo> --name <snapshot>
  
- esctl set snapshot-repo <repo> --type=fs --settings="location:/backup"
- esctl delete snapshot-repo <repo>
+esctl set snapshot-repo --repository <repo> --type=fs --settings="location:/backup"
+esctl delete snapshot-repo --repository <repo>
  ```
  
  ### Security (users/roles)
  ```bash
  esctl get users
- esctl get user <username>
- esctl set user <username> --file=user.json
- esctl delete user <username>
+esctl get user --name <username>
+esctl set user --name <username> --file=user.json
+esctl delete user --name <username>
  
  esctl get roles
- esctl get role <role>
- esctl set role <role> --file=role.json
- esctl delete role <role>
+esctl get role --name <role>
+esctl set role --name <role> --file=role.json
+esctl delete role --name <role>
  ```
  
  ### Reindex
  ```bash
  esctl set reindex --source=<index> --dest=<index>
- esctl get reindex <task-id>
- esctl delete reindex <task-id>
+esctl get reindex --task-id <task-id>
+esctl delete reindex --task-id <task-id>
  ```
  
  ## Other top-level commands

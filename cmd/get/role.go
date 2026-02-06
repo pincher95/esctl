@@ -7,14 +7,21 @@ import (
 )
 
 var getRoleCmd = &cobra.Command{
-	Use:   "role <role>",
+	Use:   "role",
 	Short: "Get a role",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Get a specific role
-	esctl get role read_only
+	esctl get role --name read_only
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return security.HandleRoleGet(cmd.Context(), args[0])
+		return security.HandleRoleGet(cmd.Context(), getRoleName)
 	},
+}
+
+var getRoleName string
+
+func init() {
+	getRoleCmd.Flags().StringVar(&getRoleName, "name", "", "Role name")
+	getRoleCmd.MarkFlagRequired("name")
 }

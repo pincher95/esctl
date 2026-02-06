@@ -23,15 +23,15 @@ var (
 )
 
 var updateSnapshotCmd = &cobra.Command{
-	Use:   "snapshot <repository> <snapshot>",
+	Use:   "snapshot",
 	Short: "Restore a snapshot",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Restore all indices from a snapshot
-	esctl update snapshot my-repo my-snapshot
+	esctl update snapshot --repository my-repo --name my-snapshot
 
 	# Restore specific indices
-	esctl update snapshot my-repo my-snapshot --indices="index1,index2"
+	esctl update snapshot --repository my-repo --name my-snapshot --indices="index1,index2"
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		request := snapshots.RestoreSnapshotRequest{
@@ -58,11 +58,13 @@ var updateSnapshotCmd = &cobra.Command{
 			}
 		}
 
-		return snapshot.HandleSnapshotRestore(cmd.Context(), args[0], args[1], request, updateSnapshotWait)
+		return snapshot.HandleSnapshotRestore(cmd.Context(), updateSnapshotRepo, updateSnapshotName, request, updateSnapshotWait)
 	},
 }
 
 func init() {
+	updateSnapshotCmd.Flags().StringVar(&updateSnapshotRepo, "repository", "", "Snapshot repository name")
+	updateSnapshotCmd.Flags().StringVar(&updateSnapshotName, "name", "", "Snapshot name")
 	updateSnapshotCmd.Flags().StringVar(&updateSnapshotIndices, "indices", "", "Comma-separated list of indices to restore")
 	updateSnapshotCmd.Flags().BoolVar(&updateSnapshotWait, "wait", false, "Wait for restore completion")
 	updateSnapshotCmd.Flags().BoolVar(&updateSnapshotIgnoreUnavailable, "ignore-unavailable", false, "Ignore unavailable indices")
@@ -72,4 +74,11 @@ func init() {
 	updateSnapshotCmd.Flags().BoolVar(&updateSnapshotIncludeAliases, "include-aliases", true, "Include aliases when restoring")
 	updateSnapshotCmd.Flags().StringVar(&updateSnapshotIndexSettings, "index-settings", "", "Index settings to apply during restore (key:value pairs)")
 	updateSnapshotCmd.Flags().StringVar(&updateSnapshotIgnoreIndexSettings, "ignore-index-settings", "", "Comma-separated list of index settings to ignore")
+	updateSnapshotCmd.MarkFlagRequired("repository")
+	updateSnapshotCmd.MarkFlagRequired("name")
 }
+
+var (
+	updateSnapshotRepo string
+	updateSnapshotName string
+)

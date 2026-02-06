@@ -11,26 +11,26 @@ import (
 )
 
 var explainCmd = &cobra.Command{
-	Use:   "explain <index>",
+	Use:   "explain",
 	Short: "Explain ILM status for indices",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Long: `Explain the ILM status for one or more indices.
 
 This command shows the current ILM phase, action, and step for each index,
 along with timing information and any failure details.`,
 	Example: utils.TrimAndIndent(`
 		# Explain ILM status for an index
-		esctl ilm explain myindex
+		esctl ilm explain --index myindex
 
 		# Explain for multiple indices using wildcard
-		esctl ilm explain "logs-*"
+		esctl ilm explain --index "logs-*"
 
 		# Output as JSON
-		esctl ilm explain myindex -o json
+		esctl ilm explain --index myindex -o json
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		index := args[0]
+		index := explainIndex
 
 		result, err := ilm.Explain(ctx, index)
 		if err != nil {
@@ -80,4 +80,11 @@ along with timing information and any failure details.`,
 
 		return output.PrintTable(columnDefs, data, nil)
 	},
+}
+
+var explainIndex string
+
+func init() {
+	explainCmd.Flags().StringVar(&explainIndex, "index", "", "Index name or pattern")
+	explainCmd.MarkFlagRequired("index")
 }

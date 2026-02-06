@@ -19,19 +19,19 @@ var (
 )
 
 var putCmd = &cobra.Command{
-	Use:   "put <name>",
+	Use:   "put",
 	Short: "Create or update an index template",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 		# Create template from file
-		esctl template put logs-template --file template.json
+		esctl template put --name logs-template --file template.json
 
 		# Create simple template with patterns
-		esctl template put logs-template --patterns "logs-*" --patterns "app-logs-*"
+		esctl template put --name logs-template --patterns "logs-*" --patterns "app-logs-*"
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name := args[0]
+		name := templatePutName
 
 		// Validate template name
 		if err := validation.ValidateTemplateName(name); err != nil {
@@ -89,7 +89,11 @@ var putCmd = &cobra.Command{
 }
 
 func init() {
+	putCmd.Flags().StringVar(&templatePutName, "name", "", "Template name")
 	putCmd.Flags().StringVar(&flagFile, "file", "", "JSON file containing template definition")
 	putCmd.Flags().StringSliceVar(&flagPatterns, "patterns", []string{}, "Index patterns")
 	putCmd.Flags().IntVar(&flagPriority, "priority", 0, "Template priority")
+	putCmd.MarkFlagRequired("name")
 }
+
+var templatePutName string

@@ -12,50 +12,52 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
 var getSnapshotCmd = &cobra.Command{
-	Use:   "snapshot [repository] [snapshot]",
+	Use:   "snapshot",
 	Short: "Get snapshot details or list snapshots",
-	Args:  cobra.RangeArgs(0, 2),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Get a specific snapshot
-	esctl get snapshot my-repo my-snapshot
+	esctl get snapshot --repository my-repo --name my-snapshot
 
 	# List snapshots in a repository
-	esctl get snapshot my-repo
+	esctl get snapshot --repository my-repo
 
-	# List snapshots using flags
+	# List snapshots using filters
 	esctl get snapshot --repository my-repo --status SUCCESS
+
+	# List snapshots by name substring
+	esctl get snapshot --repository my-repo --name snap
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		switch len(args) {
-		case 2:
-			if flagRepository != "" && flagRepository != args[0] {
-				return fmt.Errorf("repository specified twice: %s and %s", flagRepository, args[0])
-			}
-			return snapshot.HandleSnapshotGet(ctx, args[0], args[1])
-		case 1:
-			if flagRepository != "" && flagRepository != args[0] {
-				return fmt.Errorf("repository specified twice: %s and %s", flagRepository, args[0])
-			}
-			return handleSnapshotList(ctx, args[0])
-		default:
-			if flagRepository == "" {
-				return fmt.Errorf("repository is required to list snapshots")
-			}
-			return handleSnapshotList(ctx, flagRepository)
+		if flagRepository == "" {
+			return fmt.Errorf("repository is required")
 		}
+		if flagSnapshotName != "" {
+			if isTableOutput() {
+				return handleSnapshotList(ctx, flagRepository)
+			}
+			return snapshot.HandleSnapshotGet(ctx, flagRepository, flagSnapshotName)
+		}
+		return handleSnapshotList(ctx, flagRepository)
 	},
 }
 
 func init() {
 	getSnapshotCmd.Flags().StringVarP(&flagRepository, "repository", "p", "", "Name of the snapshot repository")
 	getSnapshotCmd.Flags().StringVar(&flagStatus, "status", "", "Filter snapshots by status")
-	getSnapshotCmd.Flags().StringVar(&flagFilter, "name", "", "Filter snapshots by name or substring of snapshot name e.g. 'snapshot-1', 'snapshot', 'data'")
+	getSnapshotCmd.Flags().StringVar(&flagSnapshotName, "name", "", "Snapshot name")
+	getSnapshotCmd.MarkFlagRequired("repository")
 }
+
+var (
+	flagSnapshotName string
+)
 
 var snapshotsColumns = []output.ColumnDefaults{
 	{Header: "ID", Type: output.Text},
@@ -77,7 +79,11 @@ func handleSnapshotList(ctx context.Context, repository string) error {
 		return err
 	}
 
-	snapshots, err := snapshotsClient.CatSnapshots(ctx, "", repository, flagFilter)
+	filter := ""
+	if flagSnapshotName != "" {
+		filter = flagSnapshotName
+	}
+	snapshots, err := snapshotsClient.CatSnapshots(ctx, "", repository, filter)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve indices: %w", err)
 	}
@@ -122,4 +128,13 @@ func handleSnapshotList(ctx context.Context, repository string) error {
 
 func includeSnapshotByStatus(snapshot cat.CatSnapshotResponse) bool {
 	return snapshot.Status == strings.ToUpper(flagStatus) || flagStatus == ""
+}
+
+func isTableOutput() bool {
+	switch strings.ToLower(shared.OutputFormat) {
+	case "", "table":
+		return true
+	default:
+		return false
+	}
 }

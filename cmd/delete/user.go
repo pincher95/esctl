@@ -7,14 +7,21 @@ import (
 )
 
 var deleteUserCmd = &cobra.Command{
-	Use:   "user <username>",
+	Use:   "user",
 	Short: "Delete a user",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Delete user
-	esctl delete user john_doe
+	esctl delete user --name john_doe
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return security.HandleUserDelete(cmd.Context(), args[0])
+		return security.HandleUserDelete(cmd.Context(), deleteUserName)
 	},
+}
+
+var deleteUserName string
+
+func init() {
+	deleteUserCmd.Flags().StringVar(&deleteUserName, "name", "", "User name")
+	deleteUserCmd.MarkFlagRequired("name")
 }

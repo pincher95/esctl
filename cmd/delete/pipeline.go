@@ -7,14 +7,21 @@ import (
 )
 
 var deletePipelineCmd = &cobra.Command{
-	Use:   "pipeline <pipeline-id>",
+	Use:   "pipeline",
 	Short: "Delete an ingest pipeline",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Delete pipeline
-	esctl delete pipeline my-pipeline
+	esctl delete pipeline --id my-pipeline
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return pipeline.HandleDelete(cmd.Context(), args[0])
+		return pipeline.HandleDelete(cmd.Context(), deletePipelineID)
 	},
+}
+
+var deletePipelineID string
+
+func init() {
+	deletePipelineCmd.Flags().StringVar(&deletePipelineID, "id", "", "Pipeline ID")
+	deletePipelineCmd.MarkFlagRequired("id")
 }

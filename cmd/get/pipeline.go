@@ -7,14 +7,21 @@ import (
 )
 
 var getPipelineCmd = &cobra.Command{
-	Use:   "pipeline <pipeline-id>",
+	Use:   "pipeline",
 	Short: "Get an ingest pipeline",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Get a specific pipeline
-	esctl get pipeline my-pipeline
+	esctl get pipeline --id my-pipeline
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return pipeline.HandleGet(cmd.Context(), args[0])
+		return pipeline.HandleGet(cmd.Context(), getPipelineID)
 	},
+}
+
+var getPipelineID string
+
+func init() {
+	getPipelineCmd.Flags().StringVar(&getPipelineID, "id", "", "Pipeline ID")
+	getPipelineCmd.MarkFlagRequired("id")
 }

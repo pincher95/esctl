@@ -5,15 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pincher95/esctl/es/security"
 	"github.com/pincher95/esctl/output"
 )
 
-func HandleRoleList(ctx context.Context) error {
+func HandleRoleList(ctx context.Context, nameFilter string) error {
 	roles, err := security.ListRoles(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list roles: %w", err)
+	}
+	if nameFilter != "" {
+		filtered := make(security.RoleResponse)
+		for name, role := range roles {
+			if strings.Contains(name, nameFilter) {
+				filtered[name] = role
+			}
+		}
+		if len(filtered) == 0 {
+			return fmt.Errorf("no roles matched: %s", nameFilter)
+		}
+		return output.Render(filtered)
 	}
 	return output.Render(roles)
 }

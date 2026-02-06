@@ -7,14 +7,21 @@ import (
 )
 
 var deleteRoleCmd = &cobra.Command{
-	Use:   "role <role>",
+	Use:   "role",
 	Short: "Delete a role",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Delete role
-	esctl delete role read_only
+	esctl delete role --name read_only
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return security.HandleRoleDelete(cmd.Context(), args[0])
+		return security.HandleRoleDelete(cmd.Context(), deleteRoleName)
 	},
+}
+
+var deleteRoleName string
+
+func init() {
+	deleteRoleCmd.Flags().StringVar(&deleteRoleName, "name", "", "Role name")
+	deleteRoleCmd.MarkFlagRequired("name")
 }

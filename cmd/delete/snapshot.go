@@ -7,14 +7,26 @@ import (
 )
 
 var deleteSnapshotCmd = &cobra.Command{
-	Use:   "snapshot <repository> <snapshot>",
+	Use:   "snapshot",
 	Short: "Delete a snapshot",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Delete snapshot
-	esctl delete snapshot my-repo my-snapshot
+	esctl delete snapshot --repository my-repo --name my-snapshot
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return snapshot.HandleSnapshotDelete(cmd.Context(), args[0], args[1])
+		return snapshot.HandleSnapshotDelete(cmd.Context(), deleteSnapshotRepo, deleteSnapshotName)
 	},
+}
+
+var (
+	deleteSnapshotRepo string
+	deleteSnapshotName string
+)
+
+func init() {
+	deleteSnapshotCmd.Flags().StringVar(&deleteSnapshotRepo, "repository", "", "Snapshot repository name")
+	deleteSnapshotCmd.Flags().StringVar(&deleteSnapshotName, "name", "", "Snapshot name")
+	deleteSnapshotCmd.MarkFlagRequired("repository")
+	deleteSnapshotCmd.MarkFlagRequired("name")
 }

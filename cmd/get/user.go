@@ -7,14 +7,21 @@ import (
 )
 
 var getUserCmd = &cobra.Command{
-	Use:   "user <username>",
+	Use:   "user",
 	Short: "Get a user",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Get a specific user
-	esctl get user john_doe
+	esctl get user --name john_doe
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return security.HandleUserGet(cmd.Context(), args[0])
+		return security.HandleUserGet(cmd.Context(), getUserName)
 	},
+}
+
+var getUserName string
+
+func init() {
+	getUserCmd.Flags().StringVar(&getUserName, "name", "", "User name")
+	getUserCmd.MarkFlagRequired("name")
 }

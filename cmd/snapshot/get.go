@@ -3,6 +3,7 @@ package snapshot
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pincher95/esctl/es/snapshots"
 	"github.com/pincher95/esctl/output"
@@ -14,11 +15,18 @@ func HandleSnapshotGet(ctx context.Context, repository, snapshotName string) err
 		return err
 	}
 
+	matches := make([]snapshots.SnapshotInfo, 0)
 	for _, snap := range result.Snapshots {
-		if snap.Snapshot == snapshotName {
-			return output.Render(snap)
+		if strings.Contains(snap.Snapshot, snapshotName) {
+			matches = append(matches, snap)
 		}
 	}
 
-	return fmt.Errorf("snapshot not found: %s/%s", repository, snapshotName)
+	if len(matches) == 0 {
+		return fmt.Errorf("snapshot not found: %s/%s", repository, snapshotName)
+	}
+	if len(matches) == 1 {
+		return output.Render(matches[0])
+	}
+	return output.Render(matches)
 }

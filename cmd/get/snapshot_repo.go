@@ -7,14 +7,21 @@ import (
 )
 
 var getSnapshotRepoCmd = &cobra.Command{
-	Use:   "snapshot-repo <repository>",
+	Use:   "snapshot-repo",
 	Short: "Get a snapshot repository",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Get a snapshot repository
-	esctl get snapshot-repo my-repo
+	esctl get snapshot-repo --repository my-repo
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return snapshot.HandleRepoGet(cmd.Context(), args[0])
+		return snapshot.HandleRepoGet(cmd.Context(), getSnapshotRepoName)
 	},
+}
+
+var getSnapshotRepoName string
+
+func init() {
+	getSnapshotRepoCmd.Flags().StringVar(&getSnapshotRepoName, "repository", "", "Snapshot repository name")
+	getSnapshotRepoCmd.MarkFlagRequired("repository")
 }

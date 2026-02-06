@@ -9,16 +9,16 @@ import (
 )
 
 var existsCmd = &cobra.Command{
-	Use:   "exists <policy>",
+	Use:   "exists",
 	Short: "Check if an ILM policy exists",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 		# Check if policy exists
-		esctl ilm exists hot_delete_policy
+		esctl ilm exists --name hot_delete_policy
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name := args[0]
+		name := existsPolicyName
 
 		exists, err := ilm.Exists(ctx, name)
 		if err != nil {
@@ -33,4 +33,11 @@ var existsCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+var existsPolicyName string
+
+func init() {
+	existsCmd.Flags().StringVar(&existsPolicyName, "name", "", "Policy name")
+	existsCmd.MarkFlagRequired("name")
 }

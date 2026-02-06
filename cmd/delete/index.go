@@ -16,36 +16,42 @@ var (
 	indexAllowNoIndices    bool
 	indexExpandWildcards   string
 	indexForce             bool
+	indexNames             []string
 )
 
 var indexCmd = &cobra.Command{
-	Use:   "index <index1> [index2] [index3]...",
+	Use:   "index",
 	Short: "Delete one or more indices",
-	Args:  cobra.MinimumNArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# Delete a single index
-	esctl delete index my-index
+	esctl delete index --indices my-index
 
 	# Delete multiple indices
-	esctl delete index index1 index2 index3
+	esctl delete index --indices index1,index2,index3
 
 	# Delete indices with wildcard pattern
-	esctl delete index "logs-*" --expand-wildcards=open
+	esctl delete index --indices "logs-*" --expand-wildcards=open
 
 	# Force delete ignoring unavailable indices
-	esctl delete index "missing-*" --ignore-unavailable --force
+	esctl delete index --indices "missing-*" --ignore-unavailable --force
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		return handleIndexDelete(ctx, args)
+		if len(indexNames) == 0 {
+			return fmt.Errorf("at least one index must be specified")
+		}
+		return handleIndexDelete(ctx, indexNames)
 	},
 }
 
 func init() {
+	indexCmd.Flags().StringSliceVar(&indexNames, "indices", []string{}, "Comma-separated list of index names or patterns")
 	indexCmd.Flags().BoolVar(&indexIgnoreUnavailable, "ignore-unavailable", false, "Ignore unavailable indices")
 	indexCmd.Flags().BoolVar(&indexAllowNoIndices, "allow-no-indices", true, "Allow operations on no indices")
 	indexCmd.Flags().StringVar(&indexExpandWildcards, "expand-wildcards", "open", "Expand wildcard expressions (all, open, closed, hidden, none)")
 	indexCmd.Flags().BoolVar(&indexForce, "force", false, "Force deletion without confirmation")
+	indexCmd.MarkFlagRequired("indices")
 }
 
 func handleIndexDelete(ctx context.Context, indices []string) error {
