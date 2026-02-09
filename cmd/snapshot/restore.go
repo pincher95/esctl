@@ -3,23 +3,14 @@ package snapshot
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/snapshots"
-	"github.com/pincher95/esctl/internal/validation"
 )
 
 func HandleSnapshotRestore(ctx context.Context, repository, snapshot string, request snapshots.RestoreSnapshotRequest, wait bool) error {
-	if request.Indices != "" {
-		for _, idx := range strings.Split(request.Indices, ",") {
-			clean := strings.TrimSpace(idx)
-			if clean == "" {
-				continue
-			}
-			if err := validation.ValidateIndexPattern(clean); err != nil {
-				return err
-			}
-		}
+	if err := utils.ValidateIndexPatternsCSV(request.Indices); err != nil {
+		return err
 	}
 
 	if err := snapshots.RestoreSnapshot(ctx, repository, snapshot, request, wait); err != nil {

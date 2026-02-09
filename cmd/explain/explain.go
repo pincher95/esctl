@@ -1,9 +1,6 @@
 package explain
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/analysis"
 	"github.com/pincher95/esctl/output"
@@ -24,9 +21,9 @@ var Cmd = &cobra.Command{
     `),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		var q map[string]any
-		if err := json.Unmarshal([]byte(flagQuery), &q); err != nil {
-			return fmt.Errorf("invalid query JSON: %w", err)
+		q, err := utils.ParseJSONMap(flagQuery, "invalid query JSON")
+		if err != nil {
+			return err
 		}
 		req := analysis.ExplainRequest{Query: q}
 		resp, err := analysis.Explain(ctx, flagIndex, flagDocID, req)

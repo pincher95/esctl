@@ -102,7 +102,7 @@ Common mappings:
 - `esctl snapshot list/get` → `esctl get snapshot --repository <repo> [--name <snapshot>]`
 - `esctl snapshot create/delete/restore` → `esctl set/delete/update snapshot`
 - `esctl snapshot repo list` → `esctl get snapshot-repos`
-- `esctl snapshot repo get <repo>` → `esctl get snapshot-repo --repository <repo>`
+- `esctl snapshot repo get <repo>` → `esctl get snapshot-repos --name <repo>`
 - `esctl snapshot repo create <repo>` → `esctl set snapshot-repo --repository <repo>`
 - `esctl snapshot repo delete <repo>` → `esctl delete snapshot-repo --repository <repo>`
 - `esctl security user/role ...` → `esctl get/set/delete user|role --name <name>`
@@ -306,8 +306,7 @@ esctl get ENTITY [flags]
 - `pipeline`: Get details of a specific ingest pipeline.
 - `snapshot`: Get snapshot details or list snapshots.
 - `snapshot-status`: Get snapshot status.
-- `snapshot-repo`: Get snapshot repository details.
-- `snapshot-repos`: List snapshot repositories.
+- `snapshot-repos`: List snapshot repositories (use `--name` to filter).
 - `users`: List users.
 - `user`: Get user details.
 - `roles`: List roles.

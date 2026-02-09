@@ -71,7 +71,7 @@ func httpRequest(ctx context.Context, method, endpoint string, body, target any,
 	return nil
 }
 
-func getJSONResponse(ctx context.Context, endpoint string, target any) error {
+func GetJSONResponse(ctx context.Context, endpoint string, target any) error {
 	return httpRequest(ctx, "GET", endpoint, nil, target)
 }
 

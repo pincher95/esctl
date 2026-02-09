@@ -1,9 +1,9 @@
 package node
 
 import (
-	"encoding/json"
 	"fmt"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/node"
 	"github.com/pincher95/esctl/output"
 	"github.com/spf13/cobra"
@@ -28,9 +28,9 @@ Example:
 		if flagBody == "" {
 			return fmt.Errorf("--body JSON is required")
 		}
-		var body map[string]any
-		if err := json.Unmarshal([]byte(flagBody), &body); err != nil {
-			return fmt.Errorf("invalid JSON: %w", err)
+		body, err := utils.ParseJSONMap(flagBody, "invalid JSON")
+		if err != nil {
+			return err
 		}
 		resp, err := node.UpdateNodeSettings(ctx, flagNodeID, body, flagFlat)
 		if err != nil {

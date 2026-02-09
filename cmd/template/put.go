@@ -1,7 +1,6 @@
 package template
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -50,8 +49,8 @@ var putCmd = &cobra.Command{
 				return fmt.Errorf("failed to read file: %w", err)
 			}
 
-			if err := json.Unmarshal(data, &tmpl); err != nil {
-				return fmt.Errorf("failed to parse template JSON: %w", err)
+			if err := utils.UnmarshalJSON(data, &tmpl, "failed to parse template JSON"); err != nil {
+				return err
 			}
 		} else if len(flagPatterns) > 0 {
 			// Create from flags

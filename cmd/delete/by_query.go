@@ -2,10 +2,8 @@ package delete
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/delete"
@@ -79,28 +77,19 @@ func handleByQueryDelete(ctx context.Context) error {
 	}
 
 	// Parse query JSON
-	var queryMap map[string]interface{}
-	if err := json.Unmarshal([]byte(byQueryQuery), &queryMap); err != nil {
-		return fmt.Errorf("invalid query JSON: %w", err)
+	queryMap, err := utils.ParseJSONMap(byQueryQuery, "invalid query JSON")
+	if err != nil {
+		return err
 	}
 
 	// Parse indices
 	var indices []string
 	if byQueryIndices != "" {
-		parts := strings.Split(byQueryIndices, ",")
-		for _, idx := range parts {
-			clean := strings.TrimSpace(idx)
-			if clean == "" {
-				continue
-			}
-			if err := validation.ValidateIndexPattern(clean); err != nil {
-				return err
-			}
-			indices = append(indices, clean)
+		parsed, err := utils.ParseIndexPatternsCSV(byQueryIndices, true)
+		if err != nil {
+			return err
 		}
-		if len(indices) == 0 {
-			return fmt.Errorf("indices must be specified")
-		}
+		indices = parsed
 	}
 
 	// Build request

@@ -2,10 +2,10 @@ package pipeline
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/pipeline"
 	"github.com/pincher95/esctl/output"
 )
@@ -17,8 +17,8 @@ func HandleSimulate(ctx context.Context, filePath, pipelineID string) error {
 	}
 
 	var req pipeline.SimulateRequest
-	if err := json.Unmarshal(data, &req); err != nil {
-		return fmt.Errorf("invalid simulation request JSON: %w", err)
+	if err := utils.UnmarshalJSON(data, &req, "invalid simulation request JSON"); err != nil {
+		return err
 	}
 
 	result, err := pipeline.SimulatePipeline(ctx, pipelineID, req)

@@ -2,10 +2,10 @@ package pipeline
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/pipeline"
 )
 
@@ -16,8 +16,8 @@ func HandlePut(ctx context.Context, id, filePath string) error {
 	}
 
 	var p pipeline.Pipeline
-	if err := json.Unmarshal(data, &p); err != nil {
-		return fmt.Errorf("invalid pipeline JSON: %w", err)
+	if err := utils.UnmarshalJSON(data, &p, "invalid pipeline JSON"); err != nil {
+		return err
 	}
 
 	if err := pipeline.PutPipeline(ctx, id, p); err != nil {

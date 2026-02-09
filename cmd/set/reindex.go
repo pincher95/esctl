@@ -2,7 +2,6 @@ package set
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -92,9 +91,9 @@ func handleSetReindexStart(ctx context.Context) error {
 	}
 
 	if setReindexQuery != "" {
-		var queryMap map[string]interface{}
-		if err := json.Unmarshal([]byte(setReindexQuery), &queryMap); err != nil {
-			return fmt.Errorf("invalid query JSON: %w", err)
+		queryMap, err := utils.ParseJSONMap(setReindexQuery, "invalid query JSON")
+		if err != nil {
+			return err
 		}
 		source.Query = queryMap
 	}

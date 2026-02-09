@@ -112,7 +112,6 @@ func init() {
 	getCmd.AddCommand(getPipelinesCmd)
 	getCmd.AddCommand(getSnapshotCmd)
 	getCmd.AddCommand(getSnapshotStatusCmd)
-	getCmd.AddCommand(getSnapshotRepoCmd)
 	getCmd.AddCommand(getSnapshotReposCmd)
 	getCmd.AddCommand(getUserCmd)
 	getCmd.AddCommand(getUsersCmd)

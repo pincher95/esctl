@@ -3,10 +3,13 @@ package snapshot
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/snapshots"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 )
 
 func HandleRepoList(ctx context.Context, nameFilter string) error {
@@ -24,9 +27,60 @@ func HandleRepoList(ctx context.Context, nameFilter string) error {
 		if len(filtered) == 0 {
 			return fmt.Errorf("no repositories matched: %s", nameFilter)
 		}
-		return output.Render(filtered)
+		repos = filtered
 	}
-	return output.Render(repos)
+	columnDefs := []output.ColumnDefaults{
+		{Header: "name", Type: output.Text},
+		{Header: "type", Type: output.Text},
+	}
+
+	settingKeys := make(map[string]struct{})
+	flatSettings := make(map[string]map[string]any, len(repos))
+	for name, repo := range repos {
+		flat := utils.FlattenSettingsMap(repo.Settings)
+		flatSettings[name] = flat
+		for key := range flat {
+			settingKeys[key] = struct{}{}
+		}
+	}
+	sortedKeys := make([]string, 0, len(settingKeys))
+	for key := range settingKeys {
+		sortedKeys = append(sortedKeys, key)
+	}
+	sort.Strings(sortedKeys)
+	for _, key := range sortedKeys {
+		columnDefs = append(columnDefs, output.ColumnDefaults{Header: key, Type: output.Text})
+	}
+
+	rows := make([]map[string]any, 0, len(repos))
+	data := make([][]string, 0, len(repos))
+	for name, repo := range repos {
+		flat := flatSettings[name]
+		row := map[string]any{
+			"name": name,
+			"type": repo.Type,
+		}
+		rowCells := make([]string, 0, len(columnDefs))
+		rowCells = append(rowCells, name, repo.Type)
+		for _, key := range sortedKeys {
+			val, ok := flat[key]
+			if ok {
+				row[key] = val
+				rowCells = append(rowCells, utils.FormatSettingValue(val))
+			} else {
+				rowCells = append(rowCells, "")
+			}
+		}
+		rows = append(rows, row)
+		data = append(data, rowCells)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(rows)
+	}
+
+	sortCols := output.ParseSortColumns("name")
+	return output.PrintTable(columnDefs, data, sortCols)
 }
 
 func HandleRepoGet(ctx context.Context, repository string) error {

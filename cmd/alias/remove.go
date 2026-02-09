@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
 	"github.com/pincher95/esctl/internal/validation"
 )
@@ -18,20 +19,9 @@ func HandleAliasRemove(ctx context.Context, alias, indicesCSV string) error {
 		return err
 	}
 
-	indices := strings.Split(indicesCSV, ",")
-	trimmed := make([]string, 0, len(indices))
-	for _, idx := range indices {
-		clean := strings.TrimSpace(idx)
-		if clean == "" {
-			continue
-		}
-		if err := validation.ValidateIndexPattern(clean); err != nil {
-			return err
-		}
-		trimmed = append(trimmed, clean)
-	}
-	if len(trimmed) == 0 {
-		return fmt.Errorf("indices must be specified")
+	trimmed, err := utils.ParseIndexPatternsCSV(indicesCSV, true)
+	if err != nil {
+		return err
 	}
 
 	if err := index.RemoveAlias(ctx, trimmed, alias); err != nil {

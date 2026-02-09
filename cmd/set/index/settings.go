@@ -1,9 +1,9 @@
 package index
 
 import (
-	"encoding/json"
 	"fmt"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
 	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
@@ -35,9 +35,9 @@ Example:
 		if flagBody == "" {
 			return fmt.Errorf("--body JSON is required")
 		}
-		var body map[string]any
-		if err := json.Unmarshal([]byte(flagBody), &body); err != nil {
-			return fmt.Errorf("invalid JSON: %w", err)
+		body, err := utils.ParseJSONMap(flagBody, "invalid JSON")
+		if err != nil {
+			return err
 		}
 		idx := index.NewIndex()
 		resp, err := idx.UpdateIndexSettings(ctx, flagIndexName, body, flagFlat)

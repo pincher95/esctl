@@ -7,7 +7,7 @@ import (
 )
 
 var getSnapshotReposCmd = &cobra.Command{
-	Use:   "snapshot-repos",
+	Use:   "snapshot-repos [--name substring]",
 	Short: "List snapshot repositories",
 	Example: utils.TrimAndIndent(`
 	# List snapshot repositories

@@ -2,6 +2,8 @@ package template
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/template"
@@ -17,6 +19,9 @@ var listCmd = &cobra.Command{
 		# List all templates
 		esctl template list
 
+		# List templates by name substring
+		esctl template list --name logs
+
 		# Output as JSON
 		esctl template list -o json
 	`),
@@ -28,26 +33,54 @@ var listCmd = &cobra.Command{
 			return err
 		}
 
+		if templateListName != "" {
+			filtered := make(template.ListResponse)
+			for name, tmpl := range templates {
+				if strings.Contains(name, templateListName) {
+					filtered[name] = tmpl
+				}
+			}
+			if len(filtered) == 0 {
+				return fmt.Errorf("no templates matched: %s", templateListName)
+			}
+			templates = filtered
+		}
+
 		if len(templates) == 0 {
 			fmt.Println("No templates found")
 			return nil
 		}
 
-		if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
-			return output.Render(templates)
-		}
-
-		// Prepare table data
 		columnDefs := []output.ColumnDefaults{
-			{Header: "NAME", Type: output.Text},
-			{Header: "INDEX-PATTERNS", Type: output.Text},
-			{Header: "PRIORITY", Type: output.Number},
-			{Header: "VERSION", Type: output.Number},
-			{Header: "COMPOSED-OF", Type: output.Text},
+			{Header: "name", Type: output.Text},
+			{Header: "index_patterns", Type: output.Text},
+			{Header: "priority", Type: output.Number},
+			{Header: "version", Type: output.Number},
+			{Header: "composed_of", Type: output.Text},
 		}
 
+		settingKeys := make(map[string]struct{})
+		flatSettings := make(map[string]map[string]any, len(templates))
+		for name, tmpl := range templates {
+			flat := utils.FlattenSettingsMap(tmpl.Template.Settings)
+			flatSettings[name] = flat
+			for key := range flat {
+				settingKeys[key] = struct{}{}
+			}
+		}
+		sortedKeys := make([]string, 0, len(settingKeys))
+		for key := range settingKeys {
+			sortedKeys = append(sortedKeys, key)
+		}
+		sort.Strings(sortedKeys)
+		for _, key := range sortedKeys {
+			columnDefs = append(columnDefs, output.ColumnDefaults{Header: key, Type: output.Text})
+		}
+
+		rows := make([]map[string]any, 0, len(templates))
 		var data [][]string
 		for name, tmpl := range templates {
+			flat := flatSettings[name]
 			patterns := ""
 			if len(tmpl.IndexPatterns) > 0 {
 				patterns = tmpl.IndexPatterns[0]
@@ -64,15 +97,45 @@ var listCmd = &cobra.Command{
 				}
 			}
 
-			data = append(data, []string{
+			row := map[string]any{
+				"name":           name,
+				"index_patterns": tmpl.IndexPatterns,
+				"priority":       tmpl.Priority,
+				"version":        tmpl.Version,
+				"composed_of":    tmpl.ComposedOf,
+			}
+
+			rowCells := []string{
 				name,
 				patterns,
 				fmt.Sprintf("%d", tmpl.Priority),
 				fmt.Sprintf("%d", tmpl.Version),
 				composedOf,
-			})
+			}
+			for _, key := range sortedKeys {
+				val, ok := flat[key]
+				if ok {
+					row[key] = val
+					rowCells = append(rowCells, utils.FormatSettingValue(val))
+				} else {
+					rowCells = append(rowCells, "")
+				}
+			}
+
+			rows = append(rows, row)
+			data = append(data, rowCells)
+		}
+
+		if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+			return output.Render(rows)
 		}
 
 		return output.PrintTable(columnDefs, data, nil)
 	},
+}
+
+var templateListName string
+
+func init() {
+	listCmd.Flags().StringVar(&templateListName, "name", "", "Filter templates by name or substring of template name")
 }

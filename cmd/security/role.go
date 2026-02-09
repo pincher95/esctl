@@ -2,11 +2,11 @@ package security
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/security"
 	"github.com/pincher95/esctl/output"
 )
@@ -46,8 +46,8 @@ func HandleRoleCreate(ctx context.Context, name, filePath string) error {
 	}
 
 	var role security.Role
-	if err := json.Unmarshal(data, &role); err != nil {
-		return fmt.Errorf("invalid role JSON: %w", err)
+	if err := utils.UnmarshalJSON(data, &role, "invalid role JSON"); err != nil {
+		return err
 	}
 
 	if err := security.CreateRole(ctx, name, role); err != nil {

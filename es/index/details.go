@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pincher95/esctl/shared"
+	es "github.com/pincher95/esctl/es"
 )
 
 type IndexMappings struct {
@@ -32,7 +32,7 @@ func GetIndexDetails(ctx context.Context, indexName string, wantMappings, wantSe
 	var settingsResp SettingsResponse
 
 	if wantMappings {
-		if err := requestJSON(ctx, fmt.Sprintf("%s/_mappings", indexName), &mappingsResp); err != nil {
+		if err := es.GetJSONResponse(ctx, fmt.Sprintf("%s/_mappings", indexName), &mappingsResp); err != nil {
 			return nil, fmt.Errorf("failed to get mappings: %w", err)
 		}
 	}
@@ -47,7 +47,7 @@ func GetIndexDetails(ctx context.Context, indexName string, wantMappings, wantSe
 		if includeDefaults {
 			endpoint += sep + "include_defaults=true"
 		}
-		if err := requestJSON(ctx, endpoint, &settingsResp); err != nil {
+		if err := es.GetJSONResponse(ctx, endpoint, &settingsResp); err != nil {
 			return nil, fmt.Errorf("failed to get settings: %w", err)
 		}
 	}
@@ -66,20 +66,4 @@ func GetIndexDetails(ctx context.Context, indexName string, wantMappings, wantSe
 		}
 	}
 	return merged, nil
-}
-
-// requestJSON is a lightweight wrapper around shared.Client for GET requests.
-func requestJSON(ctx context.Context, endpoint string, target any) error {
-	resp, err := shared.Client.R().
-		SetContext(ctx).
-		SetHeader("Content-Type", "application/json").
-		SetResult(target).
-		Get(endpoint)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode() != 200 {
-		return fmt.Errorf("unexpected status %d", resp.StatusCode())
-	}
-	return nil
 }

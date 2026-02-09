@@ -2,10 +2,10 @@ package alias
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
 	"github.com/pincher95/esctl/internal/validation"
 )
@@ -19,26 +19,16 @@ func HandleAliasAdd(ctx context.Context, alias, indicesCSV, filterJSON, routing 
 		return err
 	}
 
-	indices := strings.Split(indicesCSV, ",")
-	trimmed := make([]string, 0, len(indices))
-	for _, idx := range indices {
-		clean := strings.TrimSpace(idx)
-		if clean == "" {
-			continue
-		}
-		if err := validation.ValidateIndexPattern(clean); err != nil {
-			return err
-		}
-		trimmed = append(trimmed, clean)
-	}
-	if len(trimmed) == 0 {
-		return fmt.Errorf("indices must be specified")
+	trimmed, err := utils.ParseIndexPatternsCSV(indicesCSV, true)
+	if err != nil {
+		return err
 	}
 
-	var filter map[string]interface{}
+	var filter map[string]any
 	if filterJSON != "" {
-		if err := json.Unmarshal([]byte(filterJSON), &filter); err != nil {
-			return fmt.Errorf("invalid filter JSON: %w", err)
+		filter, err = utils.ParseJSONMap(filterJSON, "invalid filter JSON")
+		if err != nil {
+			return err
 		}
 	}
 

@@ -2,11 +2,11 @@ package security
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/security"
 	"github.com/pincher95/esctl/output"
 )
@@ -46,8 +46,8 @@ func HandleUserCreate(ctx context.Context, username, filePath string) error {
 	}
 
 	var user security.User
-	if err := json.Unmarshal(data, &user); err != nil {
-		return fmt.Errorf("invalid user JSON: %w", err)
+	if err := utils.UnmarshalJSON(data, &user, "invalid user JSON"); err != nil {
+		return err
 	}
 
 	if err := security.CreateUser(ctx, username, user); err != nil {
