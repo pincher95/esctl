@@ -16,6 +16,15 @@ var (
 
 	// aliasNameRegex for alias validation
 	aliasNameRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]*$`)
+
+	// dataStreamStartRegex validates data stream names start with lowercase letter
+	dataStreamStartRegex = regexp.MustCompile(`^[a-z]`)
+
+	// dataStreamNameRegex validates full data stream name format
+	dataStreamNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
+
+	// timeUnitRegex validates time unit suffixes (for refresh intervals and timeouts)
+	timeUnitRegex = regexp.MustCompile(`^.*?(ms|s|m|h|d)$`)
 )
 
 // ValidateIndexName validates an Elasticsearch index name
@@ -43,12 +52,9 @@ func ValidateIndexName(name string) error {
 		return fmt.Errorf("invalid index name: %s (must start with lowercase letter/digit, contain only lowercase letters, digits, hyphens, underscores)", name)
 	}
 
-	// Check for invalid characters
-	invalidChars := []string{"\\", "/", "*", "?", "\"", "<", ">", "|", " ", ",", "#"}
-	for _, char := range invalidChars {
-		if strings.Contains(name, char) {
-			return fmt.Errorf("index name cannot contain '%s'", char)
-		}
+	// Check for invalid characters (single pass)
+	if strings.ContainsAny(name, `\/*?"<>| ,#`) {
+		return fmt.Errorf("index name contains invalid characters")
 	}
 
 	return nil
@@ -146,17 +152,8 @@ func ValidateRefreshInterval(interval string) error {
 		return nil
 	}
 
-	// Check for valid time unit suffixes
-	validSuffixes := []string{"ms", "s", "m", "h", "d"}
-	hasValidSuffix := false
-	for _, suffix := range validSuffixes {
-		if strings.HasSuffix(interval, suffix) {
-			hasValidSuffix = true
-			break
-		}
-	}
-
-	if !hasValidSuffix {
+	// Check for valid time unit suffixes using regex
+	if !timeUnitRegex.MatchString(interval) {
 		return fmt.Errorf("invalid refresh interval: %s (must end with ms, s, m, h, or d, or be -1)", interval)
 	}
 
@@ -169,16 +166,9 @@ func ValidateTimeout(timeout string) error {
 		return fmt.Errorf("timeout cannot be empty")
 	}
 
-	validSuffixes := []string{"ms", "s", "m", "h"}
-	hasValidSuffix := false
-	for _, suffix := range validSuffixes {
-		if strings.HasSuffix(timeout, suffix) {
-			hasValidSuffix = true
-			break
-		}
-	}
-
-	if !hasValidSuffix {
+	// Timeout uses same pattern as refresh interval (excluding days)
+	if !strings.HasSuffix(timeout, "ms") && !strings.HasSuffix(timeout, "s") &&
+		!strings.HasSuffix(timeout, "m") && !strings.HasSuffix(timeout, "h") {
 		return fmt.Errorf("invalid timeout: %s (must end with ms, s, m, or h)", timeout)
 	}
 
@@ -264,27 +254,24 @@ func ValidateDataStreamName(name string) error {
 		return fmt.Errorf("data stream name cannot be empty")
 	}
 
-	// Data streams must start with a lowercase letter
-	if !regexp.MustCompile(`^[a-z]`).MatchString(name) {
-		return fmt.Errorf("data stream name must start with a lowercase letter: %s", name)
-	}
-
 	// Check length
 	if len(name) > 255 {
 		return fmt.Errorf("data stream name too long: max 255 characters, got %d", len(name))
 	}
 
+	// Data streams must start with a lowercase letter
+	if !dataStreamStartRegex.MatchString(name) {
+		return fmt.Errorf("data stream name must start with a lowercase letter: %s", name)
+	}
+
 	// Data streams can contain lowercase letters, digits, hyphens, and underscores
-	if !regexp.MustCompile(`^[a-z][a-z0-9_-]*$`).MatchString(name) {
+	if !dataStreamNameRegex.MatchString(name) {
 		return fmt.Errorf("invalid data stream name: %s (must contain only lowercase letters, digits, hyphens, underscores)", name)
 	}
 
-	// Check for invalid characters
-	invalidChars := []string{"\\", "/", "*", "?", "\"", "<", ">", "|", " ", ",", "#", ":"}
-	for _, char := range invalidChars {
-		if strings.Contains(name, char) {
-			return fmt.Errorf("data stream name cannot contain '%s'", char)
-		}
+	// Check for invalid characters (single pass)
+	if strings.ContainsAny(name, `\/*?"<>| ,#:`) {
+		return fmt.Errorf("data stream name contains invalid characters")
 	}
 
 	return nil

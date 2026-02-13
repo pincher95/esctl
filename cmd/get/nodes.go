@@ -82,7 +82,7 @@ func handleNodeLogic(ctx context.Context, client cat.Cat, conf config.Config) er
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	data := make([][]string, 0, len(nodes))
 
 	for _, node := range nodes {
 		rowData := map[string]string{

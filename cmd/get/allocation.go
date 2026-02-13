@@ -61,9 +61,9 @@ var allocationColumns = []output.ColumnDefaults{
 	{Header: "DISK-AVAIL", Type: output.Text},
 	{Header: "DISK-TOTAL", Type: output.Number},
 	{Header: "DISK-PERCENT", Type: output.Number},
-	{Header: "HOST", Type: output.Number},
-	{Header: "IP", Type: output.Date},
-	{Header: "NODE", Type: output.DataSize},
+	{Header: "HOST", Type: output.Text},
+	{Header: "IP", Type: output.Text},
+	{Header: "NODE", Type: output.Text},
 }
 
 func handleAllocationLogic(ctx context.Context, client cat.Cat, conf config.Config) error {
@@ -77,7 +77,7 @@ func handleAllocationLogic(ctx context.Context, client cat.Cat, conf config.Conf
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	data := make([][]string, 0, len(allocations))
 
 	for _, allocation := range allocations {
 		rowData := map[string]string{

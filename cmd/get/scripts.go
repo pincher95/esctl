@@ -37,12 +37,9 @@ var getScriptsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Determine script ID from flag
-		scriptID := flagScriptsID
-
 		// If ID provided, get specific script; otherwise list all
-		if scriptID != "" {
-			return handleGetScriptLogic(ctx, scriptID)
+		if flagScriptsID != "" {
+			return handleGetScriptLogic(ctx, flagScriptsID)
 		}
 		return handleGetScriptsLogic(ctx)
 	},

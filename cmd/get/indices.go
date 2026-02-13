@@ -80,7 +80,7 @@ func handleIndicesLogic(ctx context.Context, client cat.Cat, conf config.Config)
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	data := make([][]string, 0, len(indices))
 
 	for _, index := range indices {
 		rowData := map[string]string{

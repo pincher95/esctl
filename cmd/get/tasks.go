@@ -60,7 +60,12 @@ func handleTaskLogic(ctx context.Context, client tasks.Tasks, config config.Conf
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	// Calculate total capacity for pre-allocation
+	totalTasks := 0
+	for _, node := range tasksResponse.Nodes {
+		totalTasks += len(node.Tasks)
+	}
+	data := make([][]string, 0, totalTasks)
 
 	for _, node := range tasksResponse.Nodes {
 		for _, task := range node.Tasks {

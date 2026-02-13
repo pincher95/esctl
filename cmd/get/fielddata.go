@@ -72,16 +72,16 @@ func handleFielddataLogic(ctx context.Context, client cat.Cat, conf config.Confi
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	data := make([][]string, 0, len(fielddata))
 
-	for _, feild := range fielddata {
+	for _, field := range fielddata {
 		rowData := map[string]string{
-			// "ID":    feild.ID,
-			"HOST":  feild.Host,
-			"IP":    feild.IP,
-			"NODE":  feild.Node,
-			"FIELD": feild.Field,
-			"SIZE":  feild.Size,
+			// "ID":    field.ID,
+			"HOST":  field.Host,
+			"IP":    field.IP,
+			"NODE":  field.Node,
+			"FIELD": field.Field,
+			"SIZE":  field.Size,
 		}
 
 		row := make([]string, len(columnDefs))

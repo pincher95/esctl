@@ -40,26 +40,23 @@ var getDataStreamsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Get data stream name from flag
-		name := flagDataStreamsName
-
 		// If specific name provided (without wildcards), get specific data stream
 		// Otherwise list data streams (with optional pattern filter)
-		if name != "" && !strings.ContainsAny(name, "*?") {
+		if flagDataStreamsName != "" && !strings.ContainsAny(flagDataStreamsName, "*?") {
 			if !flagRefresh {
-				return handleDataStreamLogic(ctx, name)
+				return handleDataStreamLogic(ctx, flagDataStreamsName)
 			}
 			return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
-				return handleDataStreamLogic(ctx, name)
+				return handleDataStreamLogic(ctx, flagDataStreamsName)
 			})
 		}
 
 		// List data streams (with optional pattern)
 		if !flagRefresh {
-			return handleDataStreamsLogic(ctx, name)
+			return handleDataStreamsLogic(ctx, flagDataStreamsName)
 		}
 		return utils.WatchLoopContext(ctx, flagRefreshInterval, func() error {
-			return handleDataStreamsLogic(ctx, name)
+			return handleDataStreamsLogic(ctx, flagDataStreamsName)
 		})
 	},
 }

@@ -64,30 +64,6 @@ Available Entities:
   - roles [NAME]: Get or list roles.
   - reindex: Get reindex task status.
 	`),
-	// 	Example: utils.TrimAndIndent(`
-	// #Retrieve a list of all nodes in the Elasticsearch cluster.
-	// esctl get nodes
-
-	// #Retrieve a list of all indices in the Elasticsearch cluster.
-	// esctl get indices
-
-	// #Retrieve detailed information about shards in the Elasticsearch cluster.
-	// esctl get shards
-
-	// #Retrieve shard information for an index.
-	// esctl get shards --index my_index
-
-	// #Retrieve shard information filtered by state.
-	// esctl get shards --started --relocating
-
-	// #Retrieve all aliases.
-	// esctl get aliases
-
-	// #Retrieve tasks filtered by actions using wildcard patterns.
-	// esctl get tasks --actions 'index*' --actions '*search*'
-
-	// #Retrieve all tasks.
-	// esctl get tasks`),
 }
 
 func init() {
@@ -166,8 +142,3 @@ func getColumnDefs(conf config.Config, entity string, defaultColumns []output.Co
 		return buildColumnDefs(entityConfig.Columns, defaultColumns)
 	}
 }
-
-// func clearScreen() {
-// 	// Move cursor to top-left and clear screen
-// 	fmt.Print("\033[?1049h\033[H\033[?25l")
-// }

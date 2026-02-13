@@ -97,7 +97,7 @@ func handleShardLogic(ctx context.Context, client cat.Cat, conf config.Config) e
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	data := make([][]string, 0, len(shards))
 
 	for _, shard := range shards {
 		if includeShardByState(shard) && includeShardByNumber(shard) &&

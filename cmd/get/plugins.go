@@ -62,7 +62,7 @@ func handlePluginsLogic(ctx context.Context, client cat.Cat, conf config.Config)
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	data := make([][]string, 0, len(plugins))
 
 	for _, plugin := range plugins {
 		rowData := map[string]string{

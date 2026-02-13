@@ -92,7 +92,12 @@ func handleAliasLogic(ctx context.Context, client index.Index, conf config.Confi
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	// Calculate total capacity for pre-allocation
+	totalAliases := 0
+	for _, detail := range *aliases {
+		totalAliases += len(detail.Aliases)
+	}
+	data := make([][]string, 0, totalAliases)
 
 	for idx, detail := range *aliases {
 		for alias, aliasDetails := range detail.Aliases {

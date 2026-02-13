@@ -93,7 +93,7 @@ func handleSnapshotList(ctx context.Context, repository string) error {
 		return fmt.Errorf("failed to get column definitions: %w", err)
 	}
 
-	data := [][]string{}
+	data := make([][]string, 0, len(snapshots))
 
 	for _, snapshot := range snapshots {
 		if includeSnapshotByStatus(snapshot) {

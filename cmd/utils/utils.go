@@ -51,7 +51,6 @@ func GetApproval() (bool, error) {
 		Label:     "Do you approve",
 		Items:     []string{"No", "Yes"},
 		Templates: templates,
-		// Stdout:    NoBellStdout,
 	}
 
 	_, response, err := prompt.Run()
