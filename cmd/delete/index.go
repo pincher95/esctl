@@ -16,6 +16,7 @@ var (
 	indexAllowNoIndices    bool
 	indexExpandWildcards   string
 	indexForce             bool
+	indexDryRun            bool
 	indexNames             []string
 )
 
@@ -51,6 +52,7 @@ func init() {
 	indexCmd.Flags().BoolVar(&indexAllowNoIndices, "allow-no-indices", true, "Allow operations on no indices")
 	indexCmd.Flags().StringVar(&indexExpandWildcards, "expand-wildcards", "open", "Expand wildcard expressions (all, open, closed, hidden, none)")
 	indexCmd.Flags().BoolVar(&indexForce, "force", false, "Force deletion without confirmation")
+	indexCmd.Flags().BoolVar(&indexDryRun, "dry-run", false, "Show what would be deleted without actually deleting")
 	indexCmd.MarkFlagRequired("indices")
 }
 
@@ -59,6 +61,11 @@ func handleIndexDelete(ctx context.Context, indices []string) error {
 		if err := validation.ValidateIndexPattern(idx); err != nil {
 			return err
 		}
+	}
+
+	if indexDryRun {
+		fmt.Printf("DRY RUN: Would delete indices: %s\n", strings.Join(indices, ", "))
+		return nil
 	}
 
 	if !indexForce {

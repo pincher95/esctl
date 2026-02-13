@@ -45,6 +45,8 @@ func init() {
 	updateCmd.AddCommand(updateAliasCmd)
 	updateCmd.AddCommand(updateSnapshotCmd)
 	updateCmd.AddCommand(updatePipelineCmd)
+	updateCmd.AddCommand(updateDataStreamCmd)
+	updateCmd.AddCommand(updateSearchTemplateCmd)
 }
 
 func Cmd() *cobra.Command {

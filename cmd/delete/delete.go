@@ -20,5 +20,8 @@ func Cmd() *cobra.Command {
 	deleteCmd.AddCommand(deleteUserCmd)
 	deleteCmd.AddCommand(deleteRoleCmd)
 	deleteCmd.AddCommand(deleteReindexCmd)
+	deleteCmd.AddCommand(dataStreamCmd)
+	deleteCmd.AddCommand(deleteScriptCmd)
+	deleteCmd.AddCommand(deleteSearchTemplateCmd)
 	return deleteCmd
 }

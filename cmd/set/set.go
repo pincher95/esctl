@@ -23,5 +23,7 @@ func Cmd() *cobra.Command {
 	setCmd.AddCommand(setSnapshotRepoCmd)
 	setCmd.AddCommand(setUserCmd)
 	setCmd.AddCommand(setRoleCmd)
+	setCmd.AddCommand(setScriptCmd)
+	setCmd.AddCommand(setSearchTemplateCmd)
 	return setCmd
 }

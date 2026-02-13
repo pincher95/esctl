@@ -49,8 +49,7 @@ Available Entities:
   - nodes: List all nodes in the Elasticsearch cluster.
   - indices: List all indices in the Elasticsearch cluster.
   - shards: List detailed information about shards, including their sizes and placement.
-  - aliases: List all aliases in the Elasticsearch cluster.
-  - alias: Get details of a specific alias.
+  - aliases [NAME]: Get or list aliases in the Elasticsearch cluster.
   - tasks: List all tasks in the Elasticsearch cluster.
 	- allocation: List allocation in the Elasticsearch cluster.
 	- plugins: List all plugins in the Elasticsearch cluster.
@@ -60,9 +59,9 @@ Available Entities:
   - snapshot-repo: Get snapshot repository details.
 	- fielddata: List fielddata in the Elasticsearch cluster.
 	- health: Cluster health overview.
-  - pipeline: Get ingest pipeline details.
-  - user: Get user details.
-  - role: Get role details.
+  - pipelines [ID]: Get or list ingest pipelines.
+  - users [NAME]: Get or list users.
+  - roles [NAME]: Get or list roles.
   - reindex: Get reindex task status.
 	`),
 	// 	Example: utils.TrimAndIndent(`
@@ -107,17 +106,26 @@ func init() {
 	getCmd.AddCommand(getAllocationExplainCmd)
 	getCmd.AddCommand(getFielddataCmd)
 	getCmd.AddCommand(getHealthCmd)
-	getCmd.AddCommand(getAliasCmd)
-	getCmd.AddCommand(getPipelineCmd)
 	getCmd.AddCommand(getPipelinesCmd)
 	getCmd.AddCommand(getSnapshotCmd)
 	getCmd.AddCommand(getSnapshotStatusCmd)
 	getCmd.AddCommand(getSnapshotReposCmd)
-	getCmd.AddCommand(getUserCmd)
 	getCmd.AddCommand(getUsersCmd)
-	getCmd.AddCommand(getRoleCmd)
 	getCmd.AddCommand(getRolesCmd)
 	getCmd.AddCommand(getReindexCmd)
+	// Index stats and diagnostics
+	getCmd.AddCommand(getIndexStatsCmd)
+	getCmd.AddCommand(getRecoveryCmd)
+	getCmd.AddCommand(getSegmentsCmd)
+	// Data streams
+	getCmd.AddCommand(getDataStreamsCmd)
+	// Scripts
+	getCmd.AddCommand(getScriptsCmd)
+	// Search templates
+	getCmd.AddCommand(getSearchTemplatesCmd)
+	// Thread diagnostics
+	getCmd.AddCommand(getThreadPoolsCmd)
+	getCmd.AddCommand(getHotThreadsCmd)
 }
 
 func Cmd() *cobra.Command {
@@ -159,7 +167,7 @@ func getColumnDefs(conf config.Config, entity string, defaultColumns []output.Co
 	}
 }
 
-func clearScreen() {
-	// Move cursor to top-left and clear screen
-	fmt.Print("\033[?1049h\033[H\033[?25l")
-}
+// func clearScreen() {
+// 	// Move cursor to top-left and clear screen
+// 	fmt.Print("\033[?1049h\033[H\033[?25l")
+// }

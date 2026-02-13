@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/pincher95/esctl/cmd/template/component"
 	"github.com/spf13/cobra"
 )
 
@@ -19,4 +20,5 @@ func init() {
 	Cmd.AddCommand(putCmd)
 	Cmd.AddCommand(deleteCmd)
 	Cmd.AddCommand(existsCmd)
+	Cmd.AddCommand(component.Cmd)
 }

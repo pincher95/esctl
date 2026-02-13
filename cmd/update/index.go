@@ -23,8 +23,12 @@ func init() {
 	updateIndexCmd.PersistentFlags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
 	// updateIndexCmd.Flags().StringVar(&flagFlatBody, "flat-settings", "", "Index settings")
 
-	// Mark name as required
-	_ = updateIndexCmd.MarkPersistentFlagRequired("index")
+	// Note: index flag is not marked as required here since lifecycle operations use their own flags
 
 	updateIndexCmd.AddCommand(index.SettingsCmd)
+	updateIndexCmd.AddCommand(index.OpenCmd)
+	updateIndexCmd.AddCommand(index.CloseCmd)
+	updateIndexCmd.AddCommand(index.CloneCmd)
+	updateIndexCmd.AddCommand(index.SplitCmd)
+	updateIndexCmd.AddCommand(index.ShrinkCmd)
 }

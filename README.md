@@ -7,10 +7,18 @@
 `esctl` is a command-line tool for managing and interacting with Elasticsearch clusters. It provides a convenient interface to perform various operations, such as querying cluster information, managing indices, retrieving shard details, and monitoring tasks.
 
 ## Features:
-- Retrieve information about nodes, indices, shards, aliases, and tasks in an Elasticsearch cluster
-- Describe cluster health and stats
-- Describe index settings and mappings
-- Simple and intuitive command-line interface
+- **Cluster Management:** Retrieve information about nodes, indices, shards, aliases, and tasks
+- **Index Lifecycle:** Open, close, clone, split, and shrink indices
+- **Index Diagnostics:** Monitor index stats, recovery status, and segment information
+- **Component Templates:** Full CRUD operations for component templates (ES 7.8+/OpenSearch 1.0+)
+- **Data Streams:** Manage data streams with create, delete, rollover, and stats operations (ES 7.9+/OpenSearch 1.0+)
+- **Script Management:** Store and manage Painless, Mustache, and other script types
+- **Search Templates:** Create, test, and render parameterized search templates
+- **Thread Diagnostics:** Monitor thread pools and identify hot threads for performance troubleshooting
+- **Cluster Health & Stats:** Comprehensive cluster health checks and statistics
+- **Dry-Run Support:** Safe preview of destructive operations before execution
+- **Multiple Output Formats:** Table, JSON, and YAML output with watch mode for real-time monitoring
+- **Simple and intuitive command-line interface** with verb-first command structure
 
 ## Contributing
 Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file.
@@ -82,6 +90,95 @@ es-data-0          127.0.0.1  cdfhilmrstw  *       4gb       1.6gb         41%  
 > esctl get aliases --index=articles
 ALIAS           INDEX
 articles_alias  articles
+```
+
+### New Feature Examples
+
+**Index Lifecycle Operations:**
+```shell
+# Close an index for maintenance
+esctl update index close --indices logs-2024-01
+
+# Split an index into more shards
+esctl update index split --source my-index --target my-index-split --shards 6
+
+# Shrink an index to fewer shards
+esctl update index shrink --source my-index --target my-index-shrunk --shards 1
+```
+
+**Component Templates:**
+```shell
+# List all component templates
+esctl get template component list
+
+# Create a component template from a file
+esctl set template component --name settings-template --file template.json
+
+# Delete a component template (with dry-run)
+esctl delete template component --name old-template --dry-run
+```
+
+**Data Streams:**
+```shell
+# List all data streams
+esctl get data-streams
+
+# Rollover a data stream to a new backing index
+esctl update data-stream rollover --name logs-app
+
+# Delete a data stream
+esctl delete data-stream --name logs-old --dry-run
+```
+
+**Script Management:**
+```shell
+# List all stored scripts
+esctl get scripts
+
+# Create a Painless script
+esctl set script --id my-script --lang painless --source "Math.log(_score * 2)"
+
+# Create a script from a file
+esctl set script --id my-script --file script.json
+
+# Get a specific script
+esctl get script --id my-script -o json
+```
+
+**Search Templates:**
+```shell
+# Create a search template from a file
+esctl set search-template --id my-template --file template.json
+
+# Render a template with parameters
+esctl update search-template render --id my-template --params '{"field":"title","value":"search"}'
+
+# List all search templates
+esctl get search-templates
+```
+
+**Thread Diagnostics:**
+```shell
+# Get thread pool statistics
+esctl get thread-pools
+
+# Monitor hot threads
+esctl get hot-threads --threads 5 --interval 1s --type cpu
+
+# Watch thread pools in real-time
+esctl get thread-pools --watch
+```
+
+**Index Diagnostics:**
+```shell
+# Get detailed index statistics
+esctl get index-stats --indices my-index --metric _all
+
+# Monitor shard recovery
+esctl get recovery --indices my-index --detailed
+
+# View segment information
+esctl get segments --indices my-index
 ```
 
 ## Migration

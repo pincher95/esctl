@@ -14,15 +14,22 @@ import (
 )
 
 var getAliasesCmd = &cobra.Command{
-	Use:                   "aliases [--index index] [--name substring]",
+	Use:                   "aliases [NAME]",
 	DisableFlagsInUseLine: true,
 	Short:                 "Retrieves information for one or more data stream or index aliases.",
+	Args:                  cobra.MaximumNArgs(1),
 	Long: utils.Trim(`
-	Get Elasticsearch aliases. You can filter the results using the index or name flags.
+	Get Elasticsearch aliases. You can filter the results using the index or name flags, or provide an alias name as a positional argument.
 	`),
 	Example: utils.TrimAndIndent(`
 	# Retrieve all aliases.
 	esctl get aliases
+
+	# Retrieve a specific alias by name (positional argument).
+	esctl get aliases my-alias
+
+	# Retrieve a specific alias by name (flag).
+	esctl get aliases --name my-alias
 
 	# Retrieve aliases for a specific index.
 	esctl get aliases --index my_index
@@ -31,13 +38,28 @@ var getAliasesCmd = &cobra.Command{
 	esctl get aliases --name logs
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+
+		// Determine if we're getting a specific alias or listing all
+		var aliasName string
+		if len(args) > 0 {
+			aliasName = args[0]
+		} else if flagAliasName != "" {
+			aliasName = flagAliasName
+		}
+
+		// If a specific alias name is provided, get that alias
+		if aliasName != "" {
+			return handleGetSpecificAlias(ctx, aliasName)
+		}
+
+		// Otherwise, list all aliases
 		aliasClient := index.NewIndex()
 		conf, err := config.ParseConfigFile()
 		if err != nil {
 			return err
 		}
 
-		ctx := cmd.Context()
 		if flagIndex != "" {
 			if err := validation.ValidateIndexPattern(flagIndex); err != nil {
 				return err
@@ -56,7 +78,7 @@ var getAliasesCmd = &cobra.Command{
 
 func init() {
 	getAliasesCmd.Flags().StringVarP(&flagIndex, "index", "i", "", "Name of the index")
-	getAliasesCmd.Flags().StringVar(&flagAliasName, "name", "", "Filter aliases by name or substring of alias name")
+	getAliasesCmd.Flags().StringVar(&flagAliasName, "name", "", "Alias name (for getting specific alias) or substring (for filtering list)")
 	getAliasesCmd.Flags().BoolVar(&flagWritable, "writable", true, "Filter by writable index")
 }
 
@@ -119,6 +141,23 @@ func includeIndexByWriteIndex(aliasDetails index.AliasDetails) bool {
 		return true
 	}
 	return false
+}
+
+func handleGetSpecificAlias(ctx context.Context, aliasName string) error {
+	if err := validation.ValidateAliasName(aliasName); err != nil {
+		return err
+	}
+
+	aliases, err := index.GetAlias(ctx, nil, []string{aliasName})
+	if err != nil {
+		return fmt.Errorf("failed to get alias: %w", err)
+	}
+
+	if len(aliases) == 0 {
+		return fmt.Errorf("alias not found: %s", aliasName)
+	}
+
+	return output.Render(aliases)
 }
 
 var flagAliasName string

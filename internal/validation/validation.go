@@ -257,3 +257,141 @@ func ValidateIndexPattern(pattern string) error {
 
 	return nil
 }
+
+// ValidateDataStreamName validates a data stream name
+func ValidateDataStreamName(name string) error {
+	if name == "" {
+		return fmt.Errorf("data stream name cannot be empty")
+	}
+
+	// Data streams must start with a lowercase letter
+	if !regexp.MustCompile(`^[a-z]`).MatchString(name) {
+		return fmt.Errorf("data stream name must start with a lowercase letter: %s", name)
+	}
+
+	// Check length
+	if len(name) > 255 {
+		return fmt.Errorf("data stream name too long: max 255 characters, got %d", len(name))
+	}
+
+	// Data streams can contain lowercase letters, digits, hyphens, and underscores
+	if !regexp.MustCompile(`^[a-z][a-z0-9_-]*$`).MatchString(name) {
+		return fmt.Errorf("invalid data stream name: %s (must contain only lowercase letters, digits, hyphens, underscores)", name)
+	}
+
+	// Check for invalid characters
+	invalidChars := []string{"\\", "/", "*", "?", "\"", "<", ">", "|", " ", ",", "#", ":"}
+	for _, char := range invalidChars {
+		if strings.Contains(name, char) {
+			return fmt.Errorf("data stream name cannot contain '%s'", char)
+		}
+	}
+
+	return nil
+}
+
+// ValidateScriptLanguage validates a script language
+func ValidateScriptLanguage(lang string) error {
+	if lang == "" {
+		return fmt.Errorf("script language cannot be empty")
+	}
+
+	// Valid script languages in Elasticsearch/OpenSearch
+	validLangs := []string{
+		"painless",     // Default language
+		"mustache",     // Template language
+		"expression",   // Simple expressions
+		"java",         // Java language (if enabled)
+	}
+
+	for _, valid := range validLangs {
+		if strings.EqualFold(lang, valid) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("invalid script language: %s (valid: painless, mustache, expression, java)", lang)
+}
+
+// ValidateComponentTemplateName validates a component template name
+func ValidateComponentTemplateName(name string) error {
+	if name == "" {
+		return fmt.Errorf("component template name cannot be empty")
+	}
+
+	// Component templates follow the same naming rules as index templates
+	if len(name) > 255 {
+		return fmt.Errorf("component template name too long: max 255 characters, got %d", len(name))
+	}
+
+	// Must start with lowercase letter or digit
+	if !templateNameRegex.MatchString(name) {
+		return fmt.Errorf("invalid component template name: %s (must start with lowercase letter/digit, contain only lowercase letters, digits, dots, hyphens, underscores)", name)
+	}
+
+	return nil
+}
+
+// ValidateThreadType validates a thread type for hot threads API
+func ValidateThreadType(threadType string) error {
+	if threadType == "" {
+		// Empty is valid - uses default (cpu)
+		return nil
+	}
+
+	validTypes := []string{"cpu", "wait", "block"}
+
+	for _, valid := range validTypes {
+		if strings.EqualFold(threadType, valid) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("invalid thread type: %s (valid: cpu, wait, block)", threadType)
+}
+
+// ValidateShardsForSplit validates shard counts for split operation
+func ValidateShardsForSplit(sourceShard int, targetShard int) error {
+	if sourceShard < 1 {
+		return fmt.Errorf("source shard count must be at least 1, got %d", sourceShard)
+	}
+
+	if targetShard < 1 {
+		return fmt.Errorf("target shard count must be at least 1, got %d", targetShard)
+	}
+
+	// Target must be a multiple of source
+	if targetShard%sourceShard != 0 {
+		return fmt.Errorf("target shard count (%d) must be a multiple of source shard count (%d)", targetShard, sourceShard)
+	}
+
+	// Target must be greater than source
+	if targetShard <= sourceShard {
+		return fmt.Errorf("target shard count (%d) must be greater than source shard count (%d)", targetShard, sourceShard)
+	}
+
+	return nil
+}
+
+// ValidateShardsForShrink validates shard counts for shrink operation
+func ValidateShardsForShrink(sourceShard int, targetShard int) error {
+	if sourceShard < 1 {
+		return fmt.Errorf("source shard count must be at least 1, got %d", sourceShard)
+	}
+
+	if targetShard < 1 {
+		return fmt.Errorf("target shard count must be at least 1, got %d", targetShard)
+	}
+
+	// Source must be a multiple of target
+	if sourceShard%targetShard != 0 {
+		return fmt.Errorf("source shard count (%d) must be a multiple of target shard count (%d)", sourceShard, targetShard)
+	}
+
+	// Target must be less than source
+	if targetShard >= sourceShard {
+		return fmt.Errorf("target shard count (%d) must be less than source shard count (%d)", targetShard, sourceShard)
+	}
+
+	return nil
+}
