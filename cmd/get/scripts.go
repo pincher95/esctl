@@ -13,7 +13,7 @@ import (
 var flagScriptsID string
 
 var getScriptsCmd = &cobra.Command{
-	Use:   "scripts [SCRIPT_ID]",
+	Use:   "scripts",
 	Short: "List all stored scripts or get a specific script",
 	Long: utils.Trim(`
 		Lists all stored scripts in Elasticsearch, or gets a specific script by ID.
@@ -24,29 +24,21 @@ var getScriptsCmd = &cobra.Command{
 		# List all stored scripts
 		esctl get scripts
 
-		# Get a specific script by ID (positional argument)
-		esctl get scripts my-script
-
-		# Get a specific script by ID (flag)
+		# Get a specific script by ID
 		esctl get scripts --id my-script
 
 		# List scripts in JSON format
 		esctl get scripts -o json
 
 		# Get specific script in YAML format
-		esctl get scripts my-script -o yaml
+		esctl get scripts --id my-script -o yaml
 	`),
-	Args: cobra.MaximumNArgs(1),
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Determine script ID from positional arg or flag
-		var scriptID string
-		if len(args) > 0 {
-			scriptID = args[0]
-		} else if flagScriptsID != "" {
-			scriptID = flagScriptsID
-		}
+		// Determine script ID from flag
+		scriptID := flagScriptsID
 
 		// If ID provided, get specific script; otherwise list all
 		if scriptID != "" {
@@ -57,7 +49,7 @@ var getScriptsCmd = &cobra.Command{
 }
 
 func init() {
-	getScriptsCmd.Flags().StringVar(&flagScriptsID, "id", "", "Script ID (alternative to positional argument)")
+	getScriptsCmd.Flags().StringVar(&flagScriptsID, "id", "", "Script ID to retrieve")
 }
 
 func handleGetScriptsLogic(ctx context.Context) error {

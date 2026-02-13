@@ -13,7 +13,7 @@ import (
 var flagSearchTemplatesID string
 
 var getSearchTemplatesCmd = &cobra.Command{
-	Use:   "search-templates [ID]",
+	Use:   "search-templates",
 	Short: "List all stored search templates or get a specific search template",
 	Long: utils.Trim(`
 		Lists all stored search templates in Elasticsearch, or gets a specific search template by ID.
@@ -23,40 +23,29 @@ var getSearchTemplatesCmd = &cobra.Command{
 		# List all search templates
 		esctl get search-templates
 
-		# Get a specific search template by ID (positional argument)
-		esctl get search-templates my-template
-
-		# Get a specific search template by ID (flag)
+		# Get a specific search template by ID
 		esctl get search-templates --id my-template
 
 		# List search templates in JSON format
 		esctl get search-templates -o json
 
 		# Get specific search template in YAML format
-		esctl get search-templates my-template -o yaml
+		esctl get search-templates --id my-template -o yaml
 	`),
-	Args: cobra.MaximumNArgs(1),
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Determine template ID from positional arg or flag
-		var id string
-		if len(args) > 0 {
-			id = args[0]
-		} else if flagSearchTemplatesID != "" {
-			id = flagSearchTemplatesID
-		}
-
 		// If ID provided, get specific template; otherwise list all
-		if id != "" {
-			return handleGetSearchTemplateLogic(ctx, id)
+		if flagSearchTemplatesID != "" {
+			return handleGetSearchTemplateLogic(ctx, flagSearchTemplatesID)
 		}
 		return handleGetSearchTemplatesLogic(ctx)
 	},
 }
 
 func init() {
-	getSearchTemplatesCmd.Flags().StringVar(&flagSearchTemplatesID, "id", "", "Search template ID (alternative to positional argument)")
+	getSearchTemplatesCmd.Flags().StringVar(&flagSearchTemplatesID, "id", "", "Search template ID")
 }
 
 func handleGetSearchTemplatesLogic(ctx context.Context) error {

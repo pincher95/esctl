@@ -7,17 +7,14 @@ import (
 )
 
 var getUsersCmd = &cobra.Command{
-	Use:   "users [NAME]",
+	Use:   "users",
 	Short: "Get or list users",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# List all users
 	esctl get users
 
-	# Get a specific user by name (positional argument)
-	esctl get users john_doe
-
-	# Get a specific user by name (flag)
+	# Get a specific user by name
 	esctl get users --name john_doe
 
 	# List users by name substring
@@ -26,17 +23,9 @@ var getUsersCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Determine if we're getting a specific user or listing all
-		var userName string
-		if len(args) > 0 {
-			userName = args[0]
-		} else if flagUsersName != "" {
-			userName = flagUsersName
-		}
-
 		// If a specific user name is provided, get that user
-		if userName != "" {
-			return security.HandleUserGet(ctx, userName)
+		if flagUsersName != "" {
+			return security.HandleUserGet(ctx, flagUsersName)
 		}
 
 		// Otherwise, list all users (with optional filtering)
@@ -47,5 +36,5 @@ var getUsersCmd = &cobra.Command{
 var flagUsersName string
 
 func init() {
-	getUsersCmd.Flags().StringVar(&flagUsersName, "name", "", "User name (for getting specific user) or substring (for filtering list)")
+	getUsersCmd.Flags().StringVar(&flagUsersName, "name", "", "User name to retrieve or substring for filtering")
 }

@@ -7,17 +7,14 @@ import (
 )
 
 var getRolesCmd = &cobra.Command{
-	Use:   "roles [NAME]",
+	Use:   "roles",
 	Short: "Get or list roles",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# List all roles
 	esctl get roles
 
-	# Get a specific role by name (positional argument)
-	esctl get roles read_only
-
-	# Get a specific role by name (flag)
+	# Get a specific role by name
 	esctl get roles --name read_only
 
 	# List roles by name substring
@@ -26,17 +23,9 @@ var getRolesCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Determine if we're getting a specific role or listing all
-		var roleName string
-		if len(args) > 0 {
-			roleName = args[0]
-		} else if flagRolesName != "" {
-			roleName = flagRolesName
-		}
-
 		// If a specific role name is provided, get that role
-		if roleName != "" {
-			return security.HandleRoleGet(ctx, roleName)
+		if flagRolesName != "" {
+			return security.HandleRoleGet(ctx, flagRolesName)
 		}
 
 		// Otherwise, list all roles (with optional filtering)
@@ -47,5 +36,5 @@ var getRolesCmd = &cobra.Command{
 var flagRolesName string
 
 func init() {
-	getRolesCmd.Flags().StringVar(&flagRolesName, "name", "", "Role name (for getting specific role) or substring (for filtering list)")
+	getRolesCmd.Flags().StringVar(&flagRolesName, "name", "", "Role name to retrieve or substring for filtering")
 }

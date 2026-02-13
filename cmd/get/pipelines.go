@@ -12,17 +12,14 @@ import (
 )
 
 var getPipelinesCmd = &cobra.Command{
-	Use:   "pipelines [ID]",
+	Use:   "pipelines",
 	Short: "Get or list ingest pipelines",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	Example: utils.TrimAndIndent(`
 	# List all pipelines
 	esctl get pipelines
 
-	# Get a specific pipeline by ID (positional argument)
-	esctl get pipelines my-pipeline
-
-	# Get a specific pipeline by ID (flag)
+	# Get a specific pipeline by ID
 	esctl get pipelines --id my-pipeline
 
 	# List pipelines by name substring
@@ -31,17 +28,9 @@ var getPipelinesCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Determine if we're getting a specific pipeline or listing all
-		var pipelineID string
-		if len(args) > 0 {
-			pipelineID = args[0]
-		} else if flagPipelinesID != "" {
-			pipelineID = flagPipelinesID
-		}
-
 		// If a specific pipeline ID is provided, get that pipeline
-		if pipelineID != "" {
-			return handleGetSpecificPipeline(ctx, pipelineID)
+		if flagPipelinesID != "" {
+			return handleGetSpecificPipeline(ctx, flagPipelinesID)
 		}
 
 		// Otherwise, list all pipelines
@@ -56,7 +45,7 @@ var (
 
 func init() {
 	getPipelinesCmd.Flags().StringVar(&flagPipelinesName, "name", "", "Filter pipelines by name or substring of pipeline name")
-	getPipelinesCmd.Flags().StringVar(&flagPipelinesID, "id", "", "Pipeline ID (for getting specific pipeline)")
+	getPipelinesCmd.Flags().StringVar(&flagPipelinesID, "id", "", "Get a specific pipeline by ID")
 }
 
 func handleGetSpecificPipeline(ctx context.Context, id string) error {

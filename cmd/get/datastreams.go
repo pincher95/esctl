@@ -14,7 +14,7 @@ import (
 var flagDataStreamsName string
 
 var getDataStreamsCmd = &cobra.Command{
-	Use:   "data-streams [NAME]",
+	Use:   "data-streams",
 	Short: "List data streams or get a specific data stream",
 	Long: utils.Trim(`
 		Lists all data streams in the Elasticsearch cluster, or gets a specific data stream by name.
@@ -24,10 +24,7 @@ var getDataStreamsCmd = &cobra.Command{
 		# List all data streams
 		esctl get data-streams
 
-		# Get a specific data stream by name (positional argument)
-		esctl get data-streams logs-app
-
-		# Get a specific data stream by name (flag)
+		# Get a specific data stream by name
 		esctl get data-streams --name logs-app
 
 		# List data streams matching a pattern
@@ -39,17 +36,12 @@ var getDataStreamsCmd = &cobra.Command{
 		# JSON output
 		esctl get data-streams -o json
 	`),
-	Args: cobra.MaximumNArgs(1),
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		// Determine data stream name from positional arg or flag
-		var name string
-		if len(args) > 0 {
-			name = args[0]
-		} else if flagDataStreamsName != "" {
-			name = flagDataStreamsName
-		}
+		// Get data stream name from flag
+		name := flagDataStreamsName
 
 		// If specific name provided (without wildcards), get specific data stream
 		// Otherwise list data streams (with optional pattern filter)
@@ -73,7 +65,7 @@ var getDataStreamsCmd = &cobra.Command{
 }
 
 func init() {
-	getDataStreamsCmd.Flags().StringVar(&flagDataStreamsName, "name", "", "Data stream name or pattern (alternative to positional argument)")
+	getDataStreamsCmd.Flags().StringVar(&flagDataStreamsName, "name", "", "Data stream name or pattern to retrieve")
 }
 
 func handleDataStreamsLogic(ctx context.Context, name string) error {
