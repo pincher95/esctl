@@ -109,13 +109,13 @@ esctl update index shrink --source my-index --target my-index-shrunk --shards 1
 **Component Templates:**
 ```shell
 # List all component templates
-esctl get template component list
+esctl template component list
 
 # Create a component template from a file
-esctl set template component --name settings-template --file template.json
+esctl template component put --name settings-template --file template.json
 
 # Delete a component template (with dry-run)
-esctl delete template component --name old-template --dry-run
+esctl template component delete --name old-template --dry-run
 ```
 
 **Data Streams:**
@@ -142,7 +142,7 @@ esctl set script --id my-script --lang painless --source "Math.log(_score * 2)"
 esctl set script --id my-script --file script.json
 
 # Get a specific script
-esctl get script --id my-script -o json
+esctl get scripts --id my-script -o json
 ```
 
 **Search Templates:**
@@ -189,10 +189,10 @@ The CLI now standardizes on verb-first commands. Old top-level command trees for
 Common mappings:
 
 - `esctl alias list` → `esctl get aliases`
-- `esctl alias get <alias>` → `esctl get alias --name <alias>`
+- `esctl alias get <alias>` → `esctl get aliases --name <alias>`
 - `esctl alias add/remove/move` → `esctl set/delete/update alias`
 - `esctl pipeline list` → `esctl get pipelines`
-- `esctl pipeline get <id>` → `esctl get pipeline --id <id>`
+- `esctl pipeline get <id>` → `esctl get pipelines --id <id>`
 - `esctl pipeline put <id>` → `esctl set pipeline --id <id>`
 - `esctl pipeline delete <id>` → `esctl delete pipeline --id <id>`
 - `esctl pipeline simulate` → `esctl update pipeline --file=...`
@@ -202,7 +202,8 @@ Common mappings:
 - `esctl snapshot repo get <repo>` → `esctl get snapshot-repos --name <repo>`
 - `esctl snapshot repo create <repo>` → `esctl set snapshot-repo --repository <repo>`
 - `esctl snapshot repo delete <repo>` → `esctl delete snapshot-repo --repository <repo>`
-- `esctl security user/role ...` → `esctl get/set/delete user|role --name <name>`
+- `esctl security user ...` → `esctl get users / set user / delete user --name <name>`
+- `esctl security role ...` → `esctl get roles / set role / delete role --name <name>`
 - `esctl reindex start/status/cancel` → `esctl set/get/delete reindex (--task-id for get/delete)`
 - `esctl list <resource>` → `esctl get <resource>`
 
@@ -397,19 +398,27 @@ esctl get ENTITY [flags]
 - `nodes`: List all nodes in the Elasticsearch cluster.
 - `indices`: List all indices in the Elasticsearch cluster.
 - `shards`: List detailed information about shards, including their sizes and placement.
-- `aliases`: List all aliases in the Elasticsearch cluster.
-- `alias`: Get details of a specific alias.
-- `pipelines`: List ingest pipelines.
-- `pipeline`: Get details of a specific ingest pipeline.
+- `aliases`: List all aliases (use `--name` to get a specific alias).
+- `pipelines`: List ingest pipelines (use `--id` to get a specific pipeline).
+- `scripts`: List stored scripts (use `--id` to get a specific script).
+- `search-templates`: List search templates (use `--id` to get a specific template).
+- `data-streams`: List data streams (use `--name` to filter).
 - `snapshot`: Get snapshot details or list snapshots.
 - `snapshot-status`: Get snapshot status.
 - `snapshot-repos`: List snapshot repositories (use `--name` to filter).
-- `users`: List users.
-- `user`: Get user details.
-- `roles`: List roles.
-- `role`: Get role details.
+- `users`: List users (use `--name` to get a specific user).
+- `roles`: List roles (use `--name` to get a specific role).
 - `reindex`: Get reindex task status.
 - `tasks`: List all tasks in the Elasticsearch cluster.
+- `health`: Cluster health status.
+- `allocation`: Shard allocation information.
+- `fielddata`: Fielddata cache statistics.
+- `plugins`: Installed plugins.
+- `thread-pools`: Thread pool statistics.
+- `hot-threads`: Hot threads analysis.
+- `index-stats`: Index-level statistics.
+- `recovery`: Shard recovery status.
+- `segments`: Index segment information.
 
 #### Flags
 
