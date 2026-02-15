@@ -10,25 +10,21 @@ import (
 
 func TestList(t *testing.T) {
 	mockResponse := `{
-		"script1": {
-			"found": true,
-			"_id": "script1",
-			"script": {
-				"lang": "painless",
-				"source": "Math.log(_score * 2) + params.multiplier"
-			}
-		},
-		"script2": {
-			"found": true,
-			"_id": "script2",
-			"script": {
-				"lang": "mustache",
-				"source": "{\"query\":{\"match\":{\"{{field}}\":\"{{value}}\"}}}"
+		"metadata": {
+			"stored_scripts": {
+				"script1": {
+					"lang": "painless",
+					"source": "Math.log(_score * 2) + params.multiplier"
+				},
+				"script2": {
+					"lang": "mustache",
+					"source": "{\"query\":{\"match\":{\"{{field}}\":\"{{value}}\"}}}"
+				}
 			}
 		}
 	}`
 
-	srv, cli := testutil.NewMockServer(mockResponse, "/_scripts")
+	srv, cli := testutil.NewMockServer(mockResponse, "/_cluster/state/metadata")
 	defer srv.Close()
 
 	shared.SetClient(cli)

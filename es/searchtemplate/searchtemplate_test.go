@@ -10,34 +10,25 @@ import (
 
 func TestList(t *testing.T) {
 	mockResponse := `{
-		"template1": {
-			"found": true,
-			"_id": "template1",
-			"template": {
-				"query": {
-					"match": {
-						"title": "{{query_string}}"
-					}
-				}
-			}
-		},
-		"template2": {
-			"found": true,
-			"_id": "template2",
-			"template": {
-				"query": {
-					"range": {
-						"price": {
-							"gte": "{{min_price}}",
-							"lte": "{{max_price}}"
-						}
-					}
+		"metadata": {
+			"stored_scripts": {
+				"template1": {
+					"lang": "mustache",
+					"source": "{\"query\":{\"match\":{\"title\":\"{{query_string}}\"}}}"
+				},
+				"template2": {
+					"lang": "mustache",
+					"source": "{\"query\":{\"range\":{\"price\":{\"gte\":\"{{min_price}}\",\"lte\":\"{{max_price}}\"}}}}"
+				},
+				"painless_script": {
+					"lang": "painless",
+					"source": "Math.log(_score)"
 				}
 			}
 		}
 	}`
 
-	srv, cli := testutil.NewMockServer(mockResponse, "/_scripts")
+	srv, cli := testutil.NewMockServer(mockResponse, "/_cluster/state/metadata")
 	defer srv.Close()
 
 	shared.SetClient(cli)
@@ -47,6 +38,7 @@ func TestList(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
+	// Should only include mustache templates, not the painless script
 	if len(templates) != 2 {
 		t.Fatalf("expected 2 templates, got %d", len(templates))
 	}
