@@ -10,6 +10,7 @@ import (
 
 	"github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -70,6 +71,10 @@ func handleAllocationLogic(ctx context.Context, client cat.Cat, conf config.Conf
 	allocations, err := client.CatAllocation(ctx, "", flagNodeID, flagBytes)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve allocation: %w", err)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(allocations)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "shards", allocationColumns)

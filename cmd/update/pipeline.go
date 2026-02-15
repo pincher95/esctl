@@ -7,9 +7,8 @@ import (
 )
 
 var (
-	updatePipelineFile    string
-	updatePipelineID      string
-	updatePipelineVerbose bool
+	updatePipelineFile string
+	updatePipelineID   string
 )
 
 var updatePipelineCmd = &cobra.Command{
@@ -23,7 +22,6 @@ var updatePipelineCmd = &cobra.Command{
 	esctl update pipeline --file=pipeline-with-docs.json
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_ = updatePipelineVerbose
 		return pipeline.HandleSimulate(cmd.Context(), updatePipelineFile, updatePipelineID)
 	},
 }
@@ -31,6 +29,5 @@ var updatePipelineCmd = &cobra.Command{
 func init() {
 	updatePipelineCmd.Flags().StringVar(&updatePipelineFile, "file", "", "JSON file containing simulation request")
 	updatePipelineCmd.Flags().StringVar(&updatePipelineID, "pipeline", "", "Pipeline ID to simulate (optional)")
-	updatePipelineCmd.Flags().BoolVar(&updatePipelineVerbose, "verbose", false, "Show verbose output")
 	updatePipelineCmd.MarkFlagRequired("file")
 }

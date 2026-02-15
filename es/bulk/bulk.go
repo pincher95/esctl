@@ -16,14 +16,14 @@ type BulkResponse struct {
 }
 
 type BulkResult struct {
-	Index   string                 `json:"_index"`
-	Type    string                 `json:"_type"`
-	ID      string                 `json:"_id"`
-	Version int                    `json:"_version"`
-	Result  string                 `json:"result"`
-	Status  int                    `json:"status"`
-	Error   *BulkError             `json:"error,omitempty"`
-	Shards  map[string]interface{} `json:"_shards,omitempty"`
+	Index   string         `json:"_index"`
+	Type    string         `json:"_type"`
+	ID      string         `json:"_id"`
+	Version int            `json:"_version"`
+	Result  string         `json:"result"`
+	Status  int            `json:"status"`
+	Error   *BulkError     `json:"error,omitempty"`
+	Shards  map[string]any `json:"_shards,omitempty"`
 }
 
 type BulkError struct {

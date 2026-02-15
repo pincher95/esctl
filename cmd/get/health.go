@@ -10,6 +10,7 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -49,6 +50,11 @@ func handleHealth(ctx context.Context, client cat.Cat, conf config.Config) error
 	if err != nil {
 		return err
 	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(h)
+	}
+
 	// build dynamic role columns
 	roleCounts := countRoles(ctx, client)
 	// get sorted unique role keys

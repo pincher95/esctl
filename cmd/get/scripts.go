@@ -2,11 +2,13 @@ package get
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/script"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -76,7 +78,22 @@ func handleGetScriptsLogic(ctx context.Context) error {
 		})
 	}
 
-	return output.Render(items)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(items)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "ID", Type: output.Text},
+		{Header: "LANG", Type: output.Text},
+		{Header: "SOURCE", Type: output.Text},
+	}
+
+	data := make([][]string, 0, len(items))
+	for _, item := range items {
+		data = append(data, []string{item.ID, item.Lang, item.Source})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }
 
 func handleGetScriptLogic(ctx context.Context, id string) error {
@@ -100,5 +117,24 @@ func handleGetScriptLogic(ctx context.Context, id string) error {
 		Params: scriptResp.Script.Params,
 	}
 
-	return output.Render(display)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(display)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "setting", Type: output.Text},
+		{Header: "value", Type: output.Text},
+	}
+
+	data := [][]string{
+		{"id", display.ID},
+		{"lang", display.Lang},
+		{"source", display.Source},
+	}
+	if display.Params != nil {
+		paramsJSON, _ := json.Marshal(display.Params)
+		data = append(data, []string{"params", string(paramsJSON)})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }

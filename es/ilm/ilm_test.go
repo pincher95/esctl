@@ -10,37 +10,37 @@ import (
 )
 
 func TestList(t *testing.T) {
-	mockResp := map[string]interface{}{
-		"hot_delete_policy": map[string]interface{}{
+	mockResp := map[string]any{
+		"hot_delete_policy": map[string]any{
 			"version":       1,
 			"modified_date": "2024-01-01T00:00:00.000Z",
-			"policy": map[string]interface{}{
-				"phases": map[string]interface{}{
-					"hot": map[string]interface{}{
-						"actions": map[string]interface{}{
-							"rollover": map[string]interface{}{
+			"policy": map[string]any{
+				"phases": map[string]any{
+					"hot": map[string]any{
+						"actions": map[string]any{
+							"rollover": map[string]any{
 								"max_age":  "7d",
 								"max_size": "50gb",
 							},
 						},
 					},
-					"delete": map[string]interface{}{
+					"delete": map[string]any{
 						"min_age": "30d",
-						"actions": map[string]interface{}{
-							"delete": map[string]interface{}{},
+						"actions": map[string]any{
+							"delete": map[string]any{},
 						},
 					},
 				},
 			},
 		},
-		"cold_policy": map[string]interface{}{
+		"cold_policy": map[string]any{
 			"version": 2,
-			"policy": map[string]interface{}{
-				"phases": map[string]interface{}{
-					"cold": map[string]interface{}{
+			"policy": map[string]any{
+				"phases": map[string]any{
+					"cold": map[string]any{
 						"min_age": "14d",
-						"actions": map[string]interface{}{
-							"freeze": map[string]interface{}{},
+						"actions": map[string]any{
+							"freeze": map[string]any{},
 						},
 					},
 				},
@@ -77,15 +77,15 @@ func TestList(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	mockResp := map[string]interface{}{
-		"hot_delete_policy": map[string]interface{}{
+	mockResp := map[string]any{
+		"hot_delete_policy": map[string]any{
 			"version":       1,
 			"modified_date": "2024-01-01T00:00:00.000Z",
-			"policy": map[string]interface{}{
-				"phases": map[string]interface{}{
-					"hot": map[string]interface{}{
-						"actions": map[string]interface{}{
-							"rollover": map[string]interface{}{
+			"policy": map[string]any{
+				"phases": map[string]any{
+					"hot": map[string]any{
+						"actions": map[string]any{
+							"rollover": map[string]any{
 								"max_age": "7d",
 							},
 						},
@@ -138,7 +138,7 @@ func TestGetNotFound(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 
@@ -151,8 +151,8 @@ func TestPut(t *testing.T) {
 		Policy: PolicyDefinition{
 			Phases: map[string]Phase{
 				"hot": {
-					Actions: map[string]interface{}{
-						"rollover": map[string]interface{}{
+					Actions: map[string]any{
+						"rollover": map[string]any{
 							"max_age": "7d",
 						},
 					},
@@ -168,7 +168,7 @@ func TestPut(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 
@@ -225,9 +225,9 @@ func TestNotExists(t *testing.T) {
 }
 
 func TestExplain(t *testing.T) {
-	mockResp := map[string]interface{}{
-		"indices": map[string]interface{}{
-			"test-index-000001": map[string]interface{}{
+	mockResp := map[string]any{
+		"indices": map[string]any{
+			"test-index-000001": map[string]any{
 				"index":   "test-index-000001",
 				"managed": true,
 				"policy":  "hot_delete_policy",
@@ -272,7 +272,7 @@ func TestExplain(t *testing.T) {
 }
 
 func TestRetry(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 
@@ -288,7 +288,7 @@ func TestRetry(t *testing.T) {
 }
 
 func TestMoveToStep(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 

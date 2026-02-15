@@ -11,11 +11,11 @@ import (
 
 // Policy represents an ILM policy
 type Policy struct {
-	Name     string                 `json:"-"`
-	Version  int                    `json:"version,omitempty"`
-	Modified string                 `json:"modified_date,omitempty"`
-	Policy   PolicyDefinition       `json:"policy"`
-	Meta     map[string]interface{} `json:"_meta,omitempty"`
+	Name     string           `json:"-"`
+	Version  int              `json:"version,omitempty"`
+	Modified string           `json:"modified_date,omitempty"`
+	Policy   PolicyDefinition `json:"policy"`
+	Meta     map[string]any   `json:"_meta,omitempty"`
 }
 
 // PolicyDefinition contains the actual ILM policy configuration
@@ -25,8 +25,8 @@ type PolicyDefinition struct {
 
 // Phase represents a phase in the ILM policy
 type Phase struct {
-	MinAge  string                 `json:"min_age,omitempty"`
-	Actions map[string]interface{} `json:"actions,omitempty"`
+	MinAge  string         `json:"min_age,omitempty"`
+	Actions map[string]any `json:"actions,omitempty"`
 }
 
 // ListResponse represents the response from listing ILM policies
@@ -39,19 +39,19 @@ type ExplainResponse struct {
 
 // IndexExplain contains ILM explain information for a single index
 type IndexExplain struct {
-	Index           string                 `json:"index"`
-	Managed         bool                   `json:"managed"`
-	Policy          string                 `json:"policy,omitempty"`
-	Phase           string                 `json:"phase,omitempty"`
-	Action          string                 `json:"action,omitempty"`
-	Step            string                 `json:"step,omitempty"`
-	FailedStep      string                 `json:"failed_step,omitempty"`
-	StepTime        string                 `json:"step_time_millis,omitempty"`
-	PhaseTime       string                 `json:"phase_time_millis,omitempty"`
-	ActionTime      string                 `json:"action_time_millis,omitempty"`
-	Age             string                 `json:"age,omitempty"`
-	FailedStepRetry int                    `json:"failed_step_retry_count,omitempty"`
-	PhaseExecution  map[string]interface{} `json:"phase_execution,omitempty"`
+	Index           string         `json:"index"`
+	Managed         bool           `json:"managed"`
+	Policy          string         `json:"policy,omitempty"`
+	Phase           string         `json:"phase,omitempty"`
+	Action          string         `json:"action,omitempty"`
+	Step            string         `json:"step,omitempty"`
+	FailedStep      string         `json:"failed_step,omitempty"`
+	StepTime        string         `json:"step_time_millis,omitempty"`
+	PhaseTime       string         `json:"phase_time_millis,omitempty"`
+	ActionTime      string         `json:"action_time_millis,omitempty"`
+	Age             string         `json:"age,omitempty"`
+	FailedStepRetry int            `json:"failed_step_retry_count,omitempty"`
+	PhaseExecution  map[string]any `json:"phase_execution,omitempty"`
 }
 
 // List retrieves all ILM policies
@@ -130,7 +130,7 @@ func Put(ctx context.Context, name string, policy Policy) error {
 	endpoint := fmt.Sprintf("_ilm/policy/%s", name)
 
 	// Only send the policy definition, not the wrapper
-	body := map[string]interface{}{
+	body := map[string]any{
 		"policy": policy.Policy,
 	}
 
@@ -260,7 +260,7 @@ func MoveToStep(ctx context.Context, index string, currentStep, nextStep map[str
 
 	endpoint := fmt.Sprintf("_ilm/move/%s", index)
 
-	body := map[string]interface{}{
+	body := map[string]any{
 		"current_step": currentStep,
 		"next_step":    nextStep,
 	}

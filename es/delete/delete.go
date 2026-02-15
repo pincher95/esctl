@@ -10,20 +10,20 @@ import (
 )
 
 type DeleteByQueryRequest struct {
-	Query               map[string]interface{}   `json:"query"`
-	MaxDocs             *int                     `json:"max_docs,omitempty"`
-	Conflicts           string                   `json:"conflicts,omitempty"`
-	Refresh             bool                     `json:"refresh,omitempty"`
-	Timeout             string                   `json:"timeout,omitempty"`
-	WaitForActiveShards string                   `json:"wait_for_active_shards,omitempty"`
-	WaitForCompletion   bool                     `json:"wait_for_completion,omitempty"`
-	RequestsPerSecond   *float64                 `json:"requests_per_second,omitempty"`
-	Scroll              string                   `json:"scroll,omitempty"`
-	ScrollSize          *int                     `json:"scroll_size,omitempty"`
-	Sort                []map[string]interface{} `json:"sort,omitempty"`
-	SearchType          string                   `json:"search_type,omitempty"`
-	SearchTimeout       string                   `json:"search_timeout,omitempty"`
-	Slices              interface{}              `json:"slices,omitempty"`
+	Query               map[string]any   `json:"query"`
+	MaxDocs             *int             `json:"max_docs,omitempty"`
+	Conflicts           string           `json:"conflicts,omitempty"`
+	Refresh             bool             `json:"refresh,omitempty"`
+	Timeout             string           `json:"timeout,omitempty"`
+	WaitForActiveShards string           `json:"wait_for_active_shards,omitempty"`
+	WaitForCompletion   bool             `json:"wait_for_completion,omitempty"`
+	RequestsPerSecond   *float64         `json:"requests_per_second,omitempty"`
+	Scroll              string           `json:"scroll,omitempty"`
+	ScrollSize          *int             `json:"scroll_size,omitempty"`
+	Sort                []map[string]any `json:"sort,omitempty"`
+	SearchType          string           `json:"search_type,omitempty"`
+	SearchTimeout       string           `json:"search_timeout,omitempty"`
+	Slices              any              `json:"slices,omitempty"`
 }
 
 type DeleteByQueryResponse struct {
@@ -38,7 +38,7 @@ type DeleteByQueryResponse struct {
 	ThrottledMillis      int           `json:"throttled_millis"`
 	RequestsPerSecond    float64       `json:"requests_per_second"`
 	ThrottledUntilMillis int           `json:"throttled_until_millis"`
-	Failures             []interface{} `json:"failures"`
+	Failures             []any         `json:"failures"`
 	Task                 string        `json:"task,omitempty"`
 }
 

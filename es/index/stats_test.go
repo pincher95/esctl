@@ -98,9 +98,9 @@ func TestGetRecovery(t *testing.T) {
 		"test-index": IndexRecovery{
 			Shards: []ShardRecovery{
 				{
-					ID:    0,
-					Type:  "PEER",
-					Stage: "DONE",
+					ID:      0,
+					Type:    "PEER",
+					Stage:   "DONE",
 					Primary: true,
 				},
 			},

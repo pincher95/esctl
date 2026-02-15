@@ -2,11 +2,13 @@ package get
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/searchtemplate"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -61,19 +63,38 @@ func handleGetSearchTemplatesLogic(ctx context.Context) error {
 
 	// Convert map to slice for consistent output
 	type templateItem struct {
-		ID       string         `json:"id" yaml:"id"`
-		Template map[string]any `json:"template" yaml:"template"`
+		ID     string `json:"id" yaml:"id"`
+		Lang   string `json:"lang" yaml:"lang"`
+		Source string `json:"source" yaml:"source"`
 	}
 
 	var items []templateItem
 	for id, tmpl := range templates {
+		lang, _ := tmpl.Template["lang"].(string)
+		source, _ := tmpl.Template["source"].(string)
 		items = append(items, templateItem{
-			ID:       id,
-			Template: tmpl.Template,
+			ID:     id,
+			Lang:   lang,
+			Source: source,
 		})
 	}
 
-	return output.Render(items)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(items)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "ID", Type: output.Text},
+		{Header: "LANG", Type: output.Text},
+		{Header: "SOURCE", Type: output.Text},
+	}
+
+	data := make([][]string, 0, len(items))
+	for _, item := range items {
+		data = append(data, []string{item.ID, item.Lang, item.Source})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }
 
 func handleGetSearchTemplateLogic(ctx context.Context, id string) error {
@@ -93,5 +114,22 @@ func handleGetSearchTemplateLogic(ctx context.Context, id string) error {
 		Template: templateResp.Template,
 	}
 
-	return output.Render(display)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(display)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "setting", Type: output.Text},
+		{Header: "value", Type: output.Text},
+	}
+
+	data := [][]string{
+		{"id", display.ID},
+	}
+	for k, v := range display.Template {
+		valJSON, _ := json.Marshal(v)
+		data = append(data, []string{k, string(valJSON)})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }

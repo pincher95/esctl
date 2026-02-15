@@ -11,6 +11,7 @@ import (
 	"github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -90,6 +91,10 @@ func handleShardLogic(ctx context.Context, client cat.Cat, conf config.Config) e
 	shards, err := client.CatShards(ctx, "", flagIndex, "", "")
 	if err != nil {
 		return fmt.Errorf("failed to retrieve shards: %w", err)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(shards)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "shard", shardColumns)

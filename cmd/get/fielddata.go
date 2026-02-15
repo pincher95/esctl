@@ -8,6 +8,7 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -65,6 +66,10 @@ func handleFielddataLogic(ctx context.Context, client cat.Cat, conf config.Confi
 	fielddata, err := client.CatFielddata(ctx, "", flagFields, flagBytes)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve fielddata: %w", err)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(fielddata)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "id", fielddataColumns)

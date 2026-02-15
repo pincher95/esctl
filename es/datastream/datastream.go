@@ -151,17 +151,17 @@ func Rollover(ctx context.Context, name string) (*RolloverResponse, error) {
 
 // StatsResponse represents the response from data stream stats
 type StatsResponse struct {
-	Shards      map[string]interface{} `json:"_shards"`
-	DataStreams []DataStreamStats      `json:"data_streams"`
+	Shards      map[string]any    `json:"_shards"`
+	DataStreams []DataStreamStats `json:"data_streams"`
 }
 
 // DataStreamStats contains statistics for a data stream
 type DataStreamStats struct {
-	DataStream     string `json:"data_stream"`
-	BackingIndices int    `json:"backing_indices"`
-	StoreSize      string `json:"store_size,omitempty"`
-	StoreSizeBytes int64  `json:"store_size_bytes"`
-	MaximumTimestamp int64 `json:"maximum_timestamp"`
+	DataStream       string `json:"data_stream"`
+	BackingIndices   int    `json:"backing_indices"`
+	StoreSize        string `json:"store_size,omitempty"`
+	StoreSizeBytes   int64  `json:"store_size_bytes"`
+	MaximumTimestamp int64  `json:"maximum_timestamp"`
 }
 
 // GetStats retrieves statistics for one or more data streams

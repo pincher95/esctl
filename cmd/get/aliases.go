@@ -10,6 +10,7 @@ import (
 	"github.com/pincher95/esctl/es/index"
 	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -87,6 +88,10 @@ func handleAliasLogic(ctx context.Context, client index.Index, conf config.Confi
 		return fmt.Errorf("failed to retrieve aliases: %w", err)
 	}
 
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(aliases)
+	}
+
 	columnDefs, err := getColumnDefs(conf, "alias", aliasColumns)
 	if err != nil {
 		return fmt.Errorf("failed to get column definitions: %w", err)
@@ -151,7 +156,34 @@ func handleGetSpecificAlias(ctx context.Context, aliasName string) error {
 		return fmt.Errorf("alias not found: %s", aliasName)
 	}
 
-	return output.Render(aliases)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(aliases)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "INDEX", Type: output.Text},
+		{Header: "ALIAS", Type: output.Text},
+		{Header: "IS_WRITE_INDEX", Type: output.Text},
+		{Header: "ROUTING", Type: output.Text},
+	}
+
+	var data [][]string
+	for indexName, info := range aliases {
+		for alias, details := range info.Aliases {
+			writeIndex := "false"
+			if details.IsWriteIndex {
+				writeIndex = "true"
+			}
+			data = append(data, []string{
+				indexName,
+				alias,
+				writeIndex,
+				details.Routing,
+			})
+		}
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }
 
 var flagAliasName string

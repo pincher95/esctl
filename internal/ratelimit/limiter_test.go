@@ -248,7 +248,7 @@ func TestAdaptiveLimiterRateBounds(t *testing.T) {
 	defer al.Stop()
 
 	// Try to increase rate beyond max
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		al.OnSuccess()
 	}
 
@@ -258,7 +258,7 @@ func TestAdaptiveLimiterRateBounds(t *testing.T) {
 	}
 
 	// Try to decrease rate below min
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		al.OnFailure()
 	}
 
@@ -287,7 +287,7 @@ func TestLimiterMultipleWaits(t *testing.T) {
 	ctx := context.Background()
 
 	// Should be able to wait multiple times
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		err := limiter.Wait(ctx)
 		if err != nil {
 			t.Fatalf("Wait() iteration %d error = %v", i, err)

@@ -7,6 +7,7 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/node"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +49,7 @@ func handleGetThreadPoolsLogic(ctx context.Context, nodeID string) error {
 		return fmt.Errorf("failed to get thread pools: %w", err)
 	}
 
-	// Convert to a flat structure for table output
+	// Convert to a flat structure for output
 	type threadPoolRow struct {
 		Node      string `json:"node" yaml:"node"`
 		Pool      string `json:"pool" yaml:"pool"`
@@ -86,5 +87,34 @@ func handleGetThreadPoolsLogic(ctx context.Context, nodeID string) error {
 		return nil
 	}
 
-	return output.Render(rows)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(rows)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "NODE", Type: output.Text},
+		{Header: "POOL", Type: output.Text},
+		{Header: "THREADS", Type: output.Number},
+		{Header: "QUEUE", Type: output.Number},
+		{Header: "ACTIVE", Type: output.Number},
+		{Header: "REJECTED", Type: output.Number},
+		{Header: "LARGEST", Type: output.Number},
+		{Header: "COMPLETED", Type: output.Number},
+	}
+
+	data := make([][]string, 0, len(rows))
+	for _, r := range rows {
+		data = append(data, []string{
+			r.Node,
+			r.Pool,
+			fmt.Sprintf("%d", r.Threads),
+			fmt.Sprintf("%d", r.Queue),
+			fmt.Sprintf("%d", r.Active),
+			fmt.Sprintf("%d", r.Rejected),
+			fmt.Sprintf("%d", r.Largest),
+			fmt.Sprintf("%d", r.Completed),
+		})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }

@@ -10,17 +10,17 @@ import (
 
 // ComponentTemplate represents a component template
 type ComponentTemplate struct {
-	Name     string                 `json:"-"`
-	Version  int                    `json:"version,omitempty"`
-	Template ComponentDefinition    `json:"template"`
-	Meta     map[string]interface{} `json:"_meta,omitempty"`
+	Name     string              `json:"-"`
+	Version  int                 `json:"version,omitempty"`
+	Template ComponentDefinition `json:"template"`
+	Meta     map[string]any      `json:"_meta,omitempty"`
 }
 
 // ComponentDefinition contains component template settings, mappings, and aliases
 type ComponentDefinition struct {
-	Settings map[string]interface{} `json:"settings,omitempty"`
-	Mappings map[string]interface{} `json:"mappings,omitempty"`
-	Aliases  map[string]interface{} `json:"aliases,omitempty"`
+	Settings map[string]any `json:"settings,omitempty"`
+	Mappings map[string]any `json:"mappings,omitempty"`
+	Aliases  map[string]any `json:"aliases,omitempty"`
 }
 
 // ComponentListResponse represents the response from listing component templates
@@ -28,7 +28,7 @@ type ComponentListResponse map[string]ComponentTemplate
 
 // ListComponents retrieves all component templates
 func ListComponents(ctx context.Context) (ComponentListResponse, error) {
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := shared.Client.R().
 		SetContext(ctx).
@@ -46,11 +46,11 @@ func ListComponents(ctx context.Context) (ComponentListResponse, error) {
 
 	// Parse the response
 	templates := make(ComponentListResponse)
-	if componentTemplates, ok := result["component_templates"].([]interface{}); ok {
+	if componentTemplates, ok := result["component_templates"].([]any); ok {
 		for _, item := range componentTemplates {
-			if itemMap, ok := item.(map[string]interface{}); ok {
+			if itemMap, ok := item.(map[string]any); ok {
 				if name, ok := itemMap["name"].(string); ok {
-					if tmplData, ok := itemMap["component_template"].(map[string]interface{}); ok {
+					if tmplData, ok := itemMap["component_template"].(map[string]any); ok {
 						tmplBytes, _ := json.Marshal(tmplData)
 						var tmpl ComponentTemplate
 						if err := json.Unmarshal(tmplBytes, &tmpl); err == nil {
@@ -68,7 +68,7 @@ func ListComponents(ctx context.Context) (ComponentListResponse, error) {
 
 // GetComponent retrieves a specific component template
 func GetComponent(ctx context.Context, name string) (*ComponentTemplate, error) {
-	var result map[string]interface{}
+	var result map[string]any
 
 	endpoint := fmt.Sprintf("_component_template/%s", name)
 	resp, err := shared.Client.R().
@@ -90,9 +90,9 @@ func GetComponent(ctx context.Context, name string) (*ComponentTemplate, error) 
 	}
 
 	// Parse the response
-	if componentTemplates, ok := result["component_templates"].([]interface{}); ok && len(componentTemplates) > 0 {
-		if itemMap, ok := componentTemplates[0].(map[string]interface{}); ok {
-			if tmplData, ok := itemMap["component_template"].(map[string]interface{}); ok {
+	if componentTemplates, ok := result["component_templates"].([]any); ok && len(componentTemplates) > 0 {
+		if itemMap, ok := componentTemplates[0].(map[string]any); ok {
+			if tmplData, ok := itemMap["component_template"].(map[string]any); ok {
 				tmplBytes, _ := json.Marshal(tmplData)
 				var tmpl ComponentTemplate
 				if err := json.Unmarshal(tmplBytes, &tmpl); err == nil {

@@ -285,10 +285,10 @@ func ValidateScriptLanguage(lang string) error {
 
 	// Valid script languages in Elasticsearch/OpenSearch
 	validLangs := []string{
-		"painless",     // Default language
-		"mustache",     // Template language
-		"expression",   // Simple expressions
-		"java",         // Java language (if enabled)
+		"painless",   // Default language
+		"mustache",   // Template language
+		"expression", // Simple expressions
+		"java",       // Java language (if enabled)
 	}
 
 	for _, valid := range validLangs {

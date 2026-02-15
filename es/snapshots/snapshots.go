@@ -9,30 +9,30 @@ import (
 )
 
 type Repository struct {
-	Type     string                 `json:"type"`
-	Settings map[string]interface{} `json:"settings"`
+	Type     string         `json:"type"`
+	Settings map[string]any `json:"settings"`
 }
 
 type RepositoryResponse map[string]Repository
 
 type SnapshotInfo struct {
-	Snapshot           string                 `json:"snapshot"`
-	UUID               string                 `json:"uuid"`
-	Repository         string                 `json:"repository"`
-	VersionID          int                    `json:"version_id"`
-	Version            string                 `json:"version"`
-	Indices            []string               `json:"indices"`
-	DataStreams        []string               `json:"data_streams"`
-	IncludeGlobalState bool                   `json:"include_global_state"`
-	State              string                 `json:"state"`
-	StartTime          string                 `json:"start_time"`
-	StartTimeInMillis  int64                  `json:"start_time_in_millis"`
-	EndTime            string                 `json:"end_time"`
-	EndTimeInMillis    int64                  `json:"end_time_in_millis"`
-	DurationInMillis   int64                  `json:"duration_in_millis"`
-	Failures           []interface{}          `json:"failures"`
-	Shards             SnapshotShards         `json:"shards"`
-	Metadata           map[string]interface{} `json:"metadata"`
+	Snapshot           string         `json:"snapshot"`
+	UUID               string         `json:"uuid"`
+	Repository         string         `json:"repository"`
+	VersionID          int            `json:"version_id"`
+	Version            string         `json:"version"`
+	Indices            []string       `json:"indices"`
+	DataStreams        []string       `json:"data_streams"`
+	IncludeGlobalState bool           `json:"include_global_state"`
+	State              string         `json:"state"`
+	StartTime          string         `json:"start_time"`
+	StartTimeInMillis  int64          `json:"start_time_in_millis"`
+	EndTime            string         `json:"end_time"`
+	EndTimeInMillis    int64          `json:"end_time_in_millis"`
+	DurationInMillis   int64          `json:"duration_in_millis"`
+	Failures           []any          `json:"failures"`
+	Shards             SnapshotShards `json:"shards"`
+	Metadata           map[string]any `json:"metadata"`
 }
 
 type SnapshotShards struct {
@@ -83,22 +83,22 @@ type SnapshotShard struct {
 }
 
 type CreateSnapshotRequest struct {
-	Indices            string                 `json:"indices,omitempty"`
-	IgnoreUnavailable  bool                   `json:"ignore_unavailable,omitempty"`
-	IncludeGlobalState *bool                  `json:"include_global_state,omitempty"`
-	Partial            bool                   `json:"partial,omitempty"`
-	Metadata           map[string]interface{} `json:"metadata,omitempty"`
+	Indices            string         `json:"indices,omitempty"`
+	IgnoreUnavailable  bool           `json:"ignore_unavailable,omitempty"`
+	IncludeGlobalState *bool          `json:"include_global_state,omitempty"`
+	Partial            bool           `json:"partial,omitempty"`
+	Metadata           map[string]any `json:"metadata,omitempty"`
 }
 
 type RestoreSnapshotRequest struct {
-	Indices             string                 `json:"indices,omitempty"`
-	IgnoreUnavailable   bool                   `json:"ignore_unavailable,omitempty"`
-	IncludeGlobalState  bool                   `json:"include_global_state,omitempty"`
-	RenamePattern       string                 `json:"rename_pattern,omitempty"`
-	RenameReplacement   string                 `json:"rename_replacement,omitempty"`
-	IncludeAliases      bool                   `json:"include_aliases,omitempty"`
-	IndexSettings       map[string]interface{} `json:"index_settings,omitempty"`
-	IgnoreIndexSettings []string               `json:"ignore_index_settings,omitempty"`
+	Indices             string         `json:"indices,omitempty"`
+	IgnoreUnavailable   bool           `json:"ignore_unavailable,omitempty"`
+	IncludeGlobalState  bool           `json:"include_global_state,omitempty"`
+	RenamePattern       string         `json:"rename_pattern,omitempty"`
+	RenameReplacement   string         `json:"rename_replacement,omitempty"`
+	IncludeAliases      bool           `json:"include_aliases,omitempty"`
+	IndexSettings       map[string]any `json:"index_settings,omitempty"`
+	IgnoreIndexSettings []string       `json:"ignore_index_settings,omitempty"`
 }
 
 // ListRepositories gets all snapshot repositories
@@ -142,7 +142,7 @@ func GetRepository(ctx context.Context, repository string) (RepositoryResponse, 
 }
 
 // CreateRepository creates a new snapshot repository
-func CreateRepository(ctx context.Context, repository string, repoType string, settings map[string]interface{}) error {
+func CreateRepository(ctx context.Context, repository string, repoType string, settings map[string]any) error {
 	body := Repository{
 		Type:     repoType,
 		Settings: settings,

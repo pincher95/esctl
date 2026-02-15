@@ -23,18 +23,21 @@ type ScriptResponse struct {
 	Script Script `json:"script"`
 }
 
-// ListResponse contains all stored scripts
-type ListResponse struct {
-	Scripts map[string]ScriptResponse `json:"scripts"`
+// clusterStateResponse represents the cluster state metadata response for stored scripts
+type clusterStateResponse struct {
+	Metadata struct {
+		StoredScripts map[string]Script `json:"stored_scripts"`
+	} `json:"metadata"`
 }
 
-// List retrieves all stored scripts
+// List retrieves all stored scripts via the cluster state API
 func List(ctx context.Context) (map[string]ScriptResponse, error) {
+	var result clusterStateResponse
 	resp, err := shared.Client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
-		SetResult(&map[string]ScriptResponse{}).
-		Get("/_scripts")
+		SetResult(&result).
+		Get("/_cluster/state/metadata?filter_path=metadata.stored_scripts")
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to list scripts: %w", err)
@@ -44,8 +47,16 @@ func List(ctx context.Context) (map[string]ScriptResponse, error) {
 		return nil, fmt.Errorf("error listing scripts: %s", resp.Status())
 	}
 
-	result := resp.Result().(*map[string]ScriptResponse)
-	return *result, nil
+	scripts := make(map[string]ScriptResponse, len(result.Metadata.StoredScripts))
+	for id, s := range result.Metadata.StoredScripts {
+		scripts[id] = ScriptResponse{
+			Found:  true,
+			ID:     id,
+			Script: s,
+		}
+	}
+
+	return scripts, nil
 }
 
 // Get retrieves a specific stored script by ID

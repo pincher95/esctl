@@ -119,7 +119,7 @@ func handleSetReindexStart(ctx context.Context) error {
 		}
 	}
 
-	var slices interface{}
+	var slices any
 	if setReindexSlices != "" {
 		if slicesInt, err := strconv.Atoi(setReindexSlices); err == nil {
 			if slicesInt <= 0 {

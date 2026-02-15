@@ -115,7 +115,7 @@ func TestGetNotFound(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 	respJSON, _ := json.Marshal(mockResp)

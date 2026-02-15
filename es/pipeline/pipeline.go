@@ -8,11 +8,11 @@ import (
 )
 
 type Pipeline struct {
-	Description string                 `json:"description,omitempty"`
-	Processors  []map[string]any       `json:"processors"`
-	OnFailure   []map[string]any       `json:"on_failure,omitempty"`
-	Version     int                    `json:"version,omitempty"`
-	Meta        map[string]interface{} `json:"_meta,omitempty"`
+	Description string           `json:"description,omitempty"`
+	Processors  []map[string]any `json:"processors"`
+	OnFailure   []map[string]any `json:"on_failure,omitempty"`
+	Version     int              `json:"version,omitempty"`
+	Meta        map[string]any   `json:"_meta,omitempty"`
 }
 
 type PipelineResponse map[string]Pipeline

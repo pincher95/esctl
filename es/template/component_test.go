@@ -10,14 +10,14 @@ import (
 )
 
 func TestListComponents(t *testing.T) {
-	mockResp := map[string]interface{}{
-		"component_templates": []interface{}{
-			map[string]interface{}{
+	mockResp := map[string]any{
+		"component_templates": []any{
+			map[string]any{
 				"name": "test-component",
-				"component_template": map[string]interface{}{
+				"component_template": map[string]any{
 					"version": 1,
-					"template": map[string]interface{}{
-						"settings": map[string]interface{}{
+					"template": map[string]any{
+						"settings": map[string]any{
 							"number_of_shards": 1,
 						},
 					},
@@ -43,19 +43,19 @@ func TestListComponents(t *testing.T) {
 }
 
 func TestGetComponent(t *testing.T) {
-	mockResp := map[string]interface{}{
-		"component_templates": []interface{}{
-			map[string]interface{}{
+	mockResp := map[string]any{
+		"component_templates": []any{
+			map[string]any{
 				"name": "test-component",
-				"component_template": map[string]interface{}{
+				"component_template": map[string]any{
 					"version": 1,
-					"template": map[string]interface{}{
-						"settings": map[string]interface{}{
+					"template": map[string]any{
+						"settings": map[string]any{
 							"number_of_shards": 1,
 						},
-						"mappings": map[string]interface{}{
-							"properties": map[string]interface{}{
-								"field1": map[string]interface{}{
+						"mappings": map[string]any{
+							"properties": map[string]any{
+								"field1": map[string]any{
 									"type": "text",
 								},
 							},
@@ -94,7 +94,7 @@ func TestGetComponentNotFound(t *testing.T) {
 }
 
 func TestPutComponent(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 	respJSON, _ := json.Marshal(mockResp)
@@ -105,7 +105,7 @@ func TestPutComponent(t *testing.T) {
 	tmpl := ComponentTemplate{
 		Version: 1,
 		Template: ComponentDefinition{
-			Settings: map[string]interface{}{
+			Settings: map[string]any{
 				"number_of_shards": 1,
 			},
 		},
@@ -118,7 +118,7 @@ func TestPutComponent(t *testing.T) {
 }
 
 func TestDeleteComponent(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 	respJSON, _ := json.Marshal(mockResp)

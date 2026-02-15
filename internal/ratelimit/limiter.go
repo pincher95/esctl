@@ -232,10 +232,7 @@ func (al *AdaptiveLimiter) OnSuccess() {
 	defer al.mu.Unlock()
 
 	// Increase rate by 10% up to max
-	newRate := int(float64(al.currentRate) * 1.1)
-	if newRate > al.maxRate {
-		newRate = al.maxRate
-	}
+	newRate := min(int(float64(al.currentRate)*1.1), al.maxRate)
 
 	if newRate != al.currentRate {
 		al.updateRate(newRate)
@@ -248,10 +245,7 @@ func (al *AdaptiveLimiter) OnFailure() {
 	defer al.mu.Unlock()
 
 	// Decrease rate by 50% down to min
-	newRate := al.currentRate / 2
-	if newRate < al.minRate {
-		newRate = al.minRate
-	}
+	newRate := max(al.currentRate/2, al.minRate)
 
 	if newRate != al.currentRate {
 		al.updateRate(newRate)

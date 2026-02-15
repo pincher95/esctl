@@ -26,13 +26,27 @@ type RenderResponse struct {
 	TemplateOutput map[string]any `json:"template_output"`
 }
 
-// List retrieves all stored search templates
+// storedScript represents a script entry in the cluster state metadata
+type storedScript struct {
+	Lang   string `json:"lang"`
+	Source string `json:"source"`
+}
+
+// clusterStateResponse represents the cluster state metadata response for stored scripts
+type clusterStateResponse struct {
+	Metadata struct {
+		StoredScripts map[string]storedScript `json:"stored_scripts"`
+	} `json:"metadata"`
+}
+
+// List retrieves all stored search templates via the cluster state API
 func List(ctx context.Context) (map[string]SearchTemplateResponse, error) {
+	var result clusterStateResponse
 	resp, err := shared.Client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
-		SetResult(&map[string]SearchTemplateResponse{}).
-		Get("/_scripts")
+		SetResult(&result).
+		Get("/_cluster/state/metadata?filter_path=metadata.stored_scripts")
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to list search templates: %w", err)
@@ -42,13 +56,19 @@ func List(ctx context.Context) (map[string]SearchTemplateResponse, error) {
 		return nil, fmt.Errorf("error listing search templates: %s", resp.Status())
 	}
 
-	result := resp.Result().(*map[string]SearchTemplateResponse)
-
 	// Filter to only mustache templates (search templates)
 	templates := make(map[string]SearchTemplateResponse)
-	for id, tmpl := range *result {
-		// In ES, search templates are stored as scripts with lang=mustache
-		templates[id] = tmpl
+	for id, s := range result.Metadata.StoredScripts {
+		if s.Lang == "mustache" {
+			templates[id] = SearchTemplateResponse{
+				Found: true,
+				ID:    id,
+				Template: map[string]any{
+					"lang":   s.Lang,
+					"source": s.Source,
+				},
+			}
+		}
 	}
 
 	return templates, nil

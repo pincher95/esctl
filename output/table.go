@@ -157,9 +157,9 @@ func ParseSortColumns(sortByStr string) []sortColumn {
 		}
 		// Look for :desc or :asc
 		var col sortColumn
-		if idx := strings.Index(p, ":"); idx != -1 {
-			col.header = strings.TrimSpace(p[:idx])
-			order := strings.ToLower(strings.TrimSpace(p[idx+1:]))
+		if before, after, ok := strings.Cut(p, ":"); ok {
+			col.header = strings.TrimSpace(before)
+			order := strings.ToLower(strings.TrimSpace(after))
 			if order == "desc" {
 				col.descending = true
 			}

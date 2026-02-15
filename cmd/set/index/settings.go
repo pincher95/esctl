@@ -29,7 +29,7 @@ Example:
 		if flagIndexName == "" {
 			return fmt.Errorf("--index is required")
 		}
-		if err := validation.ValidateIndexName(flagIndexName); err != nil {
+		if err := validation.ValidateIndexPattern(flagIndexName); err != nil {
 			return err
 		}
 		if flagBody == "" {

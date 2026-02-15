@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/pincher95/esctl/shared"
@@ -92,8 +93,8 @@ func (n CatNodesResponse) RolesList() []string {
 	}
 
 	if strings.Contains(raw, ",") {
-		tokens := strings.Split(raw, ",")
-		for _, t := range tokens {
+		tokens := strings.SplitSeq(raw, ",")
+		for t := range tokens {
 			t = strings.TrimSpace(t)
 			if t == "" {
 				continue
@@ -145,12 +146,7 @@ func roleAbbrev(token string) string {
 
 // HasRole checks whether the node advertises the given single-letter role (e.g. "d" for data).
 func (n CatNodesResponse) HasRole(r string) bool {
-	for _, rr := range n.RolesList() {
-		if rr == r {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(n.RolesList(), r)
 }
 
 // IsData returns true when the node has the data ("d") role.

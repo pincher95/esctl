@@ -8,6 +8,7 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/datastream"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -71,7 +72,32 @@ func handleDataStreamsLogic(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to list data streams: %w", err)
 	}
 
-	return output.Render(streams)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(streams)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "NAME", Type: output.Text},
+		{Header: "STATUS", Type: output.Text},
+		{Header: "TEMPLATE", Type: output.Text},
+		{Header: "ILM_POLICY", Type: output.Text},
+		{Header: "GENERATION", Type: output.Number},
+		{Header: "INDICES", Type: output.Number},
+	}
+
+	data := make([][]string, 0, len(streams))
+	for _, s := range streams {
+		data = append(data, []string{
+			s.Name,
+			s.Status,
+			s.Template,
+			s.ILMPolicy,
+			fmt.Sprintf("%d", s.Generation),
+			fmt.Sprintf("%d", len(s.Indices)),
+		})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }
 
 func handleDataStreamLogic(ctx context.Context, name string) error {
@@ -80,5 +106,29 @@ func handleDataStreamLogic(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to get data stream: %w", err)
 	}
 
-	return output.Render(stream)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(stream)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "setting", Type: output.Text},
+		{Header: "value", Type: output.Text},
+	}
+
+	data := [][]string{
+		{"name", stream.Name},
+		{"status", stream.Status},
+		{"template", stream.Template},
+		{"timestamp_field", stream.TimestampField.Name},
+		{"generation", fmt.Sprintf("%d", stream.Generation)},
+		{"hidden", fmt.Sprintf("%t", stream.Hidden)},
+	}
+	if stream.ILMPolicy != "" {
+		data = append(data, []string{"ilm_policy", stream.ILMPolicy})
+	}
+	for _, idx := range stream.Indices {
+		data = append(data, []string{"backing_index", idx.IndexName})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }

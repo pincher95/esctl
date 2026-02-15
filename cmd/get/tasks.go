@@ -8,6 +8,7 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/tasks"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -53,6 +54,10 @@ func handleTaskLogic(ctx context.Context, client tasks.Tasks, config config.Conf
 	tasksResponse, err := client.GetTasks(ctx, flagTasksID, flagActions)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve tasks: %w", err)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(tasksResponse)
 	}
 
 	columnDefs, err := getColumnDefs(config, "task", taskColumns)

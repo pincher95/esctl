@@ -83,15 +83,6 @@ func HandleRepoList(ctx context.Context, nameFilter string) error {
 	return output.PrintTable(columnDefs, data, sortCols)
 }
 
-func HandleRepoGet(ctx context.Context, repository string) error {
-	repo, err := snapshots.GetRepository(ctx, repository)
-	if err != nil {
-		return fmt.Errorf("failed to get repository: %w", err)
-	}
-
-	return output.Render(repo)
-}
-
 func HandleRepoCreate(ctx context.Context, repository, repoTypeValue, settingsValue string) error {
 	settings, err := ParseSettings(settingsValue)
 	if err != nil {
@@ -115,14 +106,14 @@ func HandleRepoDelete(ctx context.Context, repository string) error {
 	return nil
 }
 
-func ParseSettings(settingsStr string) (map[string]interface{}, error) {
-	settings := make(map[string]interface{})
+func ParseSettings(settingsStr string) (map[string]any, error) {
+	settings := make(map[string]any)
 	if settingsStr == "" {
 		return settings, nil
 	}
 
-	pairs := strings.Split(settingsStr, ",")
-	for _, pair := range pairs {
+	pairs := strings.SplitSeq(settingsStr, ",")
+	for pair := range pairs {
 		kv := strings.SplitN(pair, ":", 2)
 		if len(kv) != 2 {
 			return nil, fmt.Errorf("invalid key:value pair: %s", pair)

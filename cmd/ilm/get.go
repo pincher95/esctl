@@ -1,9 +1,13 @@
 package ilm
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/ilm"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +31,39 @@ var getCmd = &cobra.Command{
 			return err
 		}
 
-		return output.Render(policy)
+		if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+			return output.Render(policy)
+		}
+
+		columnDefs := []output.ColumnDefaults{
+			{Header: "setting", Type: output.Text},
+			{Header: "value", Type: output.Text},
+		}
+
+		data := [][]string{
+			{"name", policy.Name},
+			{"version", fmt.Sprintf("%d", policy.Version)},
+			{"modified", policy.Modified},
+		}
+
+		phases := make([]string, 0, len(policy.Policy.Phases))
+		for phaseName := range policy.Policy.Phases {
+			phases = append(phases, phaseName)
+		}
+		data = append(data, []string{"phases", strings.Join(phases, ", ")})
+
+		for phaseName, phase := range policy.Policy.Phases {
+			if phase.MinAge != "" {
+				data = append(data, []string{phaseName + ".min_age", phase.MinAge})
+			}
+			actions := make([]string, 0, len(phase.Actions))
+			for actionName := range phase.Actions {
+				actions = append(actions, actionName)
+			}
+			data = append(data, []string{phaseName + ".actions", strings.Join(actions, ", ")})
+		}
+
+		return output.PrintTable(columnDefs, data, nil)
 	},
 }
 

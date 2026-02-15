@@ -2,10 +2,14 @@ package component
 
 import (
 	"context"
+	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/template"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -43,5 +47,42 @@ func handleGetComponent(ctx context.Context, name string) error {
 		return err
 	}
 
-	return output.Render(tmpl)
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(tmpl)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "SETTING", Type: output.Text},
+		{Header: "VALUE", Type: output.Text},
+	}
+
+	data := [][]string{
+		{"name", name},
+		{"version", fmt.Sprintf("%d", tmpl.Version)},
+	}
+
+	// Flatten and display settings
+	if len(tmpl.Template.Settings) > 0 {
+		flat := utils.FlattenSettingsMap(tmpl.Template.Settings)
+		keys := make([]string, 0, len(flat))
+		for k := range flat {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			data = append(data, []string{"settings." + k, fmt.Sprintf("%v", flat[k])})
+		}
+	}
+
+	// Display aliases
+	if len(tmpl.Template.Aliases) > 0 {
+		aliases := make([]string, 0, len(tmpl.Template.Aliases))
+		for a := range tmpl.Template.Aliases {
+			aliases = append(aliases, a)
+		}
+		sort.Strings(aliases)
+		data = append(data, []string{"aliases", strings.Join(aliases, ", ")})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }

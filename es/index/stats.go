@@ -11,31 +11,31 @@ import (
 
 // IndexStatsResponse wraps the stats API response
 type IndexStatsResponse struct {
-	Shards  map[string]interface{}        `json:"_shards"`
-	All     IndexStat                     `json:"_all,omitempty"`
-	Indices map[string]IndexStat          `json:"indices,omitempty"`
+	Shards  map[string]any       `json:"_shards"`
+	All     IndexStat            `json:"_all"`
+	Indices map[string]IndexStat `json:"indices,omitempty"`
 }
 
 // IndexStat contains statistics for a single index
 type IndexStat struct {
-	UUID       string                 `json:"uuid,omitempty"`
-	Health     string                 `json:"health,omitempty"`
-	Status     string                 `json:"status,omitempty"`
-	Primaries  IndexStatDetail        `json:"primaries,omitempty"`
-	Total      IndexStatDetail        `json:"total,omitempty"`
+	UUID      string          `json:"uuid,omitempty"`
+	Health    string          `json:"health,omitempty"`
+	Status    string          `json:"status,omitempty"`
+	Primaries IndexStatDetail `json:"primaries"`
+	Total     IndexStatDetail `json:"total"`
 }
 
 // IndexStatDetail contains detailed statistics
 type IndexStatDetail struct {
-	Docs       IndexStatDocs       `json:"docs,omitempty"`
-	Store      IndexStatStore      `json:"store,omitempty"`
-	Indexing   IndexStatIndexing   `json:"indexing,omitempty"`
-	Get        IndexStatGet        `json:"get,omitempty"`
-	Search     IndexStatSearch     `json:"search,omitempty"`
-	Merges     IndexStatMerges     `json:"merges,omitempty"`
-	Refresh    IndexStatRefresh    `json:"refresh,omitempty"`
-	Flush      IndexStatFlush      `json:"flush,omitempty"`
-	Segments   IndexStatSegments   `json:"segments,omitempty"`
+	Docs     IndexStatDocs     `json:"docs"`
+	Store    IndexStatStore    `json:"store"`
+	Indexing IndexStatIndexing `json:"indexing"`
+	Get      IndexStatGet      `json:"get"`
+	Search   IndexStatSearch   `json:"search"`
+	Merges   IndexStatMerges   `json:"merges"`
+	Refresh  IndexStatRefresh  `json:"refresh"`
+	Flush    IndexStatFlush    `json:"flush"`
+	Segments IndexStatSegments `json:"segments"`
 }
 
 type IndexStatDocs struct {
@@ -49,28 +49,28 @@ type IndexStatStore struct {
 }
 
 type IndexStatIndexing struct {
-	IndexTotal       int64 `json:"index_total"`
+	IndexTotal        int64 `json:"index_total"`
 	IndexTimeInMillis int64 `json:"index_time_in_millis"`
-	IndexCurrent     int64 `json:"index_current"`
+	IndexCurrent      int64 `json:"index_current"`
 }
 
 type IndexStatGet struct {
-	Total              int64 `json:"total"`
-	TimeInMillis       int64 `json:"time_in_millis"`
-	ExistsTotal        int64 `json:"exists_total"`
-	ExistsTimeInMillis int64 `json:"exists_time_in_millis"`
-	MissingTotal       int64 `json:"missing_total"`
+	Total               int64 `json:"total"`
+	TimeInMillis        int64 `json:"time_in_millis"`
+	ExistsTotal         int64 `json:"exists_total"`
+	ExistsTimeInMillis  int64 `json:"exists_time_in_millis"`
+	MissingTotal        int64 `json:"missing_total"`
 	MissingTimeInMillis int64 `json:"missing_time_in_millis"`
-	Current            int64 `json:"current"`
+	Current             int64 `json:"current"`
 }
 
 type IndexStatSearch struct {
-	QueryTotal            int64 `json:"query_total"`
-	QueryTimeInMillis     int64 `json:"query_time_in_millis"`
-	QueryCurrent          int64 `json:"query_current"`
-	FetchTotal            int64 `json:"fetch_total"`
-	FetchTimeInMillis     int64 `json:"fetch_time_in_millis"`
-	FetchCurrent          int64 `json:"fetch_current"`
+	QueryTotal        int64 `json:"query_total"`
+	QueryTimeInMillis int64 `json:"query_time_in_millis"`
+	QueryCurrent      int64 `json:"query_current"`
+	FetchTotal        int64 `json:"fetch_total"`
+	FetchTimeInMillis int64 `json:"fetch_time_in_millis"`
+	FetchCurrent      int64 `json:"fetch_current"`
 }
 
 type IndexStatMerges struct {
@@ -94,17 +94,17 @@ type IndexStatFlush struct {
 }
 
 type IndexStatSegments struct {
-	Count                      int64 `json:"count"`
-	MemoryInBytes              int64 `json:"memory_in_bytes"`
-	TermsMemoryInBytes         int64 `json:"terms_memory_in_bytes"`
-	StoredFieldsMemoryInBytes  int64 `json:"stored_fields_memory_in_bytes"`
-	TermVectorsMemoryInBytes   int64 `json:"term_vectors_memory_in_bytes"`
-	NormsMemoryInBytes         int64 `json:"norms_memory_in_bytes"`
-	PointsMemoryInBytes        int64 `json:"points_memory_in_bytes"`
-	DocValuesMemoryInBytes     int64 `json:"doc_values_memory_in_bytes"`
-	IndexWriterMemoryInBytes   int64 `json:"index_writer_memory_in_bytes"`
-	VersionMapMemoryInBytes    int64 `json:"version_map_memory_in_bytes"`
-	FixedBitSetMemoryInBytes   int64 `json:"fixed_bit_set_memory_in_bytes"`
+	Count                     int64 `json:"count"`
+	MemoryInBytes             int64 `json:"memory_in_bytes"`
+	TermsMemoryInBytes        int64 `json:"terms_memory_in_bytes"`
+	StoredFieldsMemoryInBytes int64 `json:"stored_fields_memory_in_bytes"`
+	TermVectorsMemoryInBytes  int64 `json:"term_vectors_memory_in_bytes"`
+	NormsMemoryInBytes        int64 `json:"norms_memory_in_bytes"`
+	PointsMemoryInBytes       int64 `json:"points_memory_in_bytes"`
+	DocValuesMemoryInBytes    int64 `json:"doc_values_memory_in_bytes"`
+	IndexWriterMemoryInBytes  int64 `json:"index_writer_memory_in_bytes"`
+	VersionMapMemoryInBytes   int64 `json:"version_map_memory_in_bytes"`
+	FixedBitSetMemoryInBytes  int64 `json:"fixed_bit_set_memory_in_bytes"`
 }
 
 // GetIndexStats retrieves statistics for one or more indices
@@ -166,41 +166,41 @@ type ShardRecovery struct {
 }
 
 type RecoverySource struct {
-	ID              string `json:"id,omitempty"`
-	Host            string `json:"host,omitempty"`
+	ID               string `json:"id,omitempty"`
+	Host             string `json:"host,omitempty"`
 	TransportAddress string `json:"transport_address,omitempty"`
-	IP              string `json:"ip,omitempty"`
-	Name            string `json:"name,omitempty"`
+	IP               string `json:"ip,omitempty"`
+	Name             string `json:"name,omitempty"`
 }
 
 type RecoveryTarget struct {
-	ID              string `json:"id,omitempty"`
-	Host            string `json:"host,omitempty"`
+	ID               string `json:"id,omitempty"`
+	Host             string `json:"host,omitempty"`
 	TransportAddress string `json:"transport_address,omitempty"`
-	IP              string `json:"ip,omitempty"`
-	Name            string `json:"name,omitempty"`
+	IP               string `json:"ip,omitempty"`
+	Name             string `json:"name,omitempty"`
 }
 
 type RecoveryIndex struct {
-	Size              RecoverySize `json:"size"`
-	Files             RecoveryFiles `json:"files"`
-	TotalTimeInMillis int64        `json:"total_time_in_millis"`
-	SourceThrottleTimeInMillis int64 `json:"source_throttle_time_in_millis"`
-	TargetThrottleTimeInMillis int64 `json:"target_throttle_time_in_millis"`
+	Size                       RecoverySize  `json:"size"`
+	Files                      RecoveryFiles `json:"files"`
+	TotalTimeInMillis          int64         `json:"total_time_in_millis"`
+	SourceThrottleTimeInMillis int64         `json:"source_throttle_time_in_millis"`
+	TargetThrottleTimeInMillis int64         `json:"target_throttle_time_in_millis"`
 }
 
 type RecoverySize struct {
-	TotalInBytes     int64 `json:"total_in_bytes"`
-	ReusedInBytes    int64 `json:"reused_in_bytes"`
-	RecoveredInBytes int64 `json:"recovered_in_bytes"`
+	TotalInBytes     int64  `json:"total_in_bytes"`
+	ReusedInBytes    int64  `json:"reused_in_bytes"`
+	RecoveredInBytes int64  `json:"recovered_in_bytes"`
 	Percent          string `json:"percent"`
 }
 
 type RecoveryFiles struct {
-	Total     int64   `json:"total"`
-	Reused    int64   `json:"reused"`
-	Recovered int64   `json:"recovered"`
-	Percent   string  `json:"percent"`
+	Total     int64  `json:"total"`
+	Reused    int64  `json:"reused"`
+	Recovered int64  `json:"recovered"`
+	Percent   string `json:"percent"`
 }
 
 type RecoveryTranslog struct {
@@ -249,8 +249,8 @@ func (i *index) GetRecovery(ctx context.Context, indices []string, detailed bool
 
 // SegmentsResponse wraps the segments API response
 type SegmentsResponse struct {
-	Shards  map[string]interface{}      `json:"_shards"`
-	Indices map[string]IndexSegments    `json:"indices"`
+	Shards  map[string]any           `json:"_shards"`
+	Indices map[string]IndexSegments `json:"indices"`
 }
 
 // IndexSegments contains segment information for an index
@@ -260,10 +260,10 @@ type IndexSegments struct {
 
 // ShardSegments contains segment information for a single shard
 type ShardSegments struct {
-	Routing      ShardRouting            `json:"routing"`
-	NumCommittedSegments int             `json:"num_committed_segments"`
-	NumSearchSegments    int             `json:"num_search_segments"`
-	Segments     map[string]SegmentInfo  `json:"segments"`
+	Routing              ShardRouting           `json:"routing"`
+	NumCommittedSegments int                    `json:"num_committed_segments"`
+	NumSearchSegments    int                    `json:"num_search_segments"`
+	Segments             map[string]SegmentInfo `json:"segments"`
 }
 
 type ShardRouting struct {
@@ -274,16 +274,16 @@ type ShardRouting struct {
 }
 
 type SegmentInfo struct {
-	Generation    int64              `json:"generation"`
-	NumDocs       int64              `json:"num_docs"`
-	DeletedDocs   int64              `json:"deleted_docs"`
-	SizeInBytes   int64              `json:"size_in_bytes"`
-	MemoryInBytes int64              `json:"memory_in_bytes"`
-	Committed     bool               `json:"committed"`
-	Search        bool               `json:"search"`
-	Version       string             `json:"version"`
-	Compound      bool               `json:"compound"`
-	Attributes    map[string]string  `json:"attributes,omitempty"`
+	Generation    int64             `json:"generation"`
+	NumDocs       int64             `json:"num_docs"`
+	DeletedDocs   int64             `json:"deleted_docs"`
+	SizeInBytes   int64             `json:"size_in_bytes"`
+	MemoryInBytes int64             `json:"memory_in_bytes"`
+	Committed     bool              `json:"committed"`
+	Search        bool              `json:"search"`
+	Version       string            `json:"version"`
+	Compound      bool              `json:"compound"`
+	Attributes    map[string]string `json:"attributes,omitempty"`
 }
 
 // GetSegments retrieves segment information for one or more indices

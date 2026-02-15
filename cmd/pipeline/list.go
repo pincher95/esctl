@@ -7,6 +7,7 @@ import (
 
 	"github.com/pincher95/esctl/es/pipeline"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 )
 
 func HandleList(ctx context.Context, nameFilter string) error {
@@ -24,7 +25,29 @@ func HandleList(ctx context.Context, nameFilter string) error {
 		if len(filtered) == 0 {
 			return fmt.Errorf("no pipelines matched: %s", nameFilter)
 		}
-		return output.Render(filtered)
+		pipelines = filtered
 	}
-	return output.Render(pipelines)
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(pipelines)
+	}
+
+	columnDefs := []output.ColumnDefaults{
+		{Header: "NAME", Type: output.Text},
+		{Header: "DESCRIPTION", Type: output.Text},
+		{Header: "PROCESSORS", Type: output.Number},
+		{Header: "VERSION", Type: output.Number},
+	}
+
+	data := make([][]string, 0, len(pipelines))
+	for name, p := range pipelines {
+		data = append(data, []string{
+			name,
+			p.Description,
+			fmt.Sprintf("%d", len(p.Processors)),
+			fmt.Sprintf("%d", p.Version),
+		})
+	}
+
+	return output.PrintTable(columnDefs, data, nil)
 }

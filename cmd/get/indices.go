@@ -10,6 +10,7 @@ import (
 	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/internal/validation"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -73,6 +74,10 @@ func handleIndicesLogic(ctx context.Context, client cat.Cat, conf config.Config)
 	indices, err := client.CatIndices(ctx, "", flagIndex, flagBytes)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve indices: %w", err)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(indices)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "index", indexColumns)

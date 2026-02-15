@@ -2,7 +2,6 @@ package template
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/pincher95/esctl/cmd/utils"
@@ -33,6 +32,16 @@ var listCmd = &cobra.Command{
 			return err
 		}
 
+		// Also fetch legacy templates and merge (legacy templates won't overwrite composable ones)
+		legacyTemplates, err := template.ListLegacy(ctx)
+		if err == nil {
+			for name, tmpl := range legacyTemplates {
+				if _, exists := templates[name]; !exists {
+					templates[name] = tmpl
+				}
+			}
+		}
+
 		if templateListName != "" {
 			filtered := make(template.ListResponse)
 			for name, tmpl := range templates {
@@ -59,28 +68,9 @@ var listCmd = &cobra.Command{
 			{Header: "composed_of", Type: output.Text},
 		}
 
-		settingKeys := make(map[string]struct{})
-		flatSettings := make(map[string]map[string]any, len(templates))
-		for name, tmpl := range templates {
-			flat := utils.FlattenSettingsMap(tmpl.Template.Settings)
-			flatSettings[name] = flat
-			for key := range flat {
-				settingKeys[key] = struct{}{}
-			}
-		}
-		sortedKeys := make([]string, 0, len(settingKeys))
-		for key := range settingKeys {
-			sortedKeys = append(sortedKeys, key)
-		}
-		sort.Strings(sortedKeys)
-		for _, key := range sortedKeys {
-			columnDefs = append(columnDefs, output.ColumnDefaults{Header: key, Type: output.Text})
-		}
-
 		rows := make([]map[string]any, 0, len(templates))
 		var data [][]string
 		for name, tmpl := range templates {
-			flat := flatSettings[name]
 			patterns := ""
 			if len(tmpl.IndexPatterns) > 0 {
 				patterns = tmpl.IndexPatterns[0]
@@ -97,33 +87,21 @@ var listCmd = &cobra.Command{
 				}
 			}
 
-			row := map[string]any{
+			rows = append(rows, map[string]any{
 				"name":           name,
 				"index_patterns": tmpl.IndexPatterns,
 				"priority":       tmpl.Priority,
 				"version":        tmpl.Version,
 				"composed_of":    tmpl.ComposedOf,
-			}
+			})
 
-			rowCells := []string{
+			data = append(data, []string{
 				name,
 				patterns,
 				fmt.Sprintf("%d", tmpl.Priority),
 				fmt.Sprintf("%d", tmpl.Version),
 				composedOf,
-			}
-			for _, key := range sortedKeys {
-				val, ok := flat[key]
-				if ok {
-					row[key] = val
-					rowCells = append(rowCells, utils.FormatSettingValue(val))
-				} else {
-					rowCells = append(rowCells, "")
-				}
-			}
-
-			rows = append(rows, row)
-			data = append(data, rowCells)
+			})
 		}
 
 		if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {

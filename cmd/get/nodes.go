@@ -6,10 +6,10 @@ import (
 
 	"github.com/pincher95/esctl/cmd/config"
 	"github.com/pincher95/esctl/cmd/utils"
-	"github.com/pincher95/esctl/output"
-	"github.com/spf13/cobra"
-
 	"github.com/pincher95/esctl/es/cat"
+	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
+	"github.com/spf13/cobra"
 )
 
 var getNodesCmd = &cobra.Command{
@@ -75,6 +75,10 @@ func handleNodeLogic(ctx context.Context, client cat.Cat, conf config.Config) er
 	nodes, err := client.CatNodes(ctx, "", flagFilter, flagBytes, flagTime)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve nodes: %w", err)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(nodes)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "node", nodeColumns)

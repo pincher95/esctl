@@ -96,13 +96,6 @@ func getNestedPath(field string, nestedPaths []string) (string, bool) {
 	return "", false
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func isExpectedStatus(code int, expected []int) bool {
 	if len(expected) == 0 {
 		return code >= 200 && code < 300

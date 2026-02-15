@@ -8,6 +8,7 @@ import (
 	"github.com/pincher95/esctl/cmd/utils"
 	cat "github.com/pincher95/esctl/es/cat"
 	"github.com/pincher95/esctl/output"
+	"github.com/pincher95/esctl/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -55,6 +56,10 @@ func handlePluginsLogic(ctx context.Context, client cat.Cat, conf config.Config)
 	plugins, err := client.CatPlugins(ctx, "")
 	if err != nil {
 		return fmt.Errorf("failed to retrieve plugins: %w", err)
+	}
+
+	if shared.OutputFormat == "json" || shared.OutputFormat == "yaml" {
+		return output.Render(plugins)
 	}
 
 	columnDefs, err := getColumnDefs(conf, "plugins", pluginsColumns)

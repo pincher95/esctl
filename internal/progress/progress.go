@@ -80,10 +80,7 @@ func (b *Bar) Set(n int64) {
 		return
 	}
 
-	b.current = n
-	if b.current > b.total {
-		b.current = b.total
-	}
+	b.current = min(n, b.total)
 
 	b.render()
 }
@@ -124,10 +121,7 @@ func (b *Bar) render() {
 
 	// Create progress bar
 	barWidth := 40
-	filled := int(float64(barWidth) * percent / 100)
-	if filled > barWidth {
-		filled = barWidth
-	}
+	filled := min(int(float64(barWidth)*percent/100), barWidth)
 
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", barWidth-filled)
 

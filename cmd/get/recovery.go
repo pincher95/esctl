@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	flagRecoveryIndices string
+	flagRecoveryIndices  string
 	flagRecoveryDetailed bool
 )
 

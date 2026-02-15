@@ -10,20 +10,20 @@ import (
 )
 
 func TestList(t *testing.T) {
-	mockResp := map[string]interface{}{
-		"index_templates": []interface{}{
-			map[string]interface{}{
+	mockResp := map[string]any{
+		"index_templates": []any{
+			map[string]any{
 				"name": "logs-template",
-				"index_template": map[string]interface{}{
-					"index_patterns": []interface{}{"logs-*"},
+				"index_template": map[string]any{
+					"index_patterns": []any{"logs-*"},
 					"priority":       100,
 					"version":        1,
 				},
 			},
-			map[string]interface{}{
+			map[string]any{
 				"name": "metrics-template",
-				"index_template": map[string]interface{}{
-					"index_patterns": []interface{}{"metrics-*"},
+				"index_template": map[string]any{
+					"index_patterns": []any{"metrics-*"},
 					"priority":       50,
 				},
 			},
@@ -57,16 +57,16 @@ func TestList(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	mockResp := map[string]interface{}{
-		"index_templates": []interface{}{
-			map[string]interface{}{
+	mockResp := map[string]any{
+		"index_templates": []any{
+			map[string]any{
 				"name": "logs-template",
-				"index_template": map[string]interface{}{
-					"index_patterns": []interface{}{"logs-*", "app-logs-*"},
+				"index_template": map[string]any{
+					"index_patterns": []any{"logs-*", "app-logs-*"},
 					"priority":       100,
 					"version":        1,
-					"template": map[string]interface{}{
-						"settings": map[string]interface{}{
+					"template": map[string]any{
+						"settings": map[string]any{
 							"number_of_shards": 3,
 						},
 					},
@@ -110,7 +110,7 @@ func TestGetNotFound(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 
@@ -132,7 +132,7 @@ func TestPut(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	mockResp := map[string]interface{}{
+	mockResp := map[string]any{
 		"acknowledged": true,
 	}
 

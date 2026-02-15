@@ -17,12 +17,12 @@ type ReindexRequest struct {
 }
 
 type ReindexSource struct {
-	Index  interface{}              `json:"index"`
-	Type   string                   `json:"type,omitempty"`
-	Query  map[string]interface{}   `json:"query,omitempty"`
-	Sort   []map[string]interface{} `json:"sort,omitempty"`
-	Size   *int                     `json:"size,omitempty"`
-	Remote *ReindexRemote           `json:"remote,omitempty"`
+	Index  any              `json:"index"`
+	Type   string           `json:"type,omitempty"`
+	Query  map[string]any   `json:"query,omitempty"`
+	Sort   []map[string]any `json:"sort,omitempty"`
+	Size   *int             `json:"size,omitempty"`
+	Remote *ReindexRemote   `json:"remote,omitempty"`
 }
 
 type ReindexDest struct {
@@ -34,9 +34,9 @@ type ReindexDest struct {
 }
 
 type ReindexScript struct {
-	Source string                 `json:"source"`
-	Lang   string                 `json:"lang,omitempty"`
-	Params map[string]interface{} `json:"params,omitempty"`
+	Source string         `json:"source"`
+	Lang   string         `json:"lang,omitempty"`
+	Params map[string]any `json:"params,omitempty"`
 }
 
 type ReindexRemote struct {
@@ -59,11 +59,11 @@ type ReindexResponse struct {
 	Batches              int            `json:"batches,omitempty"`
 	VersionConflicts     int            `json:"version_conflicts,omitempty"`
 	Noops                int            `json:"noops,omitempty"`
-	Retries              ReindexRetries `json:"retries,omitempty"`
+	Retries              ReindexRetries `json:"retries"`
 	ThrottledMillis      int            `json:"throttled_millis,omitempty"`
 	RequestsPerSecond    float64        `json:"requests_per_second,omitempty"`
 	ThrottledUntilMillis int            `json:"throttled_until_millis,omitempty"`
-	Failures             []interface{}  `json:"failures,omitempty"`
+	Failures             []any          `json:"failures,omitempty"`
 }
 
 type ReindexRetries struct {
@@ -72,7 +72,7 @@ type ReindexRetries struct {
 }
 
 // StartReindex starts a reindex operation
-func StartReindex(ctx context.Context, request ReindexRequest, waitForCompletion bool, requestsPerSecond float64, timeout string, refresh bool, slices interface{}) (ReindexResponse, error) {
+func StartReindex(ctx context.Context, request ReindexRequest, waitForCompletion bool, requestsPerSecond float64, timeout string, refresh bool, slices any) (ReindexResponse, error) {
 	var result ReindexResponse
 
 	u := url.URL{Path: "_reindex"}
@@ -112,8 +112,8 @@ func StartReindex(ctx context.Context, request ReindexRequest, waitForCompletion
 }
 
 // GetReindexTaskStatus gets the status of a reindex task
-func GetReindexTaskStatus(ctx context.Context, taskID string) (map[string]interface{}, error) {
-	var result map[string]interface{}
+func GetReindexTaskStatus(ctx context.Context, taskID string) (map[string]any, error) {
+	var result map[string]any
 
 	resp, err := shared.Client.R().
 		SetContext(ctx).
