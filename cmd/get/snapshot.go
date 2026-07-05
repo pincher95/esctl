@@ -38,13 +38,15 @@ var getSnapshotCmd = &cobra.Command{
 		if flagRepository == "" {
 			return fmt.Errorf("repository is required")
 		}
-		if flagSnapshotName != "" {
-			if isTableOutput() {
-				return handleSnapshotList(ctx, flagRepository)
+		return runWithWatch(ctx, func() error {
+			if flagSnapshotName != "" {
+				if isTableOutput() {
+					return handleSnapshotList(ctx, flagRepository)
+				}
+				return snapshot.HandleSnapshotGet(ctx, flagRepository, flagSnapshotName)
 			}
-			return snapshot.HandleSnapshotGet(ctx, flagRepository, flagSnapshotName)
-		}
-		return handleSnapshotList(ctx, flagRepository)
+			return handleSnapshotList(ctx, flagRepository)
+		})
 	},
 }
 

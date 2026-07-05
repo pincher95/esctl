@@ -26,10 +26,12 @@ var getSlmPoliciesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		if flagSLMPolicyName != "" {
-			return handleGetSLMPolicy(ctx, flagSLMPolicyName)
-		}
-		return handleListSLMPolicies(ctx)
+		return runWithWatch(ctx, func() error {
+			if flagSLMPolicyName != "" {
+				return handleGetSLMPolicy(ctx, flagSLMPolicyName)
+			}
+			return handleListSLMPolicies(ctx)
+		})
 	},
 }
 

@@ -207,7 +207,17 @@ esctl update reroute move --index <idx> --shard 0 --from-node <a> --to-node <b>
 esctl update reroute cancel --index <idx> --shard 0 --node <n> [--allow-primary]
 esctl update reroute allocate-stale-primary --index <idx> --shard 0 --node <n> --accept-data-loss
 esctl update reroute allocate-empty-primary --index <idx> --shard 0 --node <n> --accept-data-loss
+
+# When no in-cluster copy survives, restore the red indices from a snapshot (batched,
+# closes each batch first, optional alias rename):
+esctl update restore-red --repository <repo> --snapshot <snap> --pattern "logz-*" [--dry-run]
 ```
+
+## Watch mode
+
+Every `get` command honors the shared `--watch/-w` and `--interval` flags (default 5s) and
+redraws in place. Press `q` (or Esc) to quit immediately, or Ctrl-C. The terminal is always
+restored on exit. (`get hot-threads` is the one exception — it has its own sampling `--interval`.)
 
 ## Global flags
 

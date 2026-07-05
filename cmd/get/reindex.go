@@ -15,7 +15,10 @@ var getReindexCmd = &cobra.Command{
 	esctl get reindex --task-id task-id
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return reindex.HandleReindexStatus(cmd.Context(), getReindexTaskID)
+		ctx := cmd.Context()
+		return runWithWatch(ctx, func() error {
+			return reindex.HandleReindexStatus(ctx, getReindexTaskID)
+		})
 	},
 }
 

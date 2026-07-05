@@ -33,10 +33,12 @@ var getIlmPoliciesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		if flagILMPolicyName != "" {
-			return handleGetILMPolicy(ctx, flagILMPolicyName)
-		}
-		return handleListILMPolicies(ctx)
+		return runWithWatch(ctx, func() error {
+			if flagILMPolicyName != "" {
+				return handleGetILMPolicy(ctx, flagILMPolicyName)
+			}
+			return handleListILMPolicies(ctx)
+		})
 	},
 }
 

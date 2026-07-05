@@ -37,12 +37,13 @@ var getSearchTemplatesCmd = &cobra.Command{
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-
-		// If ID provided, get specific template; otherwise list all
-		if flagSearchTemplatesID != "" {
-			return handleGetSearchTemplateLogic(ctx, flagSearchTemplatesID)
-		}
-		return handleGetSearchTemplatesLogic(ctx)
+		return runWithWatch(ctx, func() error {
+			// If ID provided, get specific template; otherwise list all
+			if flagSearchTemplatesID != "" {
+				return handleGetSearchTemplateLogic(ctx, flagSearchTemplatesID)
+			}
+			return handleGetSearchTemplatesLogic(ctx)
+		})
 	},
 }
 

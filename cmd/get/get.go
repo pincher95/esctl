@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -107,6 +108,16 @@ func init() {
 
 func Cmd() *cobra.Command {
 	return getCmd
+}
+
+// runWithWatch runs logic once, or repeatedly under the shared --watch/--interval
+// flags. Every get command routes through this so the inherited --watch flag is
+// honored consistently instead of being silently ignored.
+func runWithWatch(ctx context.Context, logic func() error) error {
+	if !flagRefresh {
+		return logic()
+	}
+	return utils.WatchLoopContext(ctx, flagRefreshInterval, logic)
 }
 
 func buildColumnDefs(columns []string, defaultColumns []output.ColumnDefaults) ([]output.ColumnDefaults, error) {

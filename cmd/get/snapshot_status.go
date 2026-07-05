@@ -27,7 +27,9 @@ var getSnapshotStatusCmd = &cobra.Command{
 		if getSnapshotStatusName != "" && getSnapshotStatusRepo == "" {
 			return fmt.Errorf("repository is required when using --name")
 		}
-		return snapshot.HandleSnapshotStatus(ctx, getSnapshotStatusRepo, getSnapshotStatusName)
+		return runWithWatch(ctx, func() error {
+			return snapshot.HandleSnapshotStatus(ctx, getSnapshotStatusRepo, getSnapshotStatusName)
+		})
 	},
 }
 

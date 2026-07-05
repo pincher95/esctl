@@ -185,6 +185,12 @@ esctl get shard-stores --status red
 
 # Inspect shard copies (and any store corruption) for specific indices
 esctl get shard-stores --indices my-index -o json
+
+# When no in-cluster copy survives, restore the red indices from a snapshot
+# (batched, closes each batch first; --dry-run to preview)
+esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-*" --dry-run
+esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-*" \
+  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement "old-\$1-alias"
 ```
 
 ## Migration

@@ -27,14 +27,14 @@ var getPipelinesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-
-		// If a specific pipeline ID is provided, get that pipeline
-		if flagPipelinesID != "" {
-			return handleGetSpecificPipeline(ctx, flagPipelinesID)
-		}
-
-		// Otherwise, list all pipelines
-		return pipeline.HandleList(ctx, flagPipelinesName)
+		return runWithWatch(ctx, func() error {
+			// If a specific pipeline ID is provided, get that pipeline
+			if flagPipelinesID != "" {
+				return handleGetSpecificPipeline(ctx, flagPipelinesID)
+			}
+			// Otherwise, list all pipelines
+			return pipeline.HandleList(ctx, flagPipelinesName)
+		})
 	},
 }
 

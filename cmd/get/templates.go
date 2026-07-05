@@ -31,10 +31,12 @@ var getTemplatesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		if flagTemplateName != "" {
-			return handleGetTemplate(ctx, flagTemplateName)
-		}
-		return handleListTemplates(ctx)
+		return runWithWatch(ctx, func() error {
+			if flagTemplateName != "" {
+				return handleGetTemplate(ctx, flagTemplateName)
+			}
+			return handleListTemplates(ctx)
+		})
 	},
 }
 
@@ -51,14 +53,16 @@ var getComponentTemplatesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		if flagComponentTemplateName != "" {
-			ct, err := template.GetComponent(ctx, flagComponentTemplateName)
-			if err != nil {
-				return err
+		return runWithWatch(ctx, func() error {
+			if flagComponentTemplateName != "" {
+				ct, err := template.GetComponent(ctx, flagComponentTemplateName)
+				if err != nil {
+					return err
+				}
+				return output.Render(ct)
 			}
-			return output.Render(ct)
-		}
-		return handleListComponentTemplates(ctx)
+			return handleListComponentTemplates(ctx)
+		})
 	},
 }
 
