@@ -1,8 +1,8 @@
 package update
 
 import (
-	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/pincher95/esctl/cmd/utils"
 	"github.com/pincher95/esctl/es/index"
@@ -14,6 +14,10 @@ var (
 	flagExpandWildcards string
 	flagAllowNoIndices  bool
 	flagFielddata       bool
+	flagCacheIndex      string
+	flagCacheQuery      bool
+	flagCacheRequest    bool
+	flagCacheFields     string
 )
 
 var updateCacheClearCmd = &cobra.Command{
@@ -24,26 +28,63 @@ var updateCacheClearCmd = &cobra.Command{
 	By default, the clear cache API clears all caches. To clear only specific caches, use the fielddata, query, or request parameters. To clear the cache only of specific fields, use the fields parameter.
 	`),
 	Example: utils.TrimAndIndent(`
-	# Update the number of replicas for an index.
-	esctl update cache --index my_index --fielddata true
+	# Clear all caches for a specific index.
+	esctl update cache --index my_index
+
+	# Clear only the fielddata cache for an index.
+	esctl update cache --index my_index --fielddata
+
+	# Clear the query and request caches for all indices.
+	esctl update cache --query --request
+
+	# Clear the fielddata cache for specific fields only.
+	esctl update cache --index my_index --fields user_id,session_id
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		idxClient := index.NewIndex()
-		ctx := cmd.Context()
-		return handleCacheLogic(ctx, idxClient)
+		return handleCacheLogic(cmd, idxClient)
 	},
 }
 
 func init() {
-	updateCacheClearCmd.Flags().BoolVar(&flagAllowNoIndices, "allow-no-indices", false, "If false, the request returns an error if any wildcard expression, index alias, or _all value targets only missing or closed indices. This behavior applies even if the request targets other open indices.")
-	updateCacheClearCmd.Flags().StringVar(&flagExpandWildcards, "expand-wildcards", "all", "Type of index that wildcard patterns can match. If the request can target data streams, this argument determines whether wildcard expressions match hidden data streams. Supports comma-separated values, such as open,hidden. Valid values are: all, open, closed, hidden, none.")
-	updateCacheClearCmd.Flags().BoolVar(&flagFielddata, "fielddata", true, "If true, clears the fields cache. Use the fields parameter to clear the cache of specific fields only..")
+	updateCacheClearCmd.Flags().StringVarP(&flagCacheIndex, "index", "i", "", "Index (or comma-separated indices/patterns) to clear; empty clears all")
+	updateCacheClearCmd.Flags().BoolVar(&flagFielddata, "fielddata", false, "Clear the fielddata cache")
+	updateCacheClearCmd.Flags().BoolVar(&flagCacheQuery, "query", false, "Clear the query cache")
+	updateCacheClearCmd.Flags().BoolVar(&flagCacheRequest, "request", false, "Clear the request cache")
+	updateCacheClearCmd.Flags().StringVar(&flagCacheFields, "fields", "", "Clear the fielddata cache of specific fields only (comma-separated)")
+	updateCacheClearCmd.Flags().BoolVar(&flagAllowNoIndices, "allow-no-indices", false, "If false, error when a wildcard/alias/_all targets only missing or closed indices")
+	updateCacheClearCmd.Flags().StringVar(&flagExpandWildcards, "expand-wildcards", "", "Wildcard expansion: comma-separated subset of all,open,closed,hidden,none")
 }
 
-func handleCacheLogic(ctx context.Context, client index.Index) error {
-	cache, err := client.CacheClear(ctx, "")
+// handleCacheLogic forwards only the flags the user explicitly set, so a bare
+// 'esctl update cache' clears all caches (the Elasticsearch default) while any
+// specified cache/target narrows the request.
+func handleCacheLogic(cmd *cobra.Command, client index.Index) error {
+	ctx := cmd.Context()
+
+	params := map[string]string{}
+	if cmd.Flags().Changed("fielddata") {
+		params["fielddata"] = strconv.FormatBool(flagFielddata)
+	}
+	if cmd.Flags().Changed("query") {
+		params["query"] = strconv.FormatBool(flagCacheQuery)
+	}
+	if cmd.Flags().Changed("request") {
+		params["request"] = strconv.FormatBool(flagCacheRequest)
+	}
+	if cmd.Flags().Changed("fields") {
+		params["fields"] = flagCacheFields
+	}
+	if cmd.Flags().Changed("expand-wildcards") {
+		params["expand_wildcards"] = flagExpandWildcards
+	}
+	if cmd.Flags().Changed("allow-no-indices") {
+		params["allow_no_indices"] = strconv.FormatBool(flagAllowNoIndices)
+	}
+
+	cache, err := client.CacheClear(ctx, flagCacheIndex, params)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve cache: %w", err)
+		return fmt.Errorf("failed to clear cache: %w", err)
 	}
 
 	return output.Render(cache)

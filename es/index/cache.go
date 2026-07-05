@@ -17,7 +17,7 @@ type IndexCacheClearResponse struct {
 	} `json:"_shards"`
 }
 
-func (i *index) CacheClear(ctx context.Context, indexName string) (*IndexCacheClearResponse, error) {
+func (i *index) CacheClear(ctx context.Context, indexName string, params map[string]string) (*IndexCacheClearResponse, error) {
 	u := url.URL{}
 	if indexName != "" {
 		u.Path = fmt.Sprintf("%s/_cache/clear", indexName)
@@ -26,6 +26,9 @@ func (i *index) CacheClear(ctx context.Context, indexName string) (*IndexCacheCl
 	}
 	q := u.Query()
 	q.Set("format", "json")
+	for k, v := range params {
+		q.Set(k, v)
+	}
 	u.RawQuery = q.Encode()
 
 	endpoint := u.String()

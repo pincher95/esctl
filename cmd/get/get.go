@@ -93,6 +93,7 @@ func init() {
 	getCmd.AddCommand(getIndexStatsCmd)
 	getCmd.AddCommand(getRecoveryCmd)
 	getCmd.AddCommand(getSegmentsCmd)
+	getCmd.AddCommand(getShardStoresCmd)
 	// Data streams
 	getCmd.AddCommand(getDataStreamsCmd)
 	// Scripts

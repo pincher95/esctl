@@ -29,6 +29,6 @@ func NewMockServerWithStatus(statusCode int, responseJSON string, expectedPath s
 	}))
 
 	cfg := &client.Config{BaseURL: srv.URL}
-	cli := client.NewClient(cfg)
+	cli, _ := client.NewClient(cfg)
 	return srv, cli
 }

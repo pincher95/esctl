@@ -39,7 +39,8 @@ func TestCatAllocation_BuildsEndpointAndParses(t *testing.T) {
 
 	// Inject mock client
 	cfg := &client.Config{BaseURL: srv.URL}
-	shared.SetClient(client.NewClient(cfg))
+	cli, _ := client.NewClient(cfg)
+	shared.SetClient(cli)
 
 	ctx := context.Background()
 	c := cat.NewCat()
