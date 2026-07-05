@@ -17,7 +17,7 @@ func TestCacheClear(t *testing.T) {
 
 	ctx := context.Background()
 	idx := index.NewIndex()
-	resp, err := idx.CacheClear(ctx, "")
+	resp, err := idx.CacheClear(ctx, "", map[string]string{"fielddata": "true"})
 	if err != nil {
 		t.Fatalf("err %v", err)
 	}

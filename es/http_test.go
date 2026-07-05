@@ -15,7 +15,8 @@ func withTestClient(t *testing.T, handler http.HandlerFunc) {
 	t.Helper()
 	oldClient := shared.Client
 	server := httptest.NewServer(handler)
-	shared.SetClient(client.NewClient(&client.Config{BaseURL: server.URL}))
+	cli, _ := client.NewClient(&client.Config{BaseURL: server.URL})
+	shared.SetClient(cli)
 	t.Cleanup(func() {
 		server.Close()
 		shared.SetClient(oldClient)

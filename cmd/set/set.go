@@ -25,5 +25,9 @@ func Cmd() *cobra.Command {
 	setCmd.AddCommand(setRoleCmd)
 	setCmd.AddCommand(setScriptCmd)
 	setCmd.AddCommand(setSearchTemplateCmd)
+	setCmd.AddCommand(setIlmPolicyCmd)
+	setCmd.AddCommand(setSlmPolicyCmd)
+	setCmd.AddCommand(setTemplateCmd)
+	setCmd.AddCommand(setComponentTemplateCmd)
 	return setCmd
 }

@@ -82,6 +82,36 @@ type ClusterStateRoutingNodes struct {
 	Nodes      map[string][]ClusterStateRoutingIndex `json:"nodes"`
 }
 
+// ClusterRerouteCommands executes explicit reroute commands (allocate_stale_primary,
+// allocate_empty_primary, move, cancel) against the cluster. Each command is a
+// single-key map as accepted by the _cluster/reroute API. When dryRun is true the
+// cluster state is only simulated and returned, not applied.
+func ClusterRerouteCommands(ctx context.Context, commands []map[string]any, dryRun, explain bool) (*Reroute, error) {
+	u := url.URL{Path: "_cluster/reroute"}
+	q := u.Query()
+	q.Set("format", "json")
+	q.Set("dry_run", fmt.Sprintf("%t", dryRun))
+	q.Set("explain", fmt.Sprintf("%t", explain))
+	u.RawQuery = q.Encode()
+
+	body := map[string]any{"commands": commands}
+
+	var out Reroute
+	resp, err := shared.Client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		SetResult(&out).
+		Post(u.String())
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("failed to post cluster reroute: %s - %s", resp.Status(), string(resp.Body()))
+	}
+	return &out, nil
+}
+
 func ClusterReroute(ctx context.Context, metric string, dryRun, explain, retryFailed bool) (*Reroute, error) {
 	u := url.URL{Path: "_cluster/reroute"}
 	q := u.Query()

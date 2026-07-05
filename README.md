@@ -179,6 +179,12 @@ esctl get recovery --indices my-index --detailed
 
 # View segment information
 esctl get segments --indices my-index
+
+# Diagnose unassigned shards: which nodes still hold a copy on disk
+esctl get shard-stores --status red
+
+# Inspect shard copies (and any store corruption) for specific indices
+esctl get shard-stores --indices my-index -o json
 ```
 
 ## Migration
@@ -206,6 +212,44 @@ Common mappings:
 - `esctl security role ...` → `esctl get roles / set role / delete role --name <name>`
 - `esctl reindex start/status/cancel` → `esctl set/get/delete reindex (--task-id for get/delete)`
 - `esctl list <resource>` → `esctl get <resource>`
+- `esctl ilm list/get` → `esctl get ilm-policies [--name <policy>]`
+- `esctl ilm put/delete` → `esctl set/delete ilm-policy --name <policy>`
+- `esctl ilm explain` → `esctl get ilm-explain --index <index>`
+- `esctl ilm retry` → `esctl update ilm-retry --index <index>`
+- `esctl template list/get` → `esctl get templates [--name <template>]`
+- `esctl template put/delete` → `esctl set/delete template --name <template>`
+- `esctl template component list/get` → `esctl get component-templates [--name <name>]`
+- `esctl template component put/delete` → `esctl set/delete component-template --name <name>`
+- `esctl tasks cancel` → `esctl delete task (--task-id <id> | --actions <pattern>)`
+- `esctl index refresh/flush/forcemerge` → `esctl update index refresh/flush/forcemerge`
+
+The old `esctl ilm`, `esctl template`, `esctl tasks cancel`, and `esctl index` commands have been removed; use the verb-first commands shown above.
+
+## Authentication & TLS
+
+`esctl` supports basic auth, API-key auth, and TLS options (as global flags or environment variables):
+
+```shell
+# API key (takes precedence over username/password)
+esctl get nodes --host es.example.com --protocol https --api-key "$(echo -n id:key | base64)"
+export ESCTL_API_KEY="<base64-id:key>"
+
+# Verify the server certificate against a private CA
+esctl get health --protocol https --ca-cert /path/to/ca.pem   # or ESCTL_CA_CERT
+
+# Skip verification (INSECURE — testing/self-signed only; prefer --ca-cert)
+esctl get health --protocol https --insecure
+```
+
+## Shell completion
+
+Cobra-generated completion is available for bash, zsh, fish, and PowerShell:
+
+```shell
+esctl completion zsh  > "${fpath[1]}/_esctl"                 # zsh
+esctl completion bash | sudo tee /etc/bash_completion.d/esctl # bash
+esctl completion fish > ~/.config/fish/completions/esctl.fish # fish
+```
 
 ## Configuration
 

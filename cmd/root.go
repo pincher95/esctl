@@ -14,13 +14,9 @@ import (
 	"github.com/pincher95/esctl/cmd/describe"
 	"github.com/pincher95/esctl/cmd/explain"
 	"github.com/pincher95/esctl/cmd/get"
-	"github.com/pincher95/esctl/cmd/ilm"
-	indexcmd "github.com/pincher95/esctl/cmd/index"
 	"github.com/pincher95/esctl/cmd/profile"
 	"github.com/pincher95/esctl/cmd/query"
 	setcmd "github.com/pincher95/esctl/cmd/set"
-	taskscmd "github.com/pincher95/esctl/cmd/tasks"
-	"github.com/pincher95/esctl/cmd/template"
 	"github.com/pincher95/esctl/cmd/update"
 	"github.com/pincher95/esctl/cmd/version"
 	"github.com/pincher95/esctl/constants"
@@ -52,6 +48,9 @@ func init() {
 	initPasswordFlag()
 
 	RootCmd.PersistentFlags().StringVar(&shared.Context, "context", "", "Override context")
+	RootCmd.PersistentFlags().StringVar(&shared.ElasticsearchAPIKey, "api-key", os.Getenv(constants.ElasticsearchAPIKeyEnvVar), "Elasticsearch API key (Authorization: ApiKey ...); takes precedence over username/password")
+	RootCmd.PersistentFlags().StringVar(&shared.CACertPath, "ca-cert", os.Getenv(constants.ElasticsearchCACertEnvVar), "Path to a PEM CA certificate bundle to verify the server's TLS certificate")
+	RootCmd.PersistentFlags().BoolVar(&shared.TLSInsecure, "insecure", false, "Skip TLS certificate verification (INSECURE; testing only — prefer --ca-cert)")
 	RootCmd.PersistentFlags().BoolVar(&shared.Debug, "debug", false, "Enable debug mode")
 	RootCmd.PersistentFlags().StringVarP(&shared.OutputFormat, "output", "o", "table", "Output format: table|json|yaml")
 	RootCmd.PersistentFlags().DurationVar(&shared.TimeoutDuration, "timeout", 0, "Global timeout for command execution (e.g. 30s, 2m)")
@@ -80,16 +79,12 @@ func init() {
 	RootCmd.AddCommand(delete.Cmd())
 	RootCmd.AddCommand(describe.Cmd())
 	RootCmd.AddCommand(get.Cmd())
-	RootCmd.AddCommand(ilm.Cmd)
 	RootCmd.AddCommand(query.Cmd())
-	RootCmd.AddCommand(template.Cmd)
 	RootCmd.AddCommand(update.Cmd())
 	RootCmd.AddCommand(setcmd.Cmd())
 	RootCmd.AddCommand(analyze.Cmd)
 	RootCmd.AddCommand(explain.Cmd)
 	RootCmd.AddCommand(profile.Cmd)
-	RootCmd.AddCommand(indexcmd.Cmd())
-	RootCmd.AddCommand(taskscmd.Cmd())
 	RootCmd.AddCommand(version.Cmd)
 }
 
@@ -208,13 +203,20 @@ func initClient() error {
 	baseURL := fmt.Sprintf("%s://%s:%d", shared.ElasticsearchProtocol, shared.ElasticsearchHost, shared.ElasticsearchPort)
 
 	cfg := &client.Config{
-		BaseURL:  baseURL,
-		Debug:    shared.Debug,
-		Username: shared.ElasticsearchUsername,
-		Password: shared.ElasticsearchPassword,
-		Timeout:  shared.TimeoutDuration,
+		BaseURL:     baseURL,
+		Debug:       shared.Debug,
+		Username:    shared.ElasticsearchUsername,
+		Password:    shared.ElasticsearchPassword,
+		APIKey:      shared.ElasticsearchAPIKey,
+		CACertPath:  shared.CACertPath,
+		TLSInsecure: shared.TLSInsecure,
+		Timeout:     shared.TimeoutDuration,
 	}
 
-	shared.SetClient(client.NewClient(cfg))
+	cli, err := client.NewClient(cfg)
+	if err != nil {
+		return err
+	}
+	shared.SetClient(cli)
 	return nil
 }

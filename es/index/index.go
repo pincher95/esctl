@@ -13,7 +13,7 @@ type IndexSettingsResponse map[string]any
 type Index interface {
 	UpdateIndexSettings(ctx context.Context, index string, body map[string]any, flatSettings bool) (*IndexSettingsResponse, error)
 	GetAliases(ctx context.Context, index string) (*AliasListResponse, error)
-	CacheClear(ctx context.Context, index string) (*IndexCacheClearResponse, error)
+	CacheClear(ctx context.Context, index string, params map[string]string) (*IndexCacheClearResponse, error)
 	Refresh(ctx context.Context, index string) (*IndexOpResponse, error)
 	Flush(ctx context.Context, index string) (*IndexOpResponse, error)
 	Forcemerge(ctx context.Context, index string, maxNumSegments int, onlyExpungeDeletes bool, flush bool) (*IndexOpResponse, error)
@@ -27,6 +27,7 @@ type Index interface {
 	GetIndexStats(ctx context.Context, indices []string, metric string) (*IndexStatsResponse, error)
 	GetRecovery(ctx context.Context, indices []string, detailed bool) (RecoveryResponse, error)
 	GetSegments(ctx context.Context, indices []string) (*SegmentsResponse, error)
+	GetShardStores(ctx context.Context, indices []string, status string) (*ShardStoresResponse, error)
 }
 
 type index struct{}

@@ -31,4 +31,7 @@ func init() {
 	updateIndexCmd.AddCommand(index.CloneCmd)
 	updateIndexCmd.AddCommand(index.SplitCmd)
 	updateIndexCmd.AddCommand(index.ShrinkCmd)
+	updateIndexCmd.AddCommand(index.RefreshCmd)
+	updateIndexCmd.AddCommand(index.FlushCmd)
+	updateIndexCmd.AddCommand(index.ForcemergeCmd)
 }

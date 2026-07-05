@@ -1,6 +1,10 @@
 package client
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -22,6 +26,13 @@ type Config struct {
 	Debug         bool
 	Username      string
 	Password      string
+	// APIKey, when set, authenticates via "Authorization: ApiKey <key>" and takes
+	// precedence over basic auth.
+	APIKey string
+	// CACertPath is a PEM bundle used to verify the server's TLS certificate.
+	CACertPath string
+	// TLSInsecure disables TLS certificate verification (use only for testing).
+	TLSInsecure bool
 }
 
 // RestyClient is a thin wrapper around *resty.Client that implements ESClient.
@@ -30,7 +41,8 @@ type RestyClient struct {
 }
 
 // NewClient returns an ESClient backed by Resty and configured via Config.
-func NewClient(cfg *Config) ESClient {
+// It returns an error only when TLS material (a CA certificate) cannot be loaded.
+func NewClient(cfg *Config) (ESClient, error) {
 	r := resty.New()
 
 	if cfg.BaseURL != "" {
@@ -45,8 +57,27 @@ func NewClient(cfg *Config) ESClient {
 	r.SetTimeout(timeout)
 	r.SetDebug(cfg.Debug)
 
-	// Configure basic auth if provided
-	if cfg.Username != "" {
+	// TLS: custom CA bundle and/or skip verification.
+	if cfg.TLSInsecure {
+		r.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	}
+	if cfg.CACertPath != "" {
+		pem, err := os.ReadFile(cfg.CACertPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CA certificate %q: %w", cfg.CACertPath, err)
+		}
+		pool := x509.NewCertPool()
+		if !pool.AppendCertsFromPEM(pem) {
+			return nil, fmt.Errorf("no valid certificates found in CA file %q", cfg.CACertPath)
+		}
+		r.SetTLSClientConfig(&tls.Config{RootCAs: pool, InsecureSkipVerify: cfg.TLSInsecure})
+	}
+
+	// Auth: API key takes precedence over basic auth.
+	if cfg.APIKey != "" {
+		r.SetAuthScheme("ApiKey")
+		r.SetAuthToken(cfg.APIKey)
+	} else if cfg.Username != "" {
 		r.SetBasicAuth(cfg.Username, cfg.Password)
 	}
 
@@ -71,7 +102,7 @@ func NewClient(cfg *Config) ESClient {
 			return r.StatusCode() >= 500
 		})
 
-	return &RestyClient{r}
+	return &RestyClient{r}, nil
 }
 
 // Compile-time assertion that RestyClient satisfies ESClient.

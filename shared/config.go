@@ -15,6 +15,9 @@ var (
 	ElasticsearchPassword string
 	ElasticsearchHost     string
 	ElasticsearchPort     int
+	ElasticsearchAPIKey   string
+	CACertPath            string
+	TLSInsecure           bool
 	Debug                 bool
 	TimeoutDuration       time.Duration
 	OutputFormat          string
