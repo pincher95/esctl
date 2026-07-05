@@ -30,6 +30,11 @@ var RootCmd = &cobra.Command{
 	Use:   "esctl",
 	Short: "esctl is CLI for Elasticsearch",
 	Long:  `esctl is CLI for Elasticsearch that allows users to manage and monitor their Elasticsearch clusters.`,
+	// main() is the single error reporter: it prints runtime errors to stderr and
+	// exits quietly on user interruption. Silencing cobra avoids a duplicate
+	// "Error: ..." line and a noisy usage dump on every runtime failure.
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 type cancelContextKey struct{}

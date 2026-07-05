@@ -99,6 +99,9 @@ type RestoreSnapshotRequest struct {
 	IncludeAliases      bool           `json:"include_aliases,omitempty"`
 	IndexSettings       map[string]any `json:"index_settings,omitempty"`
 	IgnoreIndexSettings []string       `json:"ignore_index_settings,omitempty"`
+	// RenameAliasPattern/Replacement rewrite alias names on restore (OpenSearch).
+	RenameAliasPattern     string `json:"rename_alias_pattern,omitempty"`
+	RenameAliasReplacement string `json:"rename_alias_replacement,omitempty"`
 }
 
 // ListRepositories gets all snapshot repositories
@@ -292,12 +295,22 @@ func SnapshotStatus(ctx context.Context, repository, snapshot string) (SnapshotS
 	return result, nil
 }
 
-// RestoreSnapshot restores a snapshot
+// RestoreSnapshot restores a snapshot.
 func RestoreSnapshot(ctx context.Context, repository, snapshot string, request RestoreSnapshotRequest, waitForCompletion bool) error {
+	return RestoreSnapshotWithTimeout(ctx, repository, snapshot, request, waitForCompletion, "")
+}
+
+// RestoreSnapshotWithTimeout restores a snapshot, optionally bounding how long the
+// request waits for the cluster manager (master). An empty clusterManagerTimeout
+// uses the server default.
+func RestoreSnapshotWithTimeout(ctx context.Context, repository, snapshot string, request RestoreSnapshotRequest, waitForCompletion bool, clusterManagerTimeout string) error {
 	u := url.URL{Path: fmt.Sprintf("_snapshot/%s/%s/_restore", repository, snapshot)}
 	q := u.Query()
 	if waitForCompletion {
 		q.Set("wait_for_completion", "true")
+	}
+	if clusterManagerTimeout != "" {
+		q.Set("cluster_manager_timeout", clusterManagerTimeout)
 	}
 	u.RawQuery = q.Encode()
 
@@ -311,7 +324,7 @@ func RestoreSnapshot(ctx context.Context, repository, snapshot string, request R
 	}
 
 	if resp.StatusCode() != 200 && resp.StatusCode() != 202 {
-		return fmt.Errorf("failed to restore snapshot %s: %s", snapshot, resp.Status())
+		return fmt.Errorf("failed to restore snapshot %s: %s - %s", snapshot, resp.Status(), string(resp.Body()))
 	}
 
 	return nil

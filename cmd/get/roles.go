@@ -22,14 +22,14 @@ var getRolesCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-
-		// If a specific role name is provided, get that role
-		if flagRolesName != "" {
-			return security.HandleRoleGet(ctx, flagRolesName)
-		}
-
-		// Otherwise, list all roles (with optional filtering)
-		return security.HandleRoleList(ctx, "")
+		return runWithWatch(ctx, func() error {
+			// If a specific role name is provided, get that role
+			if flagRolesName != "" {
+				return security.HandleRoleGet(ctx, flagRolesName)
+			}
+			// Otherwise, list all roles (with optional filtering)
+			return security.HandleRoleList(ctx, "")
+		})
 	},
 }
 

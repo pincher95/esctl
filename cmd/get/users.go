@@ -22,14 +22,14 @@ var getUsersCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-
-		// If a specific user name is provided, get that user
-		if flagUsersName != "" {
-			return security.HandleUserGet(ctx, flagUsersName)
-		}
-
-		// Otherwise, list all users (with optional filtering)
-		return security.HandleUserList(ctx, "")
+		return runWithWatch(ctx, func() error {
+			// If a specific user name is provided, get that user
+			if flagUsersName != "" {
+				return security.HandleUserGet(ctx, flagUsersName)
+			}
+			// Otherwise, list all users (with optional filtering)
+			return security.HandleUserList(ctx, "")
+		})
 	},
 }
 

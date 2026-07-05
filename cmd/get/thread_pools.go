@@ -35,7 +35,9 @@ var getThreadPoolsCmd = &cobra.Command{
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		return handleGetThreadPoolsLogic(ctx, flagThreadPoolsNode)
+		return runWithWatch(ctx, func() error {
+			return handleGetThreadPoolsLogic(ctx, flagThreadPoolsNode)
+		})
 	},
 }
 

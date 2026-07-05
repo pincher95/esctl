@@ -17,7 +17,10 @@ var getSnapshotReposCmd = &cobra.Command{
 	esctl get snapshot-repos --name backup
 	`),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return snapshot.HandleRepoList(cmd.Context(), getSnapshotReposName)
+		ctx := cmd.Context()
+		return runWithWatch(ctx, func() error {
+			return snapshot.HandleRepoList(ctx, getSnapshotReposName)
+		})
 	},
 }
 
