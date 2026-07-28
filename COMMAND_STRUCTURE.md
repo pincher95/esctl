@@ -208,9 +208,17 @@ esctl update reroute cancel --index <idx> --shard 0 --node <n> [--allow-primary]
 esctl update reroute allocate-stale-primary --index <idx> --shard 0 --node <n> --accept-data-loss
 esctl update reroute allocate-empty-primary --index <idx> --shard 0 --node <n> --accept-data-loss
 
-# When no in-cluster copy survives, restore the red indices from a snapshot (batched,
-# closes each batch first, optional alias rename):
+# When no in-cluster copy survives, restore the red indices from a snapshot. Each batch is
+# closed, the restore is submitted asynchronously, then the batch is polled until its indices
+# are open and no longer red (so client/proxy timeouts cannot break a long restore).
 esctl update restore-red --repository <repo> --snapshot <snap> --pattern "logz-*" [--dry-run]
+
+# Rename restored aliases so they cannot collide with live write-aliases:
+esctl update restore-red --repository <repo> --snapshot <snap> --pattern "logz-*" \
+  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement "old-\$1-alias"
+
+# Pick up indices left closed by an interrupted earlier run:
+esctl update restore-red --repository <repo> --snapshot <snap> --pattern "logz-*" --include-closed
 ```
 
 ## Watch mode

@@ -4,7 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -94,15 +96,35 @@ func NewClient(cfg *Config) (ESClient, error) {
 	r.SetRetryCount(retryCount).
 		SetRetryWaitTime(retryWaitTime).
 		SetRetryMaxWaitTime(10 * time.Second).
-		AddRetryCondition(func(r *resty.Response, err error) bool {
-			// Retry on network errors or 5xx status codes
+		AddRetryCondition(func(resp *resty.Response, err error) bool {
+			// Only retry requests that are safe to repeat. Re-sending a timed-out
+			// mutation can duplicate work the server already accepted — e.g. a
+			// snapshot restore that had already started, whose retry then fails
+			// with "an open index with same name already exists".
+			if resp == nil || resp.Request == nil || !isRetryableMethod(resp.Request.Method) {
+				return false
+			}
+			// Retry on network errors (including timeouts) or 5xx status codes.
 			if err != nil {
 				return true
 			}
-			return r.StatusCode() >= 500
+			return resp.StatusCode() >= 500
 		})
 
 	return &RestyClient{r}, nil
+}
+
+// isRetryableMethod reports whether a request with this method can be safely
+// re-sent. Only read-only methods qualify: Elasticsearch write endpoints are not
+// reliably idempotent (creating a snapshot or restoring one twice errors out), so
+// POST/PUT/PATCH/DELETE are never retried automatically.
+func isRetryableMethod(method string) bool {
+	switch strings.ToUpper(method) {
+	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
+		return true
+	default:
+		return false
+	}
 }
 
 // Compile-time assertion that RestyClient satisfies ESClient.
