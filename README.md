@@ -252,6 +252,22 @@ esctl get health --protocol https --ca-cert /path/to/ca.pem   # or ESCTL_CA_CERT
 esctl get health --protocol https --insecure
 ```
 
+## Timeouts on slow clusters
+
+Requests use a 60s timeout by default. A few read-only endpoints are legitimately slower than
+that — listing snapshots in a large repository reads metadata from remote storage, and cluster
+stats on a big cluster can take a while — so raise the limit for those calls:
+
+```shell
+esctl get snapshot --repository es-snapshots --timeout 5m
+```
+
+`--timeout` bounds both the overall command and each HTTP request. Timed-out requests are
+**not** retried: a timeout means the cluster is slow, and re-sending the same expensive query
+would only add load. Read-only requests are still retried on connection errors and 5xx, while
+writes (POST/PUT/DELETE) are never retried automatically, since re-sending a restore or snapshot
+create is not safe.
+
 ## Shell completion
 
 Cobra-generated completion is available for bash, zsh, fish, and PowerShell:

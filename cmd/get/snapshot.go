@@ -87,7 +87,7 @@ func handleSnapshotList(ctx context.Context, repository string) error {
 	}
 	snapshots, err := snapshotsClient.CatSnapshots(ctx, "", repository, filter)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve indices: %w", err)
+		return fmt.Errorf("failed to retrieve snapshots in repository %q: %w", repository, err)
 	}
 
 	columnDefs, err := getColumnDefs(*conf, "end_epoch", snapshotsColumns)

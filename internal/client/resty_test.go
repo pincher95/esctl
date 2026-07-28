@@ -59,6 +59,35 @@ func TestNoRetryOnMutatingRequest(t *testing.T) {
 	}
 }
 
+// A client-side timeout means the server is slow, not that the connection blipped.
+// Re-sending re-runs the same expensive query and adds load, so it is not retried
+// even for a read-only request.
+func TestNoRetryOnTimeout(t *testing.T) {
+	var hits int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&hits, 1)
+		time.Sleep(300 * time.Millisecond)
+	}))
+	defer srv.Close()
+
+	cli, err := NewClient(&Config{
+		BaseURL:       srv.URL,
+		RetryCount:    3,
+		RetryWaitTime: time.Millisecond,
+		Timeout:       50 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+
+	if _, err := cli.R().Get("/_cat/snapshots/repo"); err == nil {
+		t.Fatal("expected a timeout error, got nil")
+	}
+	if got := atomic.LoadInt32(&hits); got != 1 {
+		t.Errorf("timed-out GET was sent %d times; want exactly 1 (no retry on timeout)", got)
+	}
+}
+
 // Read-only requests are safe to repeat, so 5xx responses are still retried.
 func TestRetryOnReadOnlyRequest(t *testing.T) {
 	var hits int32

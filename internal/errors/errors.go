@@ -1,9 +1,13 @@
 package errors
 
 import (
+	"context"
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
+	"net"
 	"net/http"
+	"os"
 )
 
 // ESError represents a structured Elasticsearch/OpenSearch error
@@ -60,6 +64,23 @@ func NewESError(statusCode int, body []byte) *ESError {
 	}
 
 	return err
+}
+
+// IsTimeout reports whether err was caused by the client giving up waiting (the
+// request exceeded the client/--timeout deadline) rather than by a response from
+// the server. Such a request may still be running on the cluster.
+func IsTimeout(err error) bool {
+	if err == nil {
+		return false
+	}
+	if stderrors.Is(err, context.DeadlineExceeded) || stderrors.Is(err, os.ErrDeadlineExceeded) {
+		return true
+	}
+	var netErr net.Error
+	if stderrors.As(err, &netErr) {
+		return netErr.Timeout()
+	}
+	return false
 }
 
 // IsAuthError checks if the error is authentication-related

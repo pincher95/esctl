@@ -10,7 +10,20 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	eserrors "github.com/pincher95/esctl/internal/errors"
 )
+
+// DefaultTimeout is the per-request timeout used when none is configured. It is
+// deliberately forgiving: several read-only ES endpoints (_cat/snapshots,
+// _cluster/stats on large clusters) can take tens of seconds to answer.
+const DefaultTimeout = 60 * time.Second
+
+// silentLogger discards resty's internal logging when debug mode is off.
+type silentLogger struct{}
+
+func (silentLogger) Errorf(string, ...any) {}
+func (silentLogger) Warnf(string, ...any)  {}
+func (silentLogger) Debugf(string, ...any) {}
 
 // ESClient is the minimal contract the rest of the codebase relies on.
 // Having this interface makes it easy to replace the implementation in unit tests.
@@ -51,13 +64,21 @@ func NewClient(cfg *Config) (ESClient, error) {
 		r.SetBaseURL(cfg.BaseURL)
 	}
 
-	// Set default timeout if not specified
+	// Set default timeout if not specified. Some read-only Elasticsearch endpoints
+	// are legitimately slow (listing snapshots in a large repository reads metadata
+	// from remote storage), so the default is generous; raise it with --timeout.
 	timeout := cfg.Timeout
 	if timeout == 0 {
-		timeout = 30 * time.Second
+		timeout = DefaultTimeout
 	}
 	r.SetTimeout(timeout)
 	r.SetDebug(cfg.Debug)
+
+	// resty logs retries and transport errors on its own logger. esctl reports
+	// errors itself, so keep resty's output for --debug only.
+	if !cfg.Debug {
+		r.SetLogger(silentLogger{})
+	}
 
 	// TLS: custom CA bundle and/or skip verification.
 	if cfg.TLSInsecure {
@@ -104,9 +125,12 @@ func NewClient(cfg *Config) (ESClient, error) {
 			if resp == nil || resp.Request == nil || !isRetryableMethod(resp.Request.Method) {
 				return false
 			}
-			// Retry on network errors (including timeouts) or 5xx status codes.
 			if err != nil {
-				return true
+				// A timeout means the server is slow, not that the connection
+				// blipped: re-sending re-runs the same expensive query and adds
+				// load to an already-struggling cluster, so surface it instead
+				// and let the caller raise --timeout.
+				return !eserrors.IsTimeout(err)
 			}
 			return resp.StatusCode() >= 500
 		})
