@@ -18,6 +18,11 @@ var (
 	restoreRedRepo            string
 	restoreRedSnapshot        string
 	restoreRedPattern         string
+	restoreRedAliasPattern    string
+	restoreRedExcludeToday    bool
+	restoreRedReplicas        int
+	restoreRedBoxType         string
+	restoreRedIgnoreSettings  []string
 	restoreRedBatchSize       int
 	restoreRedClose           bool
 	restoreRedRenameAliasPat  string
@@ -48,7 +53,14 @@ Indices that are closed and present in the snapshot are reported but skipped by 
 --include-closed to restore them too (an interrupted earlier run can leave indices closed).
 
 This is the snapshot-based counterpart to the shard-recovery flow (get shard-stores / update
-reroute): use it when no in-cluster copy survives but the data exists in a snapshot.`),
+reroute): use it when no in-cluster copy survives but the data exists in a snapshot.
+
+Instead of selecting red indices with --pattern, --alias-pattern selects every index currently
+backing a matching alias (e.g. "logz-*-write-alias"), whatever its health — the disaster-recovery
+flow where active indices are re-seeded from the last snapshot. In this mode closed indices are
+restored too, and --exclude-today-tomorrow skips indices still being written (names carrying
+today's or tomorrow's yymmdd date). --restore-replicas, --box-type and --ignore-index-setting
+override index settings on the restored indices.`),
 	Example: utils.TrimAndIndent(`
 # Preview what would be restored
 esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-*" --dry-run
@@ -59,8 +71,26 @@ esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-
 
 # Also pick up indices left closed by an interrupted earlier run
 esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-*" --include-closed
+
+# DR flow: re-seed all write-alias indices from the snapshot, move their aliases out
+# of the way, drop replicas, and re-pin allocation to the default/ingestion tier
+esctl update restore-red --repository my-repo --snapshot snap-1 \
+  --alias-pattern "logz-*-write-alias" --exclude-today-tomorrow \
+  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement "old-$1-alias" \
+  --restore-replicas 0 --box-type "default,ingestion" \
+  --ignore-index-setting index.routing.allocation.total_shards_per_node \
+  --ignore-index-setting index.routing.allocation.require._ip
 `),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := validateSelectionFlags(restoreRedPattern, restoreRedAliasPattern); err != nil {
+			return err
+		}
+		aliasMode := restoreRedAliasPattern != ""
+		catPattern := restoreRedPattern
+		if aliasMode {
+			catPattern = restoreRedAliasPattern
+		}
+
 		ctx := cmd.Context()
 
 		snapResp, err := snapshots.GetSnapshot(ctx, restoreRedRepo, restoreRedSnapshot)
@@ -76,38 +106,33 @@ esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-
 		}
 
 		catClient := cat.NewCat()
-		indices, err := catClient.CatIndices(ctx, "", restoreRedPattern, "")
+		indices, err := catClient.CatIndices(ctx, "", catPattern, "")
 		if err != nil {
-			return fmt.Errorf("failed to list indices for pattern %q: %w", restoreRedPattern, err)
+			return fmt.Errorf("failed to list indices for pattern %q: %w", catPattern, err)
 		}
 
-		var toRestore, closedSkipped []string
-		for _, i := range indices {
-			if !inSnapshot[i.Index] {
-				continue
-			}
-			switch {
-			case isClosedIndex(i):
-				// A closed index is not serving traffic. It is often the residue of an
-				// interrupted restore, but it can also be closed deliberately, so it is
-				// only restored when explicitly requested.
-				if restoreRedIncludeClosed {
-					toRestore = append(toRestore, i.Index)
-				} else {
-					closedSkipped = append(closedSkipped, i.Index)
-				}
-			case strings.EqualFold(i.Health, "red"):
-				toRestore = append(toRestore, i.Index)
-			}
+		var exclusions []string
+		if restoreRedExcludeToday {
+			exclusions = dateExclusions(time.Now())
 		}
+		sel := selectIndices(indices, inSnapshot, aliasMode, restoreRedIncludeClosed, exclusions)
 
-		if len(closedSkipped) > 0 {
+		if len(sel.dateExcluded) > 0 {
+			fmt.Printf("note: %d index(es) skipped: their names carry today's or tomorrow's date, so they are still being written.\n",
+				len(sel.dateExcluded))
+		}
+		if len(sel.notInSnapshot) > 0 {
+			fmt.Printf("note: %d index(es) are not in the snapshot and cannot be restored from it: %s\n",
+				len(sel.notInSnapshot), strings.Join(sel.notInSnapshot, ", "))
+		}
+		if len(sel.closedSkipped) > 0 {
 			fmt.Printf("note: %d matching index(es) in the snapshot are closed and were skipped.\n"+
 				"      An interrupted earlier run can leave indices closed; re-run with --include-closed to restore them.\n",
-				len(closedSkipped))
+				len(sel.closedSkipped))
 		}
+		toRestore := sel.toRestore
 		if len(toRestore) == 0 {
-			fmt.Println("Nothing to restore: no red indices matching the pattern are present in the snapshot.")
+			fmt.Println("Nothing to restore: no matching indices are present in the snapshot.")
 			return nil
 		}
 		sort.Sort(sort.Reverse(sort.StringSlice(toRestore)))
@@ -144,12 +169,9 @@ esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-
 				}
 			}
 
-			req := snapshots.RestoreSnapshotRequest{
-				Indices:                joined,
-				IncludeAliases:         restoreRedIncludeAliases,
-				RenameAliasPattern:     restoreRedRenameAliasPat,
-				RenameAliasReplacement: restoreRedRenameAliasRepl,
-			}
+			req := buildRestoreRequest(joined, restoreRedIncludeAliases,
+				restoreRedRenameAliasPat, restoreRedRenameAliasRepl,
+				restoreRedReplicas, restoreRedBoxType, restoreRedIgnoreSettings)
 			// Submitted asynchronously: the request returns as soon as the cluster
 			// accepts the restore, keeping the HTTP call short. Progress is then
 			// observed by polling, which survives client and proxy timeouts.
@@ -160,7 +182,7 @@ esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-
 			if !restoreRedWait {
 				continue
 			}
-			if err := waitForBatch(ctx, catClient, restoreRedPattern, b, label); err != nil {
+			if err := waitForBatch(ctx, catClient, pollPatternFor(aliasMode, restoreRedPattern), b, label); err != nil {
 				return fmt.Errorf("%s: %w", label, err)
 			}
 		}
@@ -368,7 +390,12 @@ func validateSelectionFlags(pattern, aliasPattern string) error {
 func init() {
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedRepo, "repository", "", "Snapshot repository (required)")
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedSnapshot, "snapshot", "", "Snapshot name (required)")
-	updateRestoreRedCmd.Flags().StringVar(&restoreRedPattern, "pattern", "", "Index pattern to match red indices (required)")
+	updateRestoreRedCmd.Flags().StringVar(&restoreRedPattern, "pattern", "", "Index pattern to match red indices (exactly one of --pattern/--alias-pattern is required)")
+	updateRestoreRedCmd.Flags().StringVar(&restoreRedAliasPattern, "alias-pattern", "", "Select every index backing an alias that matches this pattern, regardless of health (exactly one of --pattern/--alias-pattern is required)")
+	updateRestoreRedCmd.Flags().BoolVar(&restoreRedExcludeToday, "exclude-today-tomorrow", false, "Skip indices whose names contain today's or tomorrow's date (yymmdd, local time)")
+	updateRestoreRedCmd.Flags().IntVar(&restoreRedReplicas, "restore-replicas", -1, "Override index.number_of_replicas on restored indices (-1 keeps the snapshot value)")
+	updateRestoreRedCmd.Flags().StringVar(&restoreRedBoxType, "box-type", "", "Set index.routing.allocation.include.box_type on restored indices (e.g. \"default,ingestion\")")
+	updateRestoreRedCmd.Flags().StringArrayVar(&restoreRedIgnoreSettings, "ignore-index-setting", nil, "Index setting to drop from the snapshot on restore (repeatable), e.g. index.routing.allocation.total_shards_per_node")
 	updateRestoreRedCmd.Flags().IntVar(&restoreRedBatchSize, "batch-size", 50, "Number of indices to restore per batch")
 	updateRestoreRedCmd.Flags().BoolVar(&restoreRedClose, "close", true, "Close each index before restoring it")
 	updateRestoreRedCmd.Flags().BoolVar(&restoreRedIncludeClosed, "include-closed", false, "Also restore matching indices that are currently closed")
@@ -382,7 +409,6 @@ func init() {
 	updateRestoreRedCmd.Flags().BoolVar(&restoreRedDryRun, "dry-run", false, "Show what would be restored without changing anything")
 	_ = updateRestoreRedCmd.MarkFlagRequired("repository")
 	_ = updateRestoreRedCmd.MarkFlagRequired("snapshot")
-	_ = updateRestoreRedCmd.MarkFlagRequired("pattern")
 
 	updateCmd.AddCommand(updateRestoreRedCmd)
 }
