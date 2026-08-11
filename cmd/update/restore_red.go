@@ -67,7 +67,7 @@ esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-
 
 # Restore red indices, renaming write-aliases so they don't collide with live ones
 esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-*" \
-  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement "old-$1-alias"
+  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement 'old-$1-alias'
 
 # Also pick up indices left closed by an interrupted earlier run
 esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-*" --include-closed
@@ -76,7 +76,7 @@ esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-
 # of the way, drop replicas, and re-pin allocation to the default/ingestion tier
 esctl update restore-red --repository my-repo --snapshot snap-1 \
   --alias-pattern "logz-*-write-alias" --exclude-today-tomorrow \
-  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement "old-$1-alias" \
+  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement 'old-$1-alias' \
   --restore-replicas 0 --box-type "default,ingestion" \
   --ignore-index-setting index.routing.allocation.total_shards_per_node \
   --ignore-index-setting index.routing.allocation.require._ip
@@ -123,7 +123,7 @@ esctl update restore-red --repository my-repo --snapshot snap-1 \
 		}
 		if len(sel.notInSnapshot) > 0 {
 			fmt.Printf("note: %d index(es) are not in the snapshot and cannot be restored from it: %s\n",
-				len(sel.notInSnapshot), strings.Join(sel.notInSnapshot, ", "))
+				len(sel.notInSnapshot), previewList(sel.notInSnapshot, 5))
 		}
 		if len(sel.closedSkipped) > 0 {
 			fmt.Printf("note: %d matching index(es) in the snapshot are closed and were skipped.\n"+
@@ -141,6 +141,10 @@ esctl update restore-red --repository my-repo --snapshot snap-1 \
 			fmt.Println("warning: aliases are restored as-is (--include-aliases is on and no --rename-alias-pattern was given);\n" +
 				"         a restored write-alias can collide with the alias of a live index. Pass --rename-alias-pattern/" +
 				"--rename-alias-replacement,\n         or --include-aliases=false, to avoid this.")
+		}
+		if aliasMode && restoreRedClose && sel.openToRestore > 0 {
+			fmt.Printf("warning: alias mode selected %d currently-open index(es); each will be closed before being restored over.\n"+
+				"         Double-check --alias-pattern, and use --dry-run to preview.\n", sel.openToRestore)
 		}
 
 		batches := batchStrings(toRestore, restoreRedBatchSize)
@@ -300,6 +304,7 @@ type selection struct {
 	closedSkipped []string
 	notInSnapshot []string
 	dateExcluded  []string
+	openToRestore int
 }
 
 // selectIndices classifies candidates for restore. Alias mode takes every
@@ -340,6 +345,9 @@ func selectIndices(indices []cat.CatIndiceResponse, inSnapshot map[string]bool, 
 			continue
 		}
 		sel.toRestore = append(sel.toRestore, i.Index)
+		if aliasMode && !isClosedIndex(i) {
+			sel.openToRestore++
+		}
 	}
 	return sel
 }
@@ -411,4 +419,12 @@ func init() {
 	_ = updateRestoreRedCmd.MarkFlagRequired("snapshot")
 
 	updateCmd.AddCommand(updateRestoreRedCmd)
+}
+
+// previewList renders up to max items, then ", and N more" for the rest.
+func previewList(items []string, max int) string {
+	if len(items) <= max {
+		return strings.Join(items, ", ")
+	}
+	return fmt.Sprintf("%s, and %d more", strings.Join(items[:max], ", "), len(items)-max)
 }

@@ -109,6 +109,67 @@ func TestSelectIndicesAliasMode(t *testing.T) {
 	if len(sel.closedSkipped) != 0 || len(sel.dateExcluded) != 0 {
 		t.Errorf("unexpected closedSkipped=%v dateExcluded=%v", sel.closedSkipped, sel.dateExcluded)
 	}
+	// openToRestore counts only the open indices among toRestore: logz-green and
+	// logz-red are open, logz-closed is closed, logz-nosnap never lands in
+	// toRestore because it is absent from the snapshot.
+	if sel.openToRestore != 2 {
+		t.Errorf("openToRestore = %d, want 2", sel.openToRestore)
+	}
+}
+
+func TestSelectIndicesOpenToRestoreZeroInPatternMode(t *testing.T) {
+	indices := []cat.CatIndiceResponse{
+		catIdx("logz-red", "red", "open"),
+		catIdx("logz-closed", "red", "close"),
+	}
+	inSnap := map[string]bool{"logz-red": true, "logz-closed": true}
+
+	sel := selectIndices(indices, inSnap, false, true, nil)
+	if want := []string{"logz-red", "logz-closed"}; !reflect.DeepEqual(sel.toRestore, want) {
+		t.Fatalf("toRestore = %v, want %v", sel.toRestore, want)
+	}
+	if sel.openToRestore != 0 {
+		t.Errorf("openToRestore = %d, want 0 in pattern mode", sel.openToRestore)
+	}
+}
+
+// TestSelectIndicesPatternModeClosedNotInSnapshotDropped pins existing behavior:
+// a closed index that is neither included via --include-closed nor present in
+// the snapshot is silently dropped from every bucket, since closedSkipped is
+// only populated for closed indices that ARE in the snapshot.
+func TestSelectIndicesPatternModeClosedNotInSnapshotDropped(t *testing.T) {
+	indices := []cat.CatIndiceResponse{
+		catIdx("logz-closed-nosnap", "red", "close"),
+	}
+	sel := selectIndices(indices, map[string]bool{}, false, false, nil)
+	if len(sel.toRestore) != 0 {
+		t.Errorf("toRestore = %v, want empty", sel.toRestore)
+	}
+	if len(sel.closedSkipped) != 0 {
+		t.Errorf("closedSkipped = %v, want empty", sel.closedSkipped)
+	}
+	if len(sel.notInSnapshot) != 0 {
+		t.Errorf("notInSnapshot = %v, want empty", sel.notInSnapshot)
+	}
+}
+
+// TestSelectIndicesPatternModeExclusionOverridesSnapshotMatch confirms date
+// exclusion is checked before mode-specific candidacy: a red, in-snapshot
+// index whose name carries an excluded date stamp is set aside as
+// dateExcluded rather than restored, regardless of selection mode.
+func TestSelectIndicesPatternModeExclusionOverridesSnapshotMatch(t *testing.T) {
+	indices := []cat.CatIndiceResponse{
+		catIdx("logz-a-260811-000001", "red", "open"),
+	}
+	inSnap := map[string]bool{"logz-a-260811-000001": true}
+
+	sel := selectIndices(indices, inSnap, false, false, []string{"260811"})
+	if len(sel.toRestore) != 0 {
+		t.Errorf("toRestore = %v, want empty", sel.toRestore)
+	}
+	if want := []string{"logz-a-260811-000001"}; !reflect.DeepEqual(sel.dateExcluded, want) {
+		t.Errorf("dateExcluded = %v, want %v", sel.dateExcluded, want)
+	}
 }
 
 func TestSelectIndicesDateExclusion(t *testing.T) {
@@ -171,6 +232,22 @@ func TestBuildRestoreRequestNoOverrides(t *testing.T) {
 	}
 }
 
+func TestBuildRestoreRequestReplicasOnly(t *testing.T) {
+	req := buildRestoreRequest("a", true, "", "", 2, "", nil)
+	want := map[string]any{"index.number_of_replicas": 2}
+	if !reflect.DeepEqual(req.IndexSettings, want) {
+		t.Errorf("IndexSettings = %v, want %v", req.IndexSettings, want)
+	}
+}
+
+func TestBuildRestoreRequestBoxTypeOnly(t *testing.T) {
+	req := buildRestoreRequest("a", true, "", "", -1, "warm", nil)
+	want := map[string]any{"index.routing.allocation.include.box_type": "warm"}
+	if !reflect.DeepEqual(req.IndexSettings, want) {
+		t.Errorf("IndexSettings = %v, want %v", req.IndexSettings, want)
+	}
+}
+
 func TestPollPatternFor(t *testing.T) {
 	// Alias mode polls "*": a restored index whose write-alias was renamed no
 	// longer matches the alias pattern and would look complete while red.
@@ -179,6 +256,18 @@ func TestPollPatternFor(t *testing.T) {
 	}
 	if got := pollPatternFor(false, "logz-*"); got != "logz-*" {
 		t.Errorf("pattern mode poll pattern = %q, want logz-*", got)
+	}
+}
+
+func TestPreviewList(t *testing.T) {
+	if got, want := previewList([]string{"a", "b"}, 5), "a, b"; got != want {
+		t.Errorf("fewer than max: previewList = %q, want %q", got, want)
+	}
+	if got, want := previewList([]string{"a", "b", "c", "d", "e"}, 5), "a, b, c, d, e"; got != want {
+		t.Errorf("exactly max: previewList = %q, want %q", got, want)
+	}
+	if got, want := previewList([]string{"a", "b", "c", "d", "e", "f", "g"}, 5), "a, b, c, d, e, and 2 more"; got != want {
+		t.Errorf("more than max: previewList = %q, want %q", got, want)
 	}
 }
 
