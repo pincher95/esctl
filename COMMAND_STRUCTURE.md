@@ -219,6 +219,14 @@ esctl update restore-red --repository <repo> --snapshot <snap> --pattern "logz-*
 
 # Pick up indices left closed by an interrupted earlier run:
 esctl update restore-red --repository <repo> --snapshot <snap> --pattern "logz-*" --include-closed
+
+# DR flow: re-seed all write-alias indices from the snapshot with settings overrides
+esctl update restore-red --repository <repo> --snapshot <snap> \
+  --alias-pattern "logz-*-write-alias" --exclude-today-tomorrow \
+  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement "old-$1-alias" \
+  --restore-replicas 0 --box-type "default,ingestion" \
+  --ignore-index-setting index.routing.allocation.total_shards_per_node \
+  --ignore-index-setting index.routing.allocation.require._ip
 ```
 
 ## Watch mode

@@ -196,6 +196,14 @@ esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-
 # An interrupted run can leave indices closed (they are reported, and skipped by
 # default); this picks them up as well:
 esctl update restore-red --repository my-repo --snapshot snap-1 --pattern "logz-*" --include-closed
+
+# DR flow: re-seed all write-alias indices from the snapshot with settings overrides
+esctl update restore-red --repository my-repo --snapshot snap-1 \
+  --alias-pattern "logz-*-write-alias" --exclude-today-tomorrow \
+  --rename-alias-pattern "logz-(.+)-write-alias" --rename-alias-replacement "old-$1-alias" \
+  --restore-replicas 0 --box-type "default,ingestion" \
+  --ignore-index-setting index.routing.allocation.total_shards_per_node \
+  --ignore-index-setting index.routing.allocation.require._ip
 ```
 
 ## Migration
