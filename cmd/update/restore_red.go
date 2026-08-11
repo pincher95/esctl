@@ -272,6 +272,56 @@ func containsAny(s string, subs []string) bool {
 	return false
 }
 
+// selection classifies the candidate indices for a restore run.
+type selection struct {
+	toRestore     []string
+	closedSkipped []string
+	notInSnapshot []string
+	dateExcluded  []string
+}
+
+// selectIndices classifies candidates for restore. Alias mode takes every
+// index regardless of health or open/closed state; pattern mode keeps the
+// original semantics (red indices, closed ones only with includeClosed).
+// Indices whose names carry an excluded date stamp are set aside first, and
+// candidates absent from the snapshot are reported rather than restored.
+func selectIndices(indices []cat.CatIndiceResponse, inSnapshot map[string]bool, aliasMode, includeClosed bool, exclusions []string) selection {
+	var sel selection
+	for _, i := range indices {
+		if containsAny(i.Index, exclusions) {
+			sel.dateExcluded = append(sel.dateExcluded, i.Index)
+			continue
+		}
+
+		candidate := false
+		switch {
+		case aliasMode:
+			candidate = true
+		case isClosedIndex(i):
+			// A closed index is not serving traffic. It is often the residue
+			// of an interrupted restore, but it can also be closed
+			// deliberately, so it is only restored when explicitly requested.
+			if includeClosed {
+				candidate = true
+			} else if inSnapshot[i.Index] {
+				sel.closedSkipped = append(sel.closedSkipped, i.Index)
+			}
+		case strings.EqualFold(i.Health, "red"):
+			candidate = true
+		}
+		if !candidate {
+			continue
+		}
+
+		if !inSnapshot[i.Index] {
+			sel.notInSnapshot = append(sel.notInSnapshot, i.Index)
+			continue
+		}
+		sel.toRestore = append(sel.toRestore, i.Index)
+	}
+	return sel
+}
+
 func init() {
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedRepo, "repository", "", "Snapshot repository (required)")
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedSnapshot, "snapshot", "", "Snapshot name (required)")

@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/pincher95/esctl/es/cat"
 )
 
 func TestBatchStrings(t *testing.T) {
@@ -48,5 +50,81 @@ func TestContainsAny(t *testing.T) {
 	}
 	if containsAny("logz-abc-260811", nil) {
 		t.Error("nil exclusions must never match")
+	}
+}
+
+func catIdx(name, health, status string) cat.CatIndiceResponse {
+	return cat.CatIndiceResponse{Index: name, Health: health, Status: status}
+}
+
+func TestSelectIndicesPatternMode(t *testing.T) {
+	indices := []cat.CatIndiceResponse{
+		catIdx("logz-red", "red", "open"),
+		catIdx("logz-green", "green", "open"),
+		catIdx("logz-closed", "red", "close"),
+		catIdx("logz-red-nosnap", "red", "open"),
+	}
+	inSnap := map[string]bool{"logz-red": true, "logz-closed": true}
+
+	sel := selectIndices(indices, inSnap, false, false, nil)
+	if want := []string{"logz-red"}; !reflect.DeepEqual(sel.toRestore, want) {
+		t.Errorf("toRestore = %v, want %v", sel.toRestore, want)
+	}
+	if want := []string{"logz-closed"}; !reflect.DeepEqual(sel.closedSkipped, want) {
+		t.Errorf("closedSkipped = %v, want %v", sel.closedSkipped, want)
+	}
+	if want := []string{"logz-red-nosnap"}; !reflect.DeepEqual(sel.notInSnapshot, want) {
+		t.Errorf("notInSnapshot = %v, want %v", sel.notInSnapshot, want)
+	}
+
+	// includeClosed promotes the closed index to a restore target.
+	sel = selectIndices(indices, inSnap, false, true, nil)
+	if want := []string{"logz-red", "logz-closed"}; !reflect.DeepEqual(sel.toRestore, want) {
+		t.Errorf("toRestore with includeClosed = %v, want %v", sel.toRestore, want)
+	}
+	if len(sel.closedSkipped) != 0 {
+		t.Errorf("closedSkipped with includeClosed = %v, want empty", sel.closedSkipped)
+	}
+}
+
+func TestSelectIndicesAliasMode(t *testing.T) {
+	indices := []cat.CatIndiceResponse{
+		catIdx("logz-green", "green", "open"),
+		catIdx("logz-red", "red", "open"),
+		catIdx("logz-closed", "green", "close"),
+		catIdx("logz-nosnap", "green", "open"),
+	}
+	inSnap := map[string]bool{"logz-green": true, "logz-red": true, "logz-closed": true}
+
+	// includeClosed=false on purpose: alias mode must take closed indices anyway.
+	sel := selectIndices(indices, inSnap, true, false, nil)
+	if want := []string{"logz-green", "logz-red", "logz-closed"}; !reflect.DeepEqual(sel.toRestore, want) {
+		t.Errorf("toRestore = %v, want %v", sel.toRestore, want)
+	}
+	if want := []string{"logz-nosnap"}; !reflect.DeepEqual(sel.notInSnapshot, want) {
+		t.Errorf("notInSnapshot = %v, want %v", sel.notInSnapshot, want)
+	}
+	if len(sel.closedSkipped) != 0 || len(sel.dateExcluded) != 0 {
+		t.Errorf("unexpected closedSkipped=%v dateExcluded=%v", sel.closedSkipped, sel.dateExcluded)
+	}
+}
+
+func TestSelectIndicesDateExclusion(t *testing.T) {
+	indices := []cat.CatIndiceResponse{
+		catIdx("logz-a-260811-000001", "red", "open"),
+		catIdx("logz-a-260812-000001", "red", "open"),
+		catIdx("logz-a-260810-000001", "red", "open"),
+	}
+	inSnap := map[string]bool{
+		"logz-a-260811-000001": true,
+		"logz-a-260812-000001": true,
+		"logz-a-260810-000001": true,
+	}
+	sel := selectIndices(indices, inSnap, true, false, []string{"260811", "260812"})
+	if want := []string{"logz-a-260810-000001"}; !reflect.DeepEqual(sel.toRestore, want) {
+		t.Errorf("toRestore = %v, want %v", sel.toRestore, want)
+	}
+	if want := []string{"logz-a-260811-000001", "logz-a-260812-000001"}; !reflect.DeepEqual(sel.dateExcluded, want) {
+		t.Errorf("dateExcluded = %v, want %v", sel.dateExcluded, want)
 	}
 }
