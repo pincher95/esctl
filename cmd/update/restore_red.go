@@ -322,6 +322,49 @@ func selectIndices(indices []cat.CatIndiceResponse, inSnapshot map[string]bool, 
 	return sel
 }
 
+// buildRestoreRequest assembles the restore body for one batch. replicas < 0
+// and an empty boxType leave the corresponding snapshot settings untouched.
+func buildRestoreRequest(joined string, includeAliases bool, renamePat, renameRepl string, replicas int, boxType string, ignoreSettings []string) snapshots.RestoreSnapshotRequest {
+	req := snapshots.RestoreSnapshotRequest{
+		Indices:                joined,
+		IncludeAliases:         includeAliases,
+		RenameAliasPattern:     renamePat,
+		RenameAliasReplacement: renameRepl,
+		IgnoreIndexSettings:    ignoreSettings,
+	}
+	settings := map[string]any{}
+	if replicas >= 0 {
+		settings["index.number_of_replicas"] = replicas
+	}
+	if boxType != "" {
+		settings["index.routing.allocation.include.box_type"] = boxType
+	}
+	if len(settings) > 0 {
+		req.IndexSettings = settings
+	}
+	return req
+}
+
+// pollPatternFor picks the _cat/indices pattern used while waiting for a
+// batch. Alias mode cannot poll by the alias pattern: once an index is
+// restored with its alias renamed it no longer matches and would look
+// complete while its shards are still restoring, so poll everything and let
+// waitForBatch filter by name.
+func pollPatternFor(aliasMode bool, pattern string) string {
+	if aliasMode {
+		return "*"
+	}
+	return pattern
+}
+
+// validateSelectionFlags enforces that exactly one selection mode is chosen.
+func validateSelectionFlags(pattern, aliasPattern string) error {
+	if (pattern == "") == (aliasPattern == "") {
+		return fmt.Errorf("exactly one of --pattern or --alias-pattern must be provided")
+	}
+	return nil
+}
+
 func init() {
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedRepo, "repository", "", "Snapshot repository (required)")
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedSnapshot, "snapshot", "", "Snapshot name (required)")

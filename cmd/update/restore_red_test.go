@@ -1,7 +1,9 @@
 package update
 
 import (
+	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -126,5 +128,71 @@ func TestSelectIndicesDateExclusion(t *testing.T) {
 	}
 	if want := []string{"logz-a-260811-000001", "logz-a-260812-000001"}; !reflect.DeepEqual(sel.dateExcluded, want) {
 		t.Errorf("dateExcluded = %v, want %v", sel.dateExcluded, want)
+	}
+}
+
+func TestBuildRestoreRequestSettings(t *testing.T) {
+	req := buildRestoreRequest("a,b", true, "logz-(.+)-write-alias", "old-$1-alias",
+		0, "default,ingestion",
+		[]string{"index.routing.allocation.total_shards_per_node", "index.routing.allocation.require._ip"})
+	b, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	s := string(b)
+	for _, want := range []string{
+		`"indices":"a,b"`,
+		`"include_aliases":true`,
+		`"rename_alias_pattern":"logz-(.+)-write-alias"`,
+		`"rename_alias_replacement":"old-$1-alias"`,
+		`"index.number_of_replicas":0`,
+		`"index.routing.allocation.include.box_type":"default,ingestion"`,
+		`"ignore_index_settings":["index.routing.allocation.total_shards_per_node","index.routing.allocation.require._ip"]`,
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("marshaled request missing %s in: %s", want, s)
+		}
+	}
+}
+
+func TestBuildRestoreRequestNoOverrides(t *testing.T) {
+	req := buildRestoreRequest("a", true, "", "", -1, "", nil)
+	if req.IndexSettings != nil {
+		t.Errorf("IndexSettings = %v, want nil", req.IndexSettings)
+	}
+	b, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for _, banned := range []string{"index_settings", "ignore_index_settings"} {
+		if strings.Contains(string(b), banned) {
+			t.Errorf("marshaled request must not contain %q: %s", banned, b)
+		}
+	}
+}
+
+func TestPollPatternFor(t *testing.T) {
+	// Alias mode polls "*": a restored index whose write-alias was renamed no
+	// longer matches the alias pattern and would look complete while red.
+	if got := pollPatternFor(true, "logz-*-write-alias"); got != "*" {
+		t.Errorf("alias mode poll pattern = %q, want *", got)
+	}
+	if got := pollPatternFor(false, "logz-*"); got != "logz-*" {
+		t.Errorf("pattern mode poll pattern = %q, want logz-*", got)
+	}
+}
+
+func TestValidateSelectionFlags(t *testing.T) {
+	if err := validateSelectionFlags("", ""); err == nil {
+		t.Error("expected error when neither flag is set")
+	}
+	if err := validateSelectionFlags("logz-*", "logz-*-write-alias"); err == nil {
+		t.Error("expected error when both flags are set")
+	}
+	if err := validateSelectionFlags("logz-*", ""); err != nil {
+		t.Errorf("pattern only: unexpected error %v", err)
+	}
+	if err := validateSelectionFlags("", "logz-*-write-alias"); err != nil {
+		t.Errorf("alias pattern only: unexpected error %v", err)
 	}
 }
