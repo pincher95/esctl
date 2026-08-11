@@ -255,6 +255,23 @@ func batchStrings(items []string, size int) [][]string {
 	return batches
 }
 
+// dateExclusions returns the yymmdd stamps for now and the next calendar day.
+// Indices carrying these dates are still being written and must not be
+// restored over.
+func dateExclusions(now time.Time) []string {
+	return []string{now.Format("060102"), now.AddDate(0, 0, 1).Format("060102")}
+}
+
+// containsAny reports whether s contains any of the substrings.
+func containsAny(s string, subs []string) bool {
+	for _, sub := range subs {
+		if strings.Contains(s, sub) {
+			return true
+		}
+	}
+	return false
+}
+
 func init() {
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedRepo, "repository", "", "Snapshot repository (required)")
 	updateRestoreRedCmd.Flags().StringVar(&restoreRedSnapshot, "snapshot", "", "Snapshot name (required)")
